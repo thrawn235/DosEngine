@@ -40,7 +40,6 @@ void InputEngine::CheckKeys()
 			}
 		}
 	}
-	fflush(stdin); //testing...
 }
 bool InputEngine::KeyDown(unsigned char scanCode)
 {

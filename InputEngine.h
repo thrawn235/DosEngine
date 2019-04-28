@@ -3,7 +3,6 @@
 
 //c++ includes:
 #include <vector>
-#include <stdio.h>
 
 //djgpp includes:
 #include <sys/nearptr.h>
