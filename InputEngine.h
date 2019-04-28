@@ -6,6 +6,7 @@
 
 //djgpp includes:
 #include <sys/nearptr.h>
+#include <sys/farptr.h>
 #include <dpmi.h>
 #include <go32.h>
 #include <pc.h>
@@ -43,7 +44,7 @@ public:
 	void CheckKeys();
 	bool KeyDown(unsigned char scanCode);
 
-	//clear Bios KeyBuffer
+	void ClearBiosKeyBuffer();
 };
 
 #endif

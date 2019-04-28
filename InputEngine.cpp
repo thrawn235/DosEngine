@@ -40,9 +40,17 @@ void InputEngine::CheckKeys()
 			}
 		}
 	}
+
+	ClearBiosKeyBuffer();
 }
 bool InputEngine::KeyDown(unsigned char scanCode)
 {
 	//
 	return keys[scanCode];
+}
+void InputEngine::ClearBiosKeyBuffer()
+{
+	//set head and tail variables of the Keybuffer in bios to 0
+	_farpokeb(_dos_ds, 0x0041a, 0);
+	_farpokeb(_dos_ds, 0x0041c, 0);
 }
