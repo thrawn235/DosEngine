@@ -79,6 +79,7 @@ public:
 
 	//math trasitions
 	//float Linear();
+	//float Clip();
 };
 
 #endif

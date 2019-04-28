@@ -131,6 +131,9 @@ public:
 	//Palette
 	void SetPaletteColor(unsigned char index, unsigned char r, unsigned char g, unsigned char b);
 	void SetPalette(char* palette, unsigned char numColors);
+	void ChangePaletteBrightness(int delta);
+	void ChangePaletteHue(int deltaR, int deltaG, int deltaB);
+	char* GetPalette();
 	
 	//Graphics Primitives
 	void DrawPixel(Vector2D pos, char color);

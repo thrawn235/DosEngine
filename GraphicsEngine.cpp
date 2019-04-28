@@ -1,5 +1,21 @@
 #include "GraphicsEngine.h"
 
+inline int Clip(int input, int min, int max)
+{
+	if(input >= max)
+	{
+		return max;
+	}
+	else if(input <= min)
+	{
+		return min;
+	}
+	else
+	{
+		return input;
+	}
+}
+
 GraphicsEngine::GraphicsEngine()
 {
 	//seems like there is nothing to do
@@ -415,6 +431,41 @@ void GraphicsEngine::SetPalette(char* palette, unsigned char numColors)
 		index = index + 4;
 	}
 }
+void GraphicsEngine::ChangePaletteBrightness(int delta)
+{
+	char* palette = GetPalette();
+
+	outportb(0x03c8, 0);
+	int index = 0;
+	for(int i = 0; i < 256; i++)
+	{
+		outportb(0x03c9, Clip(palette[index + 2] + delta, 0, 255));
+		outportb(0x03c9, Clip(palette[index + 1] + delta, 0, 255));
+		outportb(0x03c9, Clip(palette[index + 0] + delta, 0, 255));
+		index = index + 4;
+	}
+
+}
+void GraphicsEngine::ChangePaletteHue(int deltaR, int deltaG, int deltaB)
+{
+
+}
+char* GraphicsEngine::GetPalette()
+{
+	char* palette = (char*)malloc(256*4);
+
+	int index = 0;
+	for(int i = 0; i < 256; i++)
+	{
+		outportb(0x03c7, i);
+		palette[index + 2] = inportb(0x03c9);
+		palette[index + 1] = inportb(0x03c9);
+		palette[index + 0] = inportb(0x03c9);
+		index = index +4;
+	}
+
+	return palette;
+}
 
 //Graphics Primitives
 void GraphicsEngine::DrawPixel(Vector2D pos, char color)
@@ -422,7 +473,10 @@ void GraphicsEngine::DrawPixel(Vector2D pos, char color)
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 	//and assembly
-	currentBackBuffer[(int)(pos.y * logicalScreenWidth+ pos.x)] = color;
+	if(pos.x > 0 && pos.y > 0 && pos.x < logicalScreenWidth && pos.y < logicalScreenHeight)
+	{
+		currentBackBuffer[(int)(pos.y * logicalScreenWidth+ pos.x)] = color;
+	}
 }
 void GraphicsEngine::DrawPixel(int x, int y, char color)
 {
@@ -440,63 +494,68 @@ void GraphicsEngine::DrawLine(Vector2D start, Vector2D end, char color)
 {
 	//not by me. method is from brakeen
 	//no boundary checks
-
-	#define sgn(x) ((x<0)?-1:((x>0)?1:0))
-
 	start = start + screenPadding;
 	end = end + screenPadding;
 	start = start - camPos;
 	end = end - camPos;
 
-	int x1 = start.x;
-	int y1 = start.y;
-	int x2 = end.x;
-	int y2 = end.y;
-
-	int i,dx,dy,sdx,sdy,dxabs,dyabs,x,y,px,py;
-
-	dx=x2-x1;      /* the horizontal distance of the line */
-	dy=y2-y1;      /* the vertical distance of the line */
-	dxabs=abs(dx);
-	dyabs=abs(dy);
-	sdx=sgn(dx);
-	sdy=sgn(dy);
-	x=dyabs>>1;
-	y=dxabs>>1;
-	px=x1;
-	py=y1;
-
-	//VGA[(py<<8)+(py<<6)+px]=color;
-	currentBackBuffer[py * logicalScreenWidth + px] = color;
-
-	if (dxabs>=dyabs) /* the line is more horizontal than vertical */
+	if(	start.x > 0 && start.y > 0 && start.x < logicalScreenWidth && start.y < logicalScreenHeight &&
+		end.x > 0 && end.y > 0 && end.x < logicalScreenWidth && end.y < logicalScreenHeight)
 	{
-		for(i=0;i<dxabs;i++)
+		#define sgn(x) ((x<0)?-1:((x>0)?1:0))
+
+		
+
+		int x1 = start.x;
+		int y1 = start.y;
+		int x2 = end.x;
+		int y2 = end.y;
+
+		int i,dx,dy,sdx,sdy,dxabs,dyabs,x,y,px,py;
+
+		dx=x2-x1;      /* the horizontal distance of the line */
+		dy=y2-y1;      /* the vertical distance of the line */
+		dxabs=abs(dx);
+		dyabs=abs(dy);
+		sdx=sgn(dx);
+		sdy=sgn(dy);
+		x=dyabs>>1;
+		y=dxabs>>1;
+		px=x1;
+		py=y1;
+
+		//VGA[(py<<8)+(py<<6)+px]=color;
+		currentBackBuffer[py * logicalScreenWidth + px] = color;
+
+		if (dxabs>=dyabs) /* the line is more horizontal than vertical */
 		{
-			y+=dyabs;
-			if (y>=dxabs)
+			for(i=0;i<dxabs;i++)
 			{
-				y-=dxabs;
-				py+=sdy;
-			}
-			px+=sdx;
-			//plot_pixel(px,py,color);
-			currentBackBuffer[py * logicalScreenWidth + px] = color;
-		}
-	}
-	else /* the line is more vertical than horizontal */
-	{
-		for(i=0;i<dyabs;i++)
-		{
-			x+=dxabs;
-			if (x>=dyabs)
-			{
-				x-=dyabs;
+				y+=dyabs;
+				if (y>=dxabs)
+				{
+					y-=dxabs;
+					py+=sdy;
+				}
 				px+=sdx;
+				//plot_pixel(px,py,color);
+				currentBackBuffer[py * logicalScreenWidth + px] = color;
 			}
-			py+=sdy;
-			//plot_pixel(px,py,color);
-			currentBackBuffer[py * logicalScreenWidth + px] = color;
+		}
+		else /* the line is more vertical than horizontal */
+		{
+			for(i=0;i<dyabs;i++)
+			{
+				x+=dxabs;
+				if (x>=dyabs)
+				{
+					x-=dyabs;
+					px+=sdx;
+				}
+				py+=sdy;
+				//plot_pixel(px,py,color);
+				currentBackBuffer[py * logicalScreenWidth + px] = color;
+			}
 		}
 	}
 }
@@ -505,35 +564,42 @@ void GraphicsEngine::DrawHLine(Vector2D start, int length, char color)
 	//assembly and long pointers could speed it up. probably not worth it though
 	start = start + screenPadding;
 	start = start - camPos;
-	int startAddress = start.y * logicalScreenWidth + start.x;
-	for(int i = 0; i < length; i++)
+	
+	if(	start.x > 0 && start.y > 0 && start.x < logicalScreenWidth && start.y < logicalScreenHeight &&
+		start.x + length > 0 && start.x + length < logicalScreenWidth)
 	{
-		currentBackBuffer[startAddress+i] = color;
+		
+		int startAddress = start.y * logicalScreenWidth + start.x;
+		for(int i = 0; i < length; i++)
+		{
+			currentBackBuffer[startAddress+i] = color;
+		}
 	}
 }
 void GraphicsEngine::DrawVLine(Vector2D start, int length, char color)
 {
 	start = start + screenPadding;
 	start = start - camPos;
-	int startAddress = start.y * logicalScreenWidth + start.x;
-	for(int i = 0; i < length; i++)
+
+	if(	start.x > 0 && start.y > 0 && start.x < logicalScreenWidth && start.y < logicalScreenHeight &&
+		start.y + length > 0 && start.y + length < logicalScreenHeight)
 	{
-		currentBackBuffer[startAddress] = color;
-		startAddress = startAddress + logicalScreenWidth;
+		
+		int startAddress = start.y * logicalScreenWidth + start.x;
+		for(int i = 0; i < length; i++)
+		{
+			currentBackBuffer[startAddress] = color;
+			startAddress = startAddress + logicalScreenWidth;
+		}
 	}
 }
 void GraphicsEngine::DrawRect(Vector2D pos, int width, int height, char color)
 {
-	if(pos.x > 0 && pos.y > 0 && pos.x < logicalScreenWidth && pos.y < logicalScreenHeight)
-	{
-		if(pos.x+width > 0 && pos.y+height > 0 && pos.x+width < logicalScreenWidth && pos.y+height < logicalScreenHeight)
-		{
-			DrawVLine(pos, height+1, color);
-			DrawVLine(Vector2D(pos.x+width, pos.y), height+1, color);
-			DrawHLine(pos, width, color);
-			DrawHLine(Vector2D(pos.x, pos.y+height), width, color);
-		}
-	}
+	//Boundary Checks are done in Line Methods
+	DrawVLine(pos, height+1, color);
+	DrawVLine(Vector2D(pos.x+width, pos.y), height+1, color);
+	DrawHLine(pos, width, color);
+	DrawHLine(Vector2D(pos.x, pos.y+height), width, color);
 }
 void GraphicsEngine::DrawFilledRect(Vector2D pos, int width, int height, char color)
 {
@@ -613,16 +679,20 @@ void GraphicsEngine::DrawCircle(Vector2D pos, int radius, char color)
 	pos = pos - camPos;
 
 	Vector2D startCoord(pos.x - radius, pos.y - radius);
-	for(int x = startCoord.x; x <= startCoord.x + (2*radius); x++)
+	if(	startCoord.x > 0 && startCoord.y > 0 && startCoord.x < logicalScreenWidth && startCoord.y < logicalScreenHeight &&
+		startCoord.x + (2*radius) > 0 && startCoord.y + (2*radius) > 0 && startCoord.x + (2*radius) < logicalScreenWidth && startCoord.y + (2*radius) < logicalScreenHeight)
 	{
-		for(int y = startCoord.y; y <= startCoord.y + (2*radius); y++)
+		for(int x = startCoord.x; x <= startCoord.x + (2*radius); x++)
 		{
-			if((int)pos.DistanceFrom(Vector2D(x,y)) == radius)
+			for(int y = startCoord.y; y <= startCoord.y + (2*radius); y++)
 			{
-				currentBackBuffer[y * logicalScreenWidth + x] = color;
+				if((int)pos.DistanceFrom(Vector2D(x,y)) == radius)
+				{
+					currentBackBuffer[y * logicalScreenWidth + x] = color;
+				}
 			}
-		}
-	} 
+		} 
+	}
 }
 void GraphicsEngine::DrawFilledCircle(Vector2D pos, int radius, char color)
 {
@@ -632,16 +702,20 @@ void GraphicsEngine::DrawFilledCircle(Vector2D pos, int radius, char color)
 	pos = pos - camPos;
 
 	Vector2D startCoord(pos.x - radius, pos.y - radius);
-	for(int x = startCoord.x; x <= startCoord.x + (2*radius); x++)
+	if(	startCoord.x > 0 && startCoord.y > 0 && startCoord.x < logicalScreenWidth && startCoord.y < logicalScreenHeight &&
+		startCoord.x + (2*radius) > 0 && startCoord.y + (2*radius) > 0 && startCoord.x + (2*radius) < logicalScreenWidth && startCoord.y + (2*radius) < logicalScreenHeight)
 	{
-		for(int y = startCoord.y; y <= startCoord.y + (2*radius); y++)
+		for(int x = startCoord.x; x <= startCoord.x + (2*radius); x++)
 		{
-			if((int)pos.DistanceFrom(Vector2D(x,y)) <= radius)
+			for(int y = startCoord.y; y <= startCoord.y + (2*radius); y++)
 			{
-				currentBackBuffer[y * logicalScreenWidth + x] = color;
+				if((int)pos.DistanceFrom(Vector2D(x,y)) <= radius)
+				{
+					currentBackBuffer[y * logicalScreenWidth + x] = color;
+				}
 			}
-		}
-	} 
+		} 
+	}
 }
 void GraphicsEngine::DrawVector(Vector2D pos, Vector2D vec, float scale, unsigned char color)
 {
@@ -773,7 +847,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, Sprite* in)
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 
@@ -801,7 +875,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, Sprite* in, char transparentColor)
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 
@@ -832,7 +906,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, Sprite* in, bool flippedHorizontal
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 
@@ -928,7 +1002,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, Sprite* in, char transparentColor,
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 
@@ -1046,7 +1120,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, int tileSetID, int tileIndex)
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 
@@ -1074,7 +1148,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, int tileSetID, int tileIndex, char
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 
@@ -1107,7 +1181,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, int tileSetID, int tileIndex, bool
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 
@@ -1205,7 +1279,7 @@ void GraphicsEngine::DrawSprite(Vector2D pos, int tileSetID, int tileIndex, char
 	pos = pos + screenPadding;
 	pos = pos - camPos;
 
-	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->width < logicalScreenHeight)
+	if(pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight)
 	{
 		int startAddress = (int)currentBackBuffer + (pos.y * logicalScreenWidth + pos.x);
 

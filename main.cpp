@@ -73,6 +73,8 @@ int main()
 
 	//engine->graphics->FreeBMP(&temp);
 	
+
+
 	bool running = true;
 	while(running)
 	{
@@ -88,7 +90,11 @@ int main()
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +1));
 		if(engine->input->KeyDown(KEY_D))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +1, engine->graphics->GetCamPos().y));
-		
+		if(engine->input->KeyDown(SPACE))
+			engine->graphics->ChangePaletteBrightness(-1);
+		if(engine->input->KeyDown(LCTRL))
+			engine->graphics->ChangePaletteBrightness(+1);
+
 		engine->graphics->ClearScreen(190);
 		engine->graphics->DrawPixel(0,0, 30);
 		engine->graphics->DrawPixel(1,1, 30);
@@ -102,11 +108,11 @@ int main()
 		engine->graphics->DrawLine(Vector2D(0,0), Vector2D(320,200), 67);
 		engine->graphics->DrawLine(Vector2D(0,200), Vector2D(320,0), 67);
 		engine->graphics->DrawCircle(Vector2D(160, 120), 50, 88);
-		engine->graphics->DrawSprite(Vector2D(0,0), &temp2, 16);
+		engine->graphics->DrawSprite(Vector2D(0,0), &temp2);
 		engine->graphics->DrawTileSet(&extract, Vector2D(0,40), 10);
 		engine->graphics->DrawSprite(Vector2D(1,1), &extract.tiles[15]);
 		engine->graphics->PlayAnimation(&anim, Vector2D(30,30));
-		engine->graphics->DrawWindow(Vector2D(50,50), 10, 10, 100, 1,3, 6,8, 2, 4, 0);
+		engine->graphics->DrawWindow(Vector2D(50,50), 15, 20, 100, 1,3, 6,8, 2, 4, 0);
 		engine->graphics->DrawText(Vector2D(60,60), 200, 0, " !\"#$%&'()*+,-./0123456789:;(=)", 16);
 		engine->graphics->DrawText(Vector2D(60,68), 200, 0, " ?@ABCDEFGHIJKLMNO");
 		engine->graphics->DrawText(Vector2D(60,76), 200, 0, "Alright, A proper test then!\n with a return even!!");
