@@ -8,6 +8,8 @@ TimeEngine::TimeEngine()
 
 	//start timer:
 	uclock();
+
+	highestTimeStampID = 0;
 }
 TimeEngine::~TimeEngine()
 {
@@ -63,4 +65,59 @@ int TimeEngine::GetFPS()
 		return 1000 / TicksToMilliSeconds(frameTime) ;
 	}
 	return 0;
+}
+
+//delta
+float TimeEngine::GetDelta()
+{
+	//
+	return TicksToMilliSeconds(frameTime) / 14;
+}
+
+//time stamps:
+int TimeEngine::AddTimeStamp()
+{
+	TimeStamp newTimeStamp;
+	newTimeStamp.id = highestTimeStampID + 1;
+	highestTimeStampID++;
+	newTimeStamp.timeStamp = uclock();
+	timeStamps.push_back(newTimeStamp);
+	return newTimeStamp.id;
+}
+void TimeEngine::RemoveTimeStamp(int id)
+{
+	for(unsigned int i = 0; i < timeStamps.size(); i++)
+	{
+		if(timeStamps[i].id == id)
+		{
+			timeStamps.erase(timeStamps.begin() + i);
+		}
+	}
+}
+uclock_t TimeEngine::GetTimeStamp(int id)
+{
+	for(unsigned int i = 0; i < timeStamps.size(); i++)
+	{
+		if(timeStamps[i].id == id)
+		{
+			return timeStamps[i].timeStamp;
+		}
+	}
+	return 0;
+}
+uclock_t TimeEngine::GetTimeSinceStamp(int id)
+{
+	for(unsigned int i = 0; i < timeStamps.size(); i++)
+	{
+		if(timeStamps[i].id == id)
+		{
+			return uclock() - timeStamps[i].timeStamp;
+		}
+	}
+	return 0;
+}
+void TimeEngine::ClearTimeStamps()
+{
+	//
+	timeStamps.clear();
 }

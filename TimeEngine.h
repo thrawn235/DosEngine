@@ -11,12 +11,22 @@
 
 using namespace std;
 
+struct TimeStamp
+{
+	int id;
+	uclock_t timeStamp;
+};
+
+
 class TimeEngine
 {
 protected:
 	uclock_t frameStart;
 	uclock_t frameEnd;
 	uclock_t frameTime;
+
+	vector<TimeStamp> timeStamps;
+	int highestTimeStampID;
 
 public:
 	TimeEngine();
@@ -35,7 +45,18 @@ public:
 	int TicksToMilliSeconds(uclock_t ticksIn);
 	int TicksToSeconds(uclock_t ticksIn);
 	int GetFPS();
+
+	//delta
+	float GetDelta();
+
+	//time stamps:
+	int AddTimeStamp();
+	void RemoveTimeStamp(int id);
+	uclock_t GetTimeStamp(int id);
+	uclock_t GetTimeSinceStamp(int id);
+	void ClearTimeStamps();
 };
+
 
 
 #endif

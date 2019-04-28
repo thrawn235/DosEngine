@@ -33,6 +33,7 @@ protected:
 public:
 	GraphicsEngine* graphics;
 	TimeEngine* time;
+	//InputEngine *input
 
 public:
 	GameEngine();
@@ -54,6 +55,10 @@ public:
 	void LoadTMXMap();
 	void CreateObjectsFromMap();
 
+	//Random
+	//void InitRandom();
+	//unsigned char NotRandom();
+
 	//Load/Save
 
 	//FindingObjects
@@ -69,6 +74,9 @@ public:
 	void GetObjectsAlongRay(Vector2D origin, Vector2D direction, int typeID);
 	void GetFirstObjectAlongRay(Vector2D origin, Vector2D direction);
 	void GetFirstObjectAlongRay(Vector2D origin, Vector2D direction, int typeID);*/
+
+	//math trasitions
+	//float Linear();
 };
 
 #endif
