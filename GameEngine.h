@@ -19,6 +19,7 @@
 #include "Vector2D.h"
 #include "GraphicsEngine.h"
 #include "TimeEngine.h"
+#include "InputEngine.h"
 
 using namespace std;
 
@@ -33,8 +34,9 @@ protected:
 public:
 	GraphicsEngine* graphics;
 	TimeEngine* time;
-	//InputEngine *input
+	InputEngine *input;
 
+	vector<GameObject*> objects;
 public:
 	GameEngine();
 	~GameEngine();

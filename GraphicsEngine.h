@@ -142,9 +142,11 @@ public:
 	void DrawFilledRect(Vector2D pos, int width, int height, char color);
 	void DrawCircle(Vector2D pos, int radius, char color);
 	void DrawFilledCircle(Vector2D pos, int radius, char color);
+	void DrawVector(Vector2D pos, Vector2D vec, float scale, unsigned char color);
 	void ClearScreen(char color);
 	void Flip(); //Flip or buffer copy
 	void WaitForRetrace();
+
 	
 	//Sprite Methods
 	void DrawSprite(Vector2D pos, Sprite* in);

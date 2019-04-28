@@ -4,7 +4,7 @@ GraphicsEngine::GraphicsEngine()
 {
 	//seems like there is nothing to do
 	screenPadding = 64;
-	__djgpp_nearptr_enable();
+	//__djgpp_nearptr_enable();
 	backBuffer = NULL;
 	screenMemory = NULL;
 	flip = false;
@@ -642,6 +642,22 @@ void GraphicsEngine::DrawFilledCircle(Vector2D pos, int radius, char color)
 			}
 		}
 	} 
+}
+void GraphicsEngine::DrawVector(Vector2D pos, Vector2D vec, float scale, unsigned char color)
+{
+	//Draw Dot at origin
+	DrawPixel(pos.x-1, pos.y-1, color);
+	DrawPixel(pos.x, pos.y-1, color);
+	DrawPixel(pos.x+1, pos.y-1, color);
+	DrawPixel(pos.x-1, pos.y, color);
+	DrawPixel(pos.x, pos.y, color);
+	DrawPixel(pos.x+1, pos.y, color);
+	DrawPixel(pos.x-1, pos.y+1, color);
+	DrawPixel(pos.x, pos.y+1, color);
+	DrawPixel(pos.x+1, pos.y+1, color);
+
+	//Draw Line for Direction
+	DrawLine(pos, (vec * scale)+pos, color);
 }
 void GraphicsEngine::ClearScreen(char color)
 {
@@ -1705,7 +1721,7 @@ void GraphicsEngine::BackToTextMode()
 {
 	//set mode:
 	__dpmi_regs r;
-	r.x.ax = oldMode;
+	r.x.ax = 03;
   	__dpmi_int(0x10, &r);
 }
 void GraphicsEngine::Destroy()

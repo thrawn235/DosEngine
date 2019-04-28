@@ -2,6 +2,7 @@
 #include <conio.h>
 
 #include "GameEngine.h"
+#include "GameObject.h"
 
 using namespace std;
 
@@ -68,11 +69,26 @@ int main()
 	anim.speed = 20;
 	anim.currentSpeedStep = 0;
 
+	GameObject testObject(engine);
+
 	//engine->graphics->FreeBMP(&temp);
 	
-	while(1)
+	bool running = true;
+	while(running)
 	{
 		engine->time->FrameStart();
+		engine->input->CheckKeys();
+		if(engine->input->KeyDown(ESC))
+			running = false;
+		if(engine->input->KeyDown(KEY_W))
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y -1));
+		if(engine->input->KeyDown(KEY_A))
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x -1, engine->graphics->GetCamPos().y));
+		if(engine->input->KeyDown(KEY_S))
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +1));
+		if(engine->input->KeyDown(KEY_D))
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +1, engine->graphics->GetCamPos().y));
+		
 		engine->graphics->ClearScreen(190);
 		engine->graphics->DrawPixel(0,0, 30);
 		engine->graphics->DrawPixel(1,1, 30);
@@ -101,5 +117,7 @@ int main()
 		engine->time->FrameEnd();
 		//getch();
 	}
+	engine->graphics->BackToTextMode();
+	engine->graphics->Destroy();
 	return 0;
 }
