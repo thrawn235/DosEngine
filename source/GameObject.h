@@ -17,6 +17,7 @@
 #include "GraphicsEngine.h"
 #include "TimeEngine.h"
 #include "InputEngine.h"
+#include "GameEngine.h"
 
 //defines:
 #define TYPEGAMEOBJECT 0

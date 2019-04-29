@@ -98,5 +98,5 @@ void GameObject::Update()
 }
 void GameObject::Draw()
 {
-
+	engine->graphics->DrawSprite(pos, tileSetID, tileIndex);
 }

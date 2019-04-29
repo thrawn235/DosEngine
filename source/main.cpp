@@ -70,7 +70,9 @@ int main()
 	anim.currentSpeedStep = 0;
 
 	GameObject testObject(engine);
-
+	testObject.SetTileSetID(100);
+	testObject.SetTileIndex(20);
+	engine->AddObject(&testObject);
 	//engine->graphics->FreeBMP(&temp);
 	
 
@@ -119,6 +121,7 @@ int main()
 		char str[20];
 		sprintf(str, "%d(%d)", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()));
 		engine->graphics->DrawText(Vector2D(0,0), 200, 0, str);
+		engine->DrawAll();
 		engine->graphics->Flip();
 		engine->time->FrameEnd();
 		//getch();
