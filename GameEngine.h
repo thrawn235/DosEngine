@@ -20,11 +20,17 @@
 #include "GraphicsEngine.h"
 #include "TimeEngine.h"
 #include "InputEngine.h"
+#include "GameObject.h"
 
 using namespace std;
 
 
 class GameObject;
+
+struct Map
+{
+
+};
 
 
 class GameEngine
@@ -42,11 +48,13 @@ public:
 	~GameEngine();
 
 	//Set/Get
-	/*GraphicsEngine* GetGraphics();
+	GraphicsEngine* GetGraphics();
 
 	//Object Management
-	void AddObject();
-	void RemoveObject();
+	void AddObject(GameObject* newObject);
+	void RemoveObject(GameObject* in);
+	void RemoveObject(int index);
+	void RemoveObjects(vector<GameObject*> objects);
 	void ClearObjects();
 
 	//MainLoopMethods
@@ -54,8 +62,9 @@ public:
 	void DrawAll();
 
 	//Level
-	void LoadTMXMap();
-	void CreateObjectsFromMap();
+	Map* LoadTMXMap();
+	void CreateObjectsFromMap(Map* in);
+	void CreateObjectsFromMap(Map* in, Vector2D offset);
 
 	//Random
 	//void InitRandom();
@@ -64,22 +73,22 @@ public:
 	//Load/Save
 
 	//FindingObjects
-	void GetAllObjects();
-	void GetAllObjects(int typeID);
-	void GetObjectsAtPos(Vector2D pos);
-	void GetObjectsAtPos(Vector2D pos, int typeID);
-	void GetFirstObjectAtPos(Vector2D pos);
-	void GetFirstObjectAtPos(Vector2D pos, int typeID);
-	void GetObjectsInRadius(Vector2D pos, int radius);
-	void GetObjectsInRadius(Vector2D pos, int radius, int typeID);
-	void GetObjectsAlongRay(Vector2D origin, Vector2D direction);
-	void GetObjectsAlongRay(Vector2D origin, Vector2D direction, int typeID);
-	void GetFirstObjectAlongRay(Vector2D origin, Vector2D direction);
-	void GetFirstObjectAlongRay(Vector2D origin, Vector2D direction, int typeID);*/
+	vector<GameObject*> GetAllObjects();
+	vector<GameObject*> GetAllObjects(int typeID);
+	vector<GameObject*> GetObjectsAtPos(Vector2D pos);
+	vector<GameObject*> GetObjectsAtPos(Vector2D pos, int typeID);
+	GameObject* GetFirstObjectAtPos(Vector2D pos);
+	GameObject* GetFirstObjectAtPos(Vector2D pos, int typeID);
+	vector<GameObject*> GetObjectsInRadius(Vector2D pos, int radius);
+	vector<GameObject*> GetObjectsInRadius(Vector2D pos, int radius, int typeID);
+	vector<GameObject*> GetObjectsAlongRay(Vector2D origin, Vector2D direction);
+	vector<GameObject*> GetObjectsAlongRay(Vector2D origin, Vector2D direction, int typeID);
+	GameObject* GetFirstObjectAlongRay(Vector2D origin, Vector2D direction);
+	GameObject* GetFirstObjectAlongRay(Vector2D origin, Vector2D direction, int typeID);
 
 	//math trasitions
-	//float Linear();
-	//float Clip();
+	float Linear();
+	float Clip(float in, float min, float max);
 };
 
 #endif
