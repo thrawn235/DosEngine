@@ -1,29 +1,31 @@
 CC=i586-pc-msdosdjgpp-g++
 CXXFLAGS=-Wall -O3
+SUBDIR = ./source/
 
-InputEngine.o: InputEngine.h InputEngine.cpp
-	$(CC) -c InputEngine.cpp $(CXXFLAGS)
+$(SUBDIR)InputEngine.o: $(SUBDIR)InputEngine.h $(SUBDIR)InputEngine.cpp
+	$(CC) -c $(SUBDIR)InputEngine.cpp -o $(SUBDIR)InputEngine.o $(CXXFLAGS)
 
-TimeEngine.o: TimeEngine.h TimeEngine.cpp
-	$(CC) -c TimeEngine.cpp $(CXXFLAGS)
+$(SUBDIR)TimeEngine.o: $(SUBDIR)TimeEngine.h $(SUBDIR)TimeEngine.cpp
+	$(CC) -c $(SUBDIR)TimeEngine.cpp -o $(SUBDIR)TimeEngine.o $(CXXFLAGS)
 
-GraphicsEngine.o: GraphicsEngine.h GraphicsEngine.cpp
-	$(CC) -c GraphicsEngine.cpp $(CXXFLAGS)
+$(SUBDIR)GraphicsEngine.o: $(SUBDIR)GraphicsEngine.h $(SUBDIR)GraphicsEngine.cpp
+	$(CC) -c $(SUBDIR)GraphicsEngine.cpp -o $(SUBDIR)GraphicsEngine.o $(CXXFLAGS)
 
-GameEngine.o: GameEngine.h GameEngine.cpp GraphicsEngine.o TimeEngine.o InputEngine.o
-	$(CC) -c GameEngine.cpp $(CXXFLAGS)
+$(SUBDIR)GameEngine.o: $(SUBDIR)GameEngine.h $(SUBDIR)GameEngine.cpp $(SUBDIR)GraphicsEngine.o $(SUBDIR)TimeEngine.o $(SUBDIR)InputEngine.o
+	$(CC) -c $(SUBDIR)GameEngine.cpp -o $(SUBDIR)GameEngine.o $(CXXFLAGS)
 
-GameObject.o: GameObject.h GameObject.cpp GameEngine.o
-	$(CC) -c GameObject.cpp $(CXXFLAGS)
+$(SUBDIR)GameObject.o: $(SUBDIR)GameObject.h $(SUBDIR)GameObject.cpp $(SUBDIR)GameEngine.o
+	$(CC) -c $(SUBDIR)GameObject.cpp  -o $(SUBDIR)GameObject.o $(CXXFLAGS)
 
-main.exe: TimeEngine.o GraphicsEngine.o GameEngine.o InputEngine.o GameObject.o  main.cpp
-	$(CC) main.cpp GraphicsEngine.o TimeEngine.o GameEngine.o InputEngine.o GameObject.o -o main.exe $(CXXFLAGS)
+main.exe: $(SUBDIR)TimeEngine.o $(SUBDIR)GraphicsEngine.o $(SUBDIR)GameEngine.o $(SUBDIR)InputEngine.o $(SUBDIR)GameObject.o  $(SUBDIR)main.cpp
+	$(CC) $(SUBDIR)main.cpp $(SUBDIR)GraphicsEngine.o $(SUBDIR)TimeEngine.o $(SUBDIR)GameEngine.o $(SUBDIR)InputEngine.o $(SUBDIR)GameObject.o -o main.exe $(CXXFLAGS)
 
 .PHONY: all
 all: main.exe
 
 .PHONY: clean
 clean:
-	rm -f *.o
-	rm -f *.gch
-	rm -f *.exe
+	rm -f $(SUBDIR)*.o
+	rm -f $(SUBDIR)*.gch
+	rm -f $(SUBDIR)*.exe
+	rm -f main.exe
