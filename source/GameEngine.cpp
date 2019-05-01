@@ -87,10 +87,21 @@ void GameEngine::DrawAll()
 }
 
 //Level
-Map* GameEngine::LoadTMXMap(const char* filePath)
+TMXMap GameEngine::LoadTMXMap(const char* filePath)
 {
+	/*	The Method loads a tmx file in xml format (no json file etc).
+		It does not do any error checking. Program will crash if File is inconsistent
+		It can only handle square grids. no hex or isometric stuff
+		it doesnt do text or polyline objects
+		it cant handle groups (restructuring in subfunctions would be neccesary)
+		lots of stuff is untested, like files withoud embedded tileset data or empty tilesets
+		Its rather slow too...
+		Use with caution 
+	*/
+
+
 	TMXMap newTMXMap;
-	bool debug = true;
+	bool debug = false;
 
 	char XMLTag[30];
 
@@ -460,7 +471,7 @@ Map* GameEngine::LoadTMXMap(const char* filePath)
 						for(int x = 0; x < newTMXLayer.width; x++)
 						{
 							fscanf(file, "%i,", &newTMXLayer.data[y * newTMXLayer.width + x]);
-							printf("%i,", newTMXLayer.data[y * newTMXLayer.width + x]);
+							//printf("%i,", newTMXLayer.data[y * newTMXLayer.width + x]);
 						}
 						fscanf(file, "\n");
 					}
@@ -747,12 +758,167 @@ Map* GameEngine::LoadTMXMap(const char* filePath)
 							fscanf(file, ">\n");
 						}
 
+						if(strcmp(XMLTag, "point/") == 0)
+						{
+							strcpy(newObject.type, "point");
+							fscanf(file, ">\n");
+						}
+
 
 						//text (complicated to parse...)
 					}
 				}
 			}
 		}
+
+		if(strcmp(XMLTag, "imagelayer") == 0)
+		{
+			TMXImageLayer newImageLayer;
+			//dealing with visible, locked and offsets
+			newImageLayer.visible = true;
+			newImageLayer.offsetX = 0;
+			newImageLayer.offsetY = 0;
+			newImageLayer.opacity = 1;
+
+
+
+			char whitespace = ' ';
+			bool objectEnd = false; //ugly -.-
+			fscanf(file, "%c", &whitespace);
+			while(whitespace != '>')
+			{
+				char name[30];
+
+				fscanf(file, "%[^=]=", name);
+				if(strcmp(name, "id") == 0)
+				{
+					fscanf(file, "\"%i\"", &newImageLayer.id);
+					//printf("id= %i ", newObjectGroup.id);
+				}
+				if(strcmp(name, "name") == 0)
+				{
+					fscanf(file, "\"%[^\"]\"", newImageLayer.name);
+					//printf("name= %s ", newObjectGroup.name);
+				}
+				if(strcmp(name, "visible") == 0)
+				{
+					fscanf(file, "\"%i\"", &newImageLayer.visible);
+					//printf("visible= %i ", newObjectGroup.visible);
+				}
+				if(strcmp(name, "offsetx") == 0)
+				{
+					fscanf(file, "\"%i\"", &newImageLayer.offsetX);
+					//printf("offsetx= %i ", newObjectGroup.offsetX);
+				}
+				if(strcmp(name, "offsety") == 0)
+				{
+					fscanf(file, "\"%i\"", &newImageLayer.offsetY);
+					//printf("offsety= %i ", newObjectGroup.offsetY);
+				}
+				if(strcmp(name, "opacity") == 0)
+				{
+					fscanf(file, "\"%f\"", &newImageLayer.opacity);
+					//printf("offsety= %i ", newObjectGroup.offsetY);
+				}
+				fscanf(file, "%c", &whitespace);
+				if(whitespace == '/')
+				{
+					fscanf(file, "%c", &whitespace);
+					objectEnd = true;
+				}
+				if(debug)
+				{
+					printf("whitespace = %c;", whitespace);
+					//getch();
+				}
+			}
+			fscanf(file, "\n");
+			if(debug)
+			{
+				printf("\n");
+			}
+
+			newTMXMap.imageLayers.push_back(newImageLayer);
+			if(debug)
+			{
+				printf("		id 			= %i \n", newImageLayer.id);
+				printf("		name		= %s \n", newImageLayer.name);
+				printf("		visible		= %i \n", newImageLayer.visible);
+				printf("		offsetX		= %i \n", newImageLayer.offsetX);
+				printf("		offsetY		= %i \n", newImageLayer.offsetY);
+				printf("		opacity		= %f \n", newImageLayer.opacity);
+				getch();
+			}
+
+			while(strcmp(XMLTag, "/imagelayer") != 0 && !objectEnd)
+			{
+				fscanf(file, "<%[^> ]", &XMLTag);
+				if(debug)
+				{
+					printf("		XMLTag= %s \n", XMLTag);
+					getch();
+				}
+
+				if(strcmp(XMLTag, "/imagelayer") == 0)
+				{
+					fscanf(file, ">\n");
+				}
+
+				if(strcmp(XMLTag, "properties") == 0)
+				{
+					fscanf(file, ">\n");
+
+					while(strcmp(XMLTag, "/properties") != 0)
+					{
+						fscanf(file, "<%[^> ]", &XMLTag);
+						if(debug)
+						{
+							printf("			XMLTag= %s \n", XMLTag);
+							getch();
+						}
+
+
+						if(strcmp(XMLTag, "property") == 0)
+						{
+							TMXProperty newProperty;
+							fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
+							if(debug)
+							{
+								printf("				name 	= %s \n", newProperty.name);
+								printf("				type 	= %s \n", newProperty.type);
+								printf("				value 	= %s \n", newProperty.stringValue);
+								getch();
+							}
+							newTMXMap.imageLayers.back().properties.push_back(newProperty);
+						}
+
+						if(strcmp(XMLTag, "/properties") == 0)
+						{
+							fscanf(file, ">\n");
+							//printf("jo");
+						}
+					}
+				}
+
+				if(strcmp(XMLTag, "image") == 0)
+				{
+					TMXImage newImage;
+
+					char format[30];
+					char trans[30];
+				
+					fscanf(file, " source=\"%[^\"]\" width=\"%i\" height=\"%i\"/>\n", newImage.source, &newImage.width, &newImage.height);
+				 	if(debug)
+					{
+						printf("				source 	= %s \n", newImage.source);
+						printf("				width 	= %i \n", newImage.width);
+						printf("				height 	= %i \n", newImage.height);
+						getch();
+					}
+				 	newTMXMap.imageLayers.back().image = newImage;
+				}
+			}
+		}		
 	}
 	fscanf(file, ">\n");
 
@@ -762,12 +928,14 @@ Map* GameEngine::LoadTMXMap(const char* filePath)
 		getch();
 	}
 
+	return newTMXMap;
+
 }
-void GameEngine::CreateObjectsFromMap(Map* in)
+void GameEngine::CreateObjectsFromMap(TMXMap* in)
 {
 
 }
-void GameEngine::CreateObjectsFromMap(Map* in, Vector2D offset)
+void GameEngine::CreateObjectsFromMap(TMXMap* in, Vector2D offset)
 {
 
 }

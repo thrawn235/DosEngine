@@ -29,13 +29,6 @@ using namespace std;
 class GameObject;
 
 
-
-struct Map
-{
-
-};
-
-
 class GameEngine
 {
 protected:
@@ -65,9 +58,9 @@ public:
 	void DrawAll();
 
 	//Level
-	Map* LoadTMXMap(const char* filePath);
-	void CreateObjectsFromMap(Map* in);
-	void CreateObjectsFromMap(Map* in, Vector2D offset);
+	TMXMap LoadTMXMap(const char* filePath);
+	void CreateObjectsFromMap(TMXMap* in);
+	void CreateObjectsFromMap(TMXMap* in, Vector2D offset);
 
 	//Random
 	//void InitRandom();

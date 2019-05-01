@@ -12,7 +12,6 @@ struct TMXProperty
 struct TMXImage
 {
 	char format[30];
-	int id;
 	char source[30];
 	char trans[30];
 	int width, height;
