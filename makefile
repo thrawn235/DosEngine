@@ -11,7 +11,7 @@ $(SUBDIR)TimeEngine.o: $(SUBDIR)TimeEngine.h $(SUBDIR)TimeEngine.cpp
 $(SUBDIR)GraphicsEngine.o: $(SUBDIR)GraphicsEngine.h $(SUBDIR)GraphicsEngine.cpp
 	$(CC) -c $(SUBDIR)GraphicsEngine.cpp -o $(SUBDIR)GraphicsEngine.o $(CXXFLAGS)
 
-$(SUBDIR)GameEngine.o: $(SUBDIR)GameEngine.h $(SUBDIR)GameEngine.cpp $(SUBDIR)GraphicsEngine.o $(SUBDIR)TimeEngine.o $(SUBDIR)InputEngine.o $(SUBDIR)GameObject.o
+$(SUBDIR)GameEngine.o: $(SUBDIR)GameEngine.h $(SUBDIR)GameEngine.cpp $(SUBDIR)TimeEngine.o $(SUBDIR)InputEngine.o $(SUBDIR)GameObject.o
 	$(CC) -c $(SUBDIR)GameEngine.cpp -o $(SUBDIR)GameEngine.o $(CXXFLAGS)
 
 $(SUBDIR)GameObject.o: $(SUBDIR)GameObject.h $(SUBDIR)GameObject.cpp $(SUBDIR)GameEngine.o

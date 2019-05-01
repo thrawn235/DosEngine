@@ -622,6 +622,7 @@ Map* GameEngine::LoadTMXMap(const char* filePath)
 
 					char whitespace = ' ';
 					fscanf(file, "%c", &whitespace);
+					bool objectEnd = false; //ugly -.-
 					while(whitespace != '>')
 					{
 						char name[30];
@@ -660,6 +661,11 @@ Map* GameEngine::LoadTMXMap(const char* filePath)
 							fscanf(file, "\"%f\"", &newObject.rotation);
 						}
 						fscanf(file, "%c", &whitespace);
+						if(whitespace == '/')
+						{
+							fscanf(file, "%c", &whitespace);
+							objectEnd = true;
+						}
 						if(debug)
 						{
 							printf("whitespace = %c;", whitespace);
@@ -685,7 +691,7 @@ Map* GameEngine::LoadTMXMap(const char* filePath)
 						getch();
 					}
 
-					while(strcmp(XMLTag, "/object") != 0)
+					while(strcmp(XMLTag, "/object") != 0 && !objectEnd)
 					{
 						fscanf(file, "<%[^> ]", &XMLTag);
 						if(debug)
