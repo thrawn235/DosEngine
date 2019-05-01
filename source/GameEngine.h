@@ -65,7 +65,7 @@ public:
 	void DrawAll();
 
 	//Level
-	Map* LoadTMXMap();
+	Map* LoadTMXMap(const char* filePath);
 	void CreateObjectsFromMap(Map* in);
 	void CreateObjectsFromMap(Map* in, Vector2D offset);
 

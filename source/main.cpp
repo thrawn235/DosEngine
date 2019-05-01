@@ -11,10 +11,11 @@ int main()
 	//TimeEngine time;
 	GameEngine* engine = new GameEngine;
 
-	GraphicsEngine graphics;
-	engine->graphics->SetGraphicsMode(0x13);
+	//engine->graphics->SetGraphicsMode(0x13);
+
+	engine->LoadTMXMap("./levels/tstcmplx.tmx");
 	
-	BMP temp;
+	/*BMP temp;
 	temp = engine->graphics->LoadBMP("/gfx/idbanner.bmp");
 	engine->graphics->SetPalette(temp.colorTable, temp.DIBHeader.numColors);
 	
@@ -42,12 +43,12 @@ int main()
 	TileSet tileSetTest1;
 	tileSetTest1 = engine->graphics->NewEmptyTileSet(0, 30, 30);
 
-	engine->graphics->AddTileSet(tileSetTest1);
+	engine->graphics->AddTileSet(tileSetTest1);*/
 
 	//TileSet* ptiles;
 	//ptiles = engine->graphics->GetTileSet(0);
 
-	engine->graphics->AddTile(0, temp3);
+	/*engine->graphics->AddTile(0, temp3);
 	engine->graphics->AddTile(0, temp3);
 	engine->graphics->AddTile(0, temp3);
 	engine->graphics->AddTile(0, temp3);
@@ -73,11 +74,11 @@ int main()
 	testObject.SetTileSetID(100);
 	testObject.SetTileIndex(20);
 	engine->AddObject(&testObject);
-	//engine->graphics->FreeBMP(&temp);
+	//engine->graphics->FreeBMP(&temp);*/
 	
 
 
-	bool running = true;
+	/*bool running = true;
 	while(running)
 	{
 		engine->time->FrameStart();
@@ -127,6 +128,8 @@ int main()
 		//getch();
 	}
 	engine->graphics->BackToTextMode();
-	engine->graphics->Destroy();
+	engine->graphics->Destroy();*/
+
+
 	return 0;
 }
