@@ -61,6 +61,10 @@ public:
 	TMXMap LoadTMXMap(const char* filePath);
 	void CreateObjectsFromMap(TMXMap* in);
 	void CreateObjectsFromMap(TMXMap* in, Vector2D offset);
+	int GetTypeID(TMXMap* in, int mapValue, int firstGID);
+	int GetTileSetID(TMXMap* in, int mapValue);
+	int GetTileID(TMXMap* in, int mapValue, int tileSetID);
+	int GetFirstGid(TMXMap* in, int tileSetID);
 
 	//Random
 	//void InitRandom();

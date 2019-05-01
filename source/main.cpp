@@ -13,7 +13,13 @@ int main()
 
 	//engine->graphics->SetGraphicsMode(0x13);
 
-	engine->LoadTMXMap("./levels/tstcmplx.tmx");
+	TMXMap testMap = engine->LoadTMXMap("./levels/tst2.tmx");
+
+	printf("mapData = %i \n", testMap.layers[0].data[60]);
+	printf("tileSetID = %i", engine->GetTileSetID(&testMap, testMap.layers[0].data[0]));
+	//printf("tileID    = %i", engine->GetTileID(&testMap, int mapValue, int tileSetID));
+	//printf("firstGID  = %i", engine->GetFirstGid(&testMap* in, int tileSetID));
+	//printf("typeID    = %i", engine->GetTypeID(&testMap* in, int mapValue, int firstGID));
 	
 	/*BMP temp;
 	temp = engine->graphics->LoadBMP("/gfx/idbanner.bmp");
