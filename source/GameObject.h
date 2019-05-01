@@ -61,6 +61,7 @@ public:
 	void SetTileSetID(int newTileSetID);
 	void SetTileIndex(int newTileIndex);
 	void SetDrawOrder(int newDrawOrder);
+	void SetDimensions(int newWidth, int newHeight);
 
 	//Main Loop Methods:
 	virtual void Update();

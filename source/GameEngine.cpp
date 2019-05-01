@@ -81,6 +81,7 @@ void GameEngine::DrawAll()
 			{
 				drawObjects[i]->Draw();
 				drawObjects.erase(drawObjects.begin() + i); //remove Objects from draw list. It has been drawn already
+				i--; //change i bc remove changes all the indices...
 			}
 		}
 	}
@@ -936,28 +937,26 @@ TMXMap GameEngine::LoadTMXMap(const char* filePath)
 	}
 
 	return newTMXMap;
-
 }
 int GameEngine::GetFirstGid(TMXMap* in, int tileSetID)
 {
 	//
 	return in->tileSets[tileSetID].firstGID;
 }
-int GameEngine::GetTypeID(TMXMap* in, int mapValue, int firstGID)
+int GameEngine::GetTypeID(TMXMap* in, int mapValue, int tileSetID)
 {
-	mapValue = mapValue - firstGID;
-	for(unsigned int i = 0; i < in->tileSets.size(); i++)
+	mapValue = mapValue - GetFirstGid(in, tileSetID);
+
+	for(unsigned int u = 0; u < in->tileSets[tileSetID].tiles.size(); u++)
 	{
-		for(unsigned int u = 0; u < in->tileSets[i].tiles.size(); u++)
+		if(in->tileSets[tileSetID].tiles[u].id == mapValue)
 		{
-			if(in->tileSets[i].tiles[u].id == mapValue)
+			
+			for(unsigned int iProperty = 0; iProperty < in->tileSets[tileSetID].tiles[u].properties.size(); iProperty++)
 			{
-				for(unsigned int iProperty = 0; iProperty < in->tileSets[i].tiles[u].properties.size(); iProperty++)
+				if(strcmp(in->tileSets[tileSetID].tiles[u].properties[iProperty].name, "typeID") == 0)
 				{
-					if(in->tileSets[i].tiles[u].properties[iProperty].name == "typeID")
-					{
-						return in->tileSets[i].tiles[u].properties[iProperty].intValue;
-					}
+					return in->tileSets[tileSetID].tiles[u].properties[iProperty].intValue;
 				}
 			}
 		}
@@ -968,7 +967,7 @@ int GameEngine::GetTileSetID(TMXMap* in, int mapValue)
 {
 	for(unsigned int i = 0; i < in->tileSets.size(); i++)
 	{
-		if(in->tileSets[i].firstGID >= mapValue)
+		if(in->tileSets[i].firstGID - mapValue <= 0)
 		{
 			return i;
 		}
@@ -986,7 +985,6 @@ void GameEngine::CreateObjectsFromMap(TMXMap* in)
 }
 void GameEngine::CreateObjectsFromMap(TMXMap* in, Vector2D offset)
 {
-	
 	/*unsigned int width, height;
 	unsigned int tileWidth, tileHeight;
 	vector<TMXTileSet> tileSets;
@@ -995,24 +993,43 @@ void GameEngine::CreateObjectsFromMap(TMXMap* in, Vector2D offset)
 
 	for(int i = 0; i < in->layers.size(); i++)
 	{
-		int currentLayer = i;
-
 		for(int y = 0; y < in->layers[i].height; y++)
 		{
 			for(int x = 0; x < in->layers[i].width; x++)
 			{
-				GameObject* newObject;
+				GameObject* newObject = NULL;
 
 				int mapValue = in->layers[i].data[y * in->layers[i].width + x];
 				
-				//int typeID = GetTypeID();
-				//int tileSetID = GetTileSetID();
-				//int tileID = GetTileID();
+				int tileSetID = GetTileSetID(in, mapValue);
+				int typeID = GetTypeID(in, mapValue, tileSetID);
+				int tileID = GetTileID(in, mapValue, tileSetID);
+				int tileHeight = in->tileSets[tileSetID].tileHeight;
+				int tileWidth = in->tileSets[tileSetID].tileWidth;
 				
 				Vector2D newPos;
-				newPos.x = x * in->layers[i].width + in->layers[i].offsetX;
-				newPos.y = y * in->layers[i].height + in->layers[i].offsetY;
+				newPos.x = (x * tileWidth) + in->layers[i].offsetX;
+				newPos.y = (y * tileHeight) + in->layers[i].offsetY;
 				newPos = newPos + offset;	//additional offset from paramteer list
+
+				//printf("O %i:%i:%i tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, tileSetID, tileID, typeID, newPos.x, newPos.y);
+				//getch();
+
+				if(1) //placeholder
+				{
+					newObject = new GameObject(this);
+					newObject->SetTypeID(typeID);
+					newObject->SetPos(newPos);
+					newObject->SetDimensions(in->layers[i].width, in->layers[i].height);
+					newObject->SetTileSetID(tileSetID);
+					newObject->SetTileIndex(tileID);
+					newObject->SetDrawOrder(i);
+				}
+
+				if(newObject != NULL)
+				{
+					AddObject(newObject);
+				}
 			}
 		}
 	}

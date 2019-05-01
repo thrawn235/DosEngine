@@ -90,6 +90,11 @@ void GameObject::SetDrawOrder(int newDrawOrder)
 	//
 	drawOrder = newDrawOrder;
 }
+void GameObject::SetDimensions(int newWidth, int newHeight)
+{
+	width = newWidth;
+	height = newHeight;
+}
 
 //Main Loop Methods:
 void GameObject::Update()
