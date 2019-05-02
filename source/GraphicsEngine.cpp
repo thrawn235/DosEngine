@@ -293,6 +293,7 @@ BMP GraphicsEngine::LoadBMP(const char* filePath)
 		//file succesfully opend...
 
 		BMP bmp;
+		strcpy(bmp.source,filePath);
 		//reading BMP header
 		fread(&bmp.fileHeader, sizeof(bmp.fileHeader), 1, file);
 
@@ -389,6 +390,7 @@ Sprite GraphicsEngine::BMPToSprite(BMP* in, int id)
 	newSprite.width = in->DIBHeader.width;
 	newSprite.height = in->DIBHeader.height;
 	newSprite.pixelData = (char*)malloc(in->DIBHeader.bitmapSize);
+	strcpy(newSprite.source, in->source);
 	
 	//bmps are stored upside down!!
 	//going to correct it for sprites
@@ -1447,7 +1449,6 @@ TileSet GraphicsEngine::NewEmptyTileSet(int newID, int tileWidth, int tileHeight
 {
 	TileSet newTileSet;
 	newTileSet.id = newID;
-	newTileSet.source = NULL;
 	newTileSet.tileWidth = tileWidth; //just a guess. not reliable
 	newTileSet.tileHeight = tileHeight; //just a guess. not reliable
 
@@ -1457,9 +1458,9 @@ TileSet GraphicsEngine::ExtractTileSet(int newID, Sprite* in, Vector2D startPos,
 {
 	TileSet newTileSet;
 	newTileSet.id = newID;
-	newTileSet.source = NULL;
 	newTileSet.tileWidth = tileWidth;
 	newTileSet.tileHeight = tileHeight;
+	strcpy(newTileSet.source, in->source);
 
 	for(int y = 0; y < numTilesVertical; y++)
 	{

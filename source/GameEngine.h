@@ -53,7 +53,7 @@ class GameEngine
 protected:
 
 public:
-	GraphicsEngine* 	graphics;
+	GraphicsEngine*		graphics;
 	TimeEngine* 		time;
 	InputEngine*		input;
 

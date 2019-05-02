@@ -1,6 +1,21 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//	GameObject.h
+//
+//	by Sebastian Gurlin
+//
+//	Description:
+//	All The Drawing Functions for Primitives and Sprites
+//	It also saves tilesets and loads bitmap files
+//
+///////////////////////////////////////////////////////////////////////////////////////
+
+
 #ifndef GRAPHICSENGINE
 #define GRAPHICSENGINE
 
+
+//================== includes ==========================
 //c++ includes:
 #include <vector>
 #include <stdio.h>
@@ -17,6 +32,7 @@
 
 //own includes:
 #include "Vector2D.h"
+//=======================================================
 
 using namespace std;
 
@@ -46,6 +62,7 @@ struct BMPDIBHeader
 
 struct BMP
 {
+	char source[30];
 	BMPFileHEader fileHeader;
 	BMPDIBHeader DIBHeader;
 	char extraBitMasks[16];
@@ -60,11 +77,12 @@ struct Sprite
 	int id;
 	int width, height;
 	char* pixelData;
+	char source[30];
 };
 struct TileSet
 {
 	int id;
-	char* source;
+	char source[30];
 	int tileWidth, tileHeight;
 	vector<Sprite> tiles;
 };

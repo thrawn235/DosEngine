@@ -30,18 +30,18 @@ using namespace std;
 int main()
 {
 	//======================= Init ===============================
-	GameEngine* engine = new GameEngine;						//create GameEngine
+	GameEngine* engine = new GameEngine;							//create GameEngine
 
-	TMXMap testMap = engine->LoadTMXMap("./levels/tst2.tmx");	//Load Map
-	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));		//crrate Objects
+	TMXMap testMap = engine->LoadTMXMap("./levels/tstcmplx.tmx");	//Load Map
+	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));			//crrate Objects
 
 
-	engine->graphics->SetGraphicsMode(0x13);					//enter Grphics Mode
+	engine->graphics->SetGraphicsMode(0x13);						//enter Grphics Mode
 
 		
 	//-------------------- Loading Sprites and Tiles ------------------------
 	BMP bmp = engine->graphics->LoadBMP("./gfx/k1tiles.bmp");
-	engine->graphics->SetPalette(bmp.colorTable, 16);
+	//engine->graphics->SetPalette(bmp.colorTable, 16);
 	Sprite sprite = engine->graphics->BMPToSprite(&bmp, 0);
 	engine->graphics->FreeBMP(&bmp);
 
@@ -55,11 +55,20 @@ int main()
 
 	TileSet k2Tiles = engine->graphics->ExtractTileSet(1, &sprite, Vector2D(0,0), 16, 16, 13, 53);
 	engine->graphics->AddTileSet(k2Tiles);
+
+
+	bmp = engine->graphics->LoadBMP("./gfx/txtwhite.bmp");
+	engine->graphics->SetPalette(bmp.colorTable, 17);
+	sprite = engine->graphics->BMPToSprite(&bmp, 3);
+	engine->graphics->FreeBMP(&bmp);
+
+	TileSet txtwhite = engine->graphics->ExtractTileSet(200, &sprite, Vector2D(0,0), 8, 8, 16, 6);
+	engine->graphics->AddTileSet(txtwhite);
 	//---------------------------------------------------------------------
 	
 
 	//------------- test Object ------------------
-	GameObject* testObject;
+	/*GameObject* testObject;
 	testObject = new GameObject(engine);
 	testObject->SetTypeID		(0);
 	//newObject->SetPos 		(ne);
@@ -67,7 +76,7 @@ int main()
 	testObject->SetTileSetID 	(1);
 	testObject->SetTileIndex 	(1);
 	testObject->SetDrawOrder 	(1);
-	engine->AddObject(testObject);
+	engine->AddObject(testObject);*/
 	//--------------------------------------------
 	//============================================================
 
@@ -99,13 +108,13 @@ int main()
 
 		engine->graphics->ClearScreen(190);
 
+
 		engine->DrawAll();	//draw all Objects (that are handled by the GameEngine)
 
 
-
-		/*char str[20];
+		char str[20];
 		sprintf(str, "%d(%d)", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()));
-		engine->graphics->DrawText(Vector2D(0,0), 200, 0, str);*/
+		engine->graphics->DrawText(Vector2D(0,0), 200, 0, str);
 		
 		engine->graphics->Flip();	//copy Backbuffer to Screen
 

@@ -101,7 +101,7 @@ void GameEngine::DrawAll()
 {
 	vector<GameObject*> drawObjects = objects;
 	
-	for( int drawOrder = 0; drawOrder < 64; drawOrder++ )
+	/*for( int drawOrder = 0; drawOrder < 64; drawOrder++ )
 	{
 		for( unsigned int i = 0; i < drawObjects.size(); i++ )
 		{
@@ -112,6 +112,11 @@ void GameEngine::DrawAll()
 				i--; //change i bc remove changes all the indices...
 			}
 		}
+	}*/
+
+	for(int i = 0; i < drawObjects.size(); i++)
+	{
+		drawObjects[i]->Draw();
 	}
 }
 //==========================================================
@@ -1164,7 +1169,7 @@ float GameEngine::Clip( float in, float min, float max )
 	{
 		return min;
 	}
-	
+
 	return in;
 }
 //==========================================================
