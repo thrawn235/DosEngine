@@ -1,56 +1,82 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//	GameEngine.cpp
+//
+//	by Sebastian Gurlin
+//
+//	Description:
+//	Memberfunctions of the GameEngine class
+//	see GameEngine.h
+//
+///////////////////////////////////////////////////////////////////////////////////////
+
+
 #include "GameEngine.h"
+
+
 
 GameEngine::GameEngine()
 {
 	__djgpp_nearptr_enable();
-	graphics = new GraphicsEngine;
-	time = new TimeEngine;
-	input = new InputEngine;
+
+	graphics 	= new GraphicsEngine;
+	time 		= new TimeEngine;
+	input 		= new InputEngine;
 }
 GameEngine::~GameEngine()
 {
-	//
 	//nothing to do yet
 	//later add Destroy methods
+	//
 }
 
-//Set/Get
+//====================== Set/Get ===========================
 GraphicsEngine* GameEngine::GetGraphics()
 {
 	//
 	return graphics;
 }
+//==========================================================
 
-//Object Management
-void GameEngine::AddObject(GameObject* newObject)
+
+//================= Object Management=======================
+void GameEngine::AddObject( GameObject* newObject )
 {
-	//
-	objects.push_back(newObject);
-}
-void GameEngine::RemoveObject(GameObject* in)
-{
-	for(unsigned int i = 0; i < objects.size(); i++)
+	if( newObject != NULL )
 	{
-		if(objects[i] == in)
+		objects.push_back( newObject );
+	}
+}
+void GameEngine::RemoveObject( GameObject* in )
+{
+	if( in != NULL )
+	{
+		for( unsigned int i = 0; i < objects.size(); i++ )
 		{
-			objects.erase(objects.begin() + i);
+			if( objects[i] == in )
+			{
+				objects.erase( objects.begin() + i );
+			}
 		}
 	}
 }
-void GameEngine::RemoveObject(int i)
+void GameEngine::RemoveObject( int i )
 {
-	//
-	objects.erase(objects.begin() + i);
-}
-void GameEngine::RemoveObjects(vector<GameObject*> inObjects)
-{
-	for(unsigned int u = 0; u < inObjects.size(); u++)
+	if( i >= 0 && i < objects.size() )
 	{
-		for(unsigned int i = 0; i < objects.size(); i++)
+		objects.erase( objects.begin() + i );
+	}
+}
+void GameEngine::RemoveObjects( vector<GameObject*> inObjects )
+{
+	for( unsigned int u = 0; u < inObjects.size(); u++ )
+	{
+		for( unsigned int i = 0; i < objects.size(); i++ )
 		{
-			if(objects[i] == inObjects[u])
+			if( objects[i] == inObjects[u] )
 			{
-				objects.erase(objects.begin() + i);
+				objects.erase( objects.begin() + i );
+				i--;
 			}
 		}
 	}
@@ -60,11 +86,13 @@ void GameEngine::ClearObjects()
 	//iterate through all objects and call Destroy first!
 	objects.clear();
 }
+//==========================================================
 
-//MainLoopMethods
+
+//================ MainLoop Methods ========================
 void GameEngine::UpdateAll()
 {
-	for(unsigned int i = 0; i < objects.size(); i++)
+	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		objects[i]->Update();
 	}
@@ -73,22 +101,24 @@ void GameEngine::DrawAll()
 {
 	vector<GameObject*> drawObjects = objects;
 	
-	for(int drawOrder = 0; drawOrder < 64; drawOrder++)
+	for( int drawOrder = 0; drawOrder < 64; drawOrder++ )
 	{
-		for(unsigned int i = 0; i < drawObjects.size(); i++)
+		for( unsigned int i = 0; i < drawObjects.size(); i++ )
 		{
-			if(drawOrder == drawObjects[i]->GetDrawOrder())
+			if( drawOrder == drawObjects[i]->GetDrawOrder() )
 			{
 				drawObjects[i]->Draw();
-				drawObjects.erase(drawObjects.begin() + i); //remove Objects from draw list. It has been drawn already
+				drawObjects.erase( drawObjects.begin() + i ); //remove Objects from draw list. It has been drawn already
 				i--; //change i bc remove changes all the indices...
 			}
 		}
 	}
 }
+//==========================================================
 
-//Level
-TMXMap GameEngine::LoadTMXMap(const char* filePath)
+
+//==================== Level Methods =======================
+TMXMap GameEngine::LoadTMXMap( const char* filePath )
 {
 	/*	The Method loads a tmx file in xml format (no json file etc).
 		It does not do any error checking. Program will crash if File is inconsistent
@@ -102,181 +132,186 @@ TMXMap GameEngine::LoadTMXMap(const char* filePath)
 
 
 	TMXMap newTMXMap;
+
 	bool debug = false;
 
 	char XMLTag[30];
 
 	//open File, read only (txt mode)
-	FILE* file = fopen(filePath, "r");
+	FILE* file = fopen( filePath, "r" );
 
 	//read XML Data
-	fscanf(file, "<?xml version=\"%f\" encoding=\"%[^\"]\"?>\n", &newTMXMap.XMLVersion, newTMXMap.encoding);
+	fscanf( file, "<?xml version=\"%f\" encoding=\"%[^\"]\"?>\n", &newTMXMap.XMLVersion, newTMXMap.encoding );
 	if(debug)
 	{
-		printf("xml version= %f \n", newTMXMap.XMLVersion);
-		printf("xml encoding= %s \n", newTMXMap.encoding);
+		printf( "xml version 	= %f \n", newTMXMap.XMLVersion 	);
+		printf( "xml encoding 	= %s \n", newTMXMap.encoding 	);
 		getch();
 	}
 
 	//read map data:
-	fscanf(file, "<%[^> ]", &XMLTag);
-	if(debug)
-		printf("XMLTag= %s \n", XMLTag);
-
-	fscanf(file, " version=\"%f\" tiledversion=\"%[^\"]\" orientation=\"%[^\"]\" renderorder=\"%[^\"]\" width=\"%i\" height=\"%i\" tilewidth=\"%i\" tileheight=\"%i\" infinite=\"%i\" nextlayerid=\"%i\" nextobjectid=\"%i\">\n", 
-	       &newTMXMap.version, newTMXMap.tiledVersion, newTMXMap.orientation, newTMXMap.renderOrder, &newTMXMap.width, &newTMXMap.height, &newTMXMap.tileWidth, &newTMXMap.tileHeight, &newTMXMap.infinite, &newTMXMap.nextLayerID, &newTMXMap.nextObjectID);
-
-	if(debug)
+	fscanf( file, "<%[^> ]", &XMLTag );
+	if( debug )
 	{
-		printf("version 	= %f \n", newTMXMap.version);
-		printf("tiledVersion= %s \n", newTMXMap.tiledVersion);
-		printf("orientation = %s \n", newTMXMap.orientation);
-		printf("renderOrder = %s \n", newTMXMap.renderOrder);
-		printf("width 		= %i \n", newTMXMap.width);
-		printf("height 		= %i \n", newTMXMap.height);
-		printf("tileWidth 	= %i \n", newTMXMap.tileWidth);
-		printf("tileheight 	= %i \n", newTMXMap.tileHeight);
-		printf("infinite 	= %i \n", newTMXMap.infinite);
-		printf("nextLayerID = %i \n", newTMXMap.nextLayerID);
-		printf("nextObjectID= %i \n", newTMXMap.nextObjectID);
+		printf( "XMLTag= %s \n", XMLTag );
+	}
+
+	fscanf(	file, " version=\"%f\" tiledversion=\"%[^\"]\" orientation=\"%[^\"]\" renderorder=\"%[^\"]\" width=\"%i\" height=\"%i\" tilewidth=\"%i\" tileheight=\"%i\" infinite=\"%i\" nextlayerid=\"%i\" nextobjectid=\"%i\">\n", 
+	       	&newTMXMap.version, newTMXMap.tiledVersion, newTMXMap.orientation, newTMXMap.renderOrder, &newTMXMap.width, &newTMXMap.height, &newTMXMap.tileWidth, &newTMXMap.tileHeight, &newTMXMap.infinite, &newTMXMap.nextLayerID, &newTMXMap.nextObjectID );
+
+	if( debug )
+	{
+		printf( "version 		= %f \n", newTMXMap.version 		);
+		printf( "tiledVersion 	= %s \n", newTMXMap.tiledVersion 	);
+		printf( "orientation 	= %s \n", newTMXMap.orientation 	);
+		printf( "renderOrder 	= %s \n", newTMXMap.renderOrder 	);
+		printf( "width 			= %i \n", newTMXMap.width 			);
+		printf( "height 		= %i \n", newTMXMap.height 			);
+		printf( "tileWidth 		= %i \n", newTMXMap.tileWidth 		);
+		printf( "tileheight 	= %i \n", newTMXMap.tileHeight 		);
+		printf( "infinite 		= %i \n", newTMXMap.infinite		);
+		printf( "nextLayerID 	= %i \n", newTMXMap.nextLayerID 	);
+		printf( "nextObjectID 	= %i \n", newTMXMap.nextObjectID 	);
 		getch();
 	}
 
-	while(strcmp(XMLTag, "/map") != 0)
+
+	while( strcmp( XMLTag, "/map" ) != 0 )
 	{
-		fscanf(file, "<%[^> ]", &XMLTag);
-		if(debug)
-			printf("	XMLTag= %s \n", XMLTag);
-
-
-		if(strcmp(XMLTag, "properties") == 0)
+		fscanf( file, "<%[^> ]", &XMLTag );
+		if( debug )
 		{
-			fscanf(file, ">\n");
+			printf( "	XMLTag= %s \n", XMLTag );
+		}
 
-			while(strcmp(XMLTag, "/properties") != 0)
+
+		if( strcmp( XMLTag, "properties" ) == 0 )
+		{
+			fscanf( file, ">\n" );
+
+			while( strcmp( XMLTag, "/properties" ) != 0 )
 			{
-				fscanf(file, "<%[^> ]", &XMLTag);
-				if(debug)
+				fscanf( file, "<%[^> ]", &XMLTag );
+				if( debug )
 				{
-					printf("		XMLTag= %s \n", XMLTag);
+					printf( "		XMLTag= %s \n", XMLTag );
 					getch();
 				}
 
 
-				if(strcmp(XMLTag, "property") == 0)
+				if( strcmp( XMLTag, "property" ) == 0 )
 				{
 					TMXProperty newProperty;
-					fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
-					newTMXMap.properties.push_back(newProperty);
-					if(debug)
+					fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
+					newTMXMap.properties.push_back( newProperty );
+					if( debug )
 					{
-						printf("			name 	= %s \n", newTMXMap.properties.back().name);
-						printf("			type 	= %s \n", newTMXMap.properties.back().type);
-						printf("			value 	= %s \n", newTMXMap.properties.back().stringValue);
+						printf( "			name 	= %s \n", newTMXMap.properties.back().name			);
+						printf( "			type 	= %s \n", newTMXMap.properties.back().type 			);
+						printf( "			value 	= %s \n", newTMXMap.properties.back().stringValue 	);
 						getch();
 					}
 					
 				}
 
-				if(strcmp(XMLTag, "/properties") == 0)
+				if(strcmp( XMLTag, "/properties" ) == 0 )
 				{
 					fscanf(file, ">\n");
-					//printf("jo");
 				}
 			}
 		}
-		if(strcmp(XMLTag, "tileset") == 0)
+		if( strcmp(XMLTag, "tileset") == 0 )
 		{
 			TMXTileSet newTileSet;
-			fscanf(file, " firstgid=\"%i\" name=\"%[^\"]\" tilewidth=\"%i\" tileheight=\"%i\" tilecount=\"%i\" columns=\"%i\">\n", &newTileSet.firstGID, newTileSet.name, &newTileSet.tileHeight, &newTileSet.tileWidth, &newTileSet.tileCount, &newTileSet.columns);
-			fscanf(file, "<image source=\"%[^\"]\" width=\"%i\" height=\"%i\"/>\n", &newTileSet.source, &newTileSet.sourceHeight, &newTileSet.sourceWidth);
+			fscanf( file, " firstgid=\"%i\" name=\"%[^\"]\" tilewidth=\"%i\" tileheight=\"%i\" tilecount=\"%i\" columns=\"%i\">\n", &newTileSet.firstGID, newTileSet.name, &newTileSet.tileHeight, &newTileSet.tileWidth, &newTileSet.tileCount, &newTileSet.columns );
+			fscanf( file, "<image source=\"%[^\"]\" width=\"%i\" height=\"%i\"/>\n", &newTileSet.source, &newTileSet.sourceHeight, &newTileSet.sourceWidth );
 			newTMXMap.tileSets.push_back(newTileSet);
 
 			if(debug)
 			{
-				printf("		firtGD 			= %i \n", newTMXMap.tileSets.back().firstGID);
-				printf("		name 			= %s \n", newTMXMap.tileSets.back().name);
-				printf("		tileWidth 		= %i \n", newTMXMap.tileSets.back().tileHeight);
-				printf("		tileHeight 		= %i \n", newTMXMap.tileSets.back().tileWidth);
-				printf("		tileCount 		= %i \n", newTMXMap.tileSets.back().tileCount);
-				printf("		columns 		= %i \n", newTMXMap.tileSets.back().columns);
-				printf("		source 			= %s \n", newTMXMap.tileSets.back().source);
-				printf("		sourceWidth 	= %i \n", newTMXMap.tileSets.back().sourceWidth);
-				printf("		sourceHeight 	= %i \n", newTMXMap.tileSets.back().sourceHeight);
+				printf( "		firtGD 			= %i \n", newTMXMap.tileSets.back().firstGID 		);
+				printf( "		name 			= %s \n", newTMXMap.tileSets.back().name 			);
+				printf( "		tileWidth 		= %i \n", newTMXMap.tileSets.back().tileHeight 		);
+				printf( "		tileHeight 		= %i \n", newTMXMap.tileSets.back().tileWidth 		);
+				printf( "		tileCount 		= %i \n", newTMXMap.tileSets.back().tileCount 		);
+				printf( "		columns 		= %i \n", newTMXMap.tileSets.back().columns 		);
+				printf( "		source 			= %s \n", newTMXMap.tileSets.back().source 			);
+				printf( "		sourceWidth 	= %i \n", newTMXMap.tileSets.back().sourceWidth 	);
+				printf( "		sourceHeight 	= %i \n", newTMXMap.tileSets.back().sourceHeight 	);
 				getch();
 			}
 
-			while(strcmp(XMLTag, "/tileset") != 0)
+			while( strcmp(XMLTag, "/tileset") != 0 )
 			{
-				fscanf(file, "<%[^> ]", &XMLTag);
-				if(debug)
+				fscanf( file, "<%[^> ]", &XMLTag );
+				if( debug )
 				{
-					printf("		XMLTag= %s \n", XMLTag);
+					printf( "		XMLTag= %s \n", XMLTag );
 					//getch();
 				}
 
-				if(strcmp(XMLTag, "/tileset") == 0)
+				if( strcmp( XMLTag, "/tileset" ) == 0 )
 				{
-					fscanf(file, ">\n");
+					fscanf( file, ">\n" );
 				}
 
-				if(strcmp(XMLTag, "tile") == 0)
+				if( strcmp( XMLTag, "tile" ) == 0 )
 				{
 					TMXTile newTile;
-					fscanf(file, " id=\"%i\">\n", &newTile.id);
-					newTMXMap.tileSets.back().tiles.push_back(newTile);
-					if(debug)
+					fscanf( file, " id=\"%i\">\n", &newTile.id );
+					newTMXMap.tileSets.back().tiles.push_back( newTile );
+					if( debug )
 					{
-						printf("			tileID= %i \n", newTile.id);
+						printf( "			tileID= %i \n", newTile.id );
 						//getch();
 					}
 
-					while(strcmp(XMLTag, "/tile") != 0)
+					while( strcmp( XMLTag, "/tile" ) != 0 )
 					{
-						fscanf(file, "<%[^> ]", &XMLTag);
-						if(debug)
+						fscanf( file, "<%[^> ]", &XMLTag );
+						if( debug )
 						{
-							printf("			XMLTag= %s \n", XMLTag);
+							printf( "			XMLTag= %s \n", XMLTag );
 							//getch();
 						}
 
-						if(strcmp(XMLTag, "/tile") == 0)
+						if( strcmp( XMLTag, "/tile" ) == 0 )
 						{
-							fscanf(file, ">\n");
+							fscanf( file, ">\n" );
 						}
 
-						if(strcmp(XMLTag, "properties") == 0)
+						if( strcmp( XMLTag, "properties" ) == 0 )
 						{
-							fscanf(file, ">\n");
+							fscanf( file, ">\n" );
 
-							while(strcmp(XMLTag, "/properties") != 0)
+							while( strcmp( XMLTag, "/properties" ) != 0 )
 							{
-								fscanf(file, "<%[^> ]", &XMLTag);
-								if(debug)
+								fscanf( file, "<%[^> ]", &XMLTag );
+								if( debug )
 								{
-									printf("				XMLTag= %s \n", XMLTag);
+									printf( "				XMLTag= %s \n", XMLTag );
 									//getch();
 								}
 
 
-								if(strcmp(XMLTag, "property") == 0)
+								if( strcmp( XMLTag, "property" ) == 0 )
 								{
 									TMXProperty newProperty;
-									fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
-									newTMXMap.tileSets.back().tiles.back().properties.push_back(newProperty);
+									fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
+									newTMXMap.tileSets.back().tiles.back().properties.push_back( newProperty );
 									if(debug)
 									{
-										printf("					name 	= %s \n", newTMXMap.tileSets.back().tiles.back().properties.back().name);
-										printf("					type 	= %s \n", newTMXMap.tileSets.back().tiles.back().properties.back().type);
-										printf("					value 	= %s \n", newTMXMap.tileSets.back().tiles.back().properties.back().stringValue);
+										printf( "					name 	= %s \n", newTMXMap.tileSets.back().tiles.back().properties.back().name 		);
+										printf( "					type 	= %s \n", newTMXMap.tileSets.back().tiles.back().properties.back().type 		);
+										printf( "					value 	= %s \n", newTMXMap.tileSets.back().tiles.back().properties.back().stringValue 	);
 										//getch();
 									}
 									
 								}
 
-								if(strcmp(XMLTag, "/properties") == 0)
+								if( strcmp( XMLTag, "/properties" ) == 0 )
 								{
-									fscanf(file, ">\n");
+									fscanf( file, ">\n" );
 									//printf("jo");
 								}
 							}
@@ -285,131 +320,130 @@ TMXMap GameEngine::LoadTMXMap(const char* filePath)
 				}
 
 
-
-				if(strcmp(XMLTag, "properties") == 0)
+				if( strcmp( XMLTag, "properties" ) == 0 )
 				{
-					fscanf(file, ">\n");
+					fscanf( file, ">\n" );
 
-					while(strcmp(XMLTag, "/properties") != 0)
+					while( strcmp( XMLTag, "/properties" ) != 0 )
 					{
-						fscanf(file, "<%[^> ]", &XMLTag);
-						if(debug)
+						fscanf( file, "<%[^> ]", &XMLTag );
+						if( debug )
 						{
-							printf("		XMLTag= %s \n", XMLTag);
+							printf( "		XMLTag= %s \n", XMLTag );
 							getch();
 						}
 
 
-						if(strcmp(XMLTag, "property") == 0)
+						if( strcmp( XMLTag, "property" ) == 0 )
 						{
 							TMXProperty newProperty;
-							fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
-							newTMXMap.tileSets.back().properties.push_back(newProperty);
+							fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
+							newTMXMap.tileSets.back().properties.push_back( newProperty );
 							if(debug)
 							{
-								printf("			name 	= %s \n", newTMXMap.tileSets.back().properties.back().name);
-								printf("			type 	= %s \n", newTMXMap.tileSets.back().properties.back().type);
-								printf("			value 	= %s \n", newTMXMap.tileSets.back().properties.back().stringValue);
+								printf( "			name 	= %s \n", newTMXMap.tileSets.back().properties.back().name 			);
+								printf( "			type 	= %s \n", newTMXMap.tileSets.back().properties.back().type 			);
+								printf( "			value 	= %s \n", newTMXMap.tileSets.back().properties.back().stringValue 	);
 								getch();
 							}
 							
 						}
 
-						if(strcmp(XMLTag, "/properties") == 0)
+						if( strcmp( XMLTag, "/properties" ) == 0 )
 						{
-							fscanf(file, ">\n");
-							//printf("jo");
+							fscanf( file, ">\n" );
 						}
 					}
 				}
 			}
 		}
 
-		if(strcmp(XMLTag, "layer") == 0)
+		if( strcmp( XMLTag, "layer" ) == 0 )
 		{
 			TMXLayer newTMXLayer;
 			//fscanf(file, " id=\"%i\" name=\"%[^\"]\" width=\"%i\" height=\"%i\">\n", &newTMXLayer.id, newTMXLayer.name, &newTMXLayer.width, &newTMXLayer.height);
 			
 			//dealing with visible, locked and offsets
-			newTMXLayer.visible = true;
-			newTMXLayer.locked = false;
-			newTMXLayer.offsetX = 0;
-			newTMXLayer.offsetY = 0;
+			newTMXLayer.visible 	= true;
+			newTMXLayer.locked 		= false;
+			newTMXLayer.offsetX 	= 0;
+			newTMXLayer.offsetY 	= 0;
+
 			char whitespace = ' ';
-			fscanf(file, "%c", &whitespace);
-			while(whitespace != '>')
+			fscanf( file, "%c", &whitespace );
+			while( whitespace != '>' )
 			{
 				char name[30];
 
-				fscanf(file, "%[^=]=", name);
-				if(strcmp(name, "id") == 0)
+				fscanf( file, "%[^=]=", name );
+				if( strcmp( name, "id" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newTMXLayer.id);
+					fscanf( file, "\"%i\"", &newTMXLayer.id );
 					//printf("id= %i ", newTMXLayer.id);
 				}
-				if(strcmp(name, "name") == 0)
+				if( strcmp( name, "name" ) == 0 )
 				{
-					fscanf(file, "\"%[^\"]\"", newTMXLayer.name);
+					fscanf( file, "\"%[^\"]\"", newTMXLayer.name );
 					//printf("name= %s ", newTMXLayer.name);
 				}
-				if(strcmp(name, "width") == 0)
+				if( strcmp( name, "width" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newTMXLayer.width);
+					fscanf( file, "\"%i\"", &newTMXLayer.width );
 					//printf("width= %i ", newTMXLayer.width);
 				}
-				if(strcmp(name, "height") == 0)
+				if( strcmp( name, "height" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newTMXLayer.height);
+					fscanf( file, "\"%i\"", &newTMXLayer.height );
 					//printf("height= %i ", newTMXLayer.height);
 				}
-				if(strcmp(name, "visible") == 0)
+				if( strcmp( name, "visible" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newTMXLayer.visible);
+					fscanf( file, "\"%i\"", &newTMXLayer.visible );
 					//printf("visible= %i ", newTMXLayer.visible);
 				}
-				if(strcmp(name, "locked") == 0)
+				if( strcmp( name, "locked" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newTMXLayer.locked);
+					fscanf( file, "\"%i\"", &newTMXLayer.locked );
 					//printf("locked= %i ", newTMXLayer.locked);
 				}
-				if(strcmp(name, "offsetx") == 0)
+				if( strcmp( name, "offsetx") == 0 )
 				{
-					fscanf(file, "\"%i\"", &newTMXLayer.offsetX);
+					fscanf( file, "\"%i\"", &newTMXLayer.offsetX );
 					//printf("offsetx= %i ", newTMXLayer.offsetX);
 				}
-				if(strcmp(name, "offsety") == 0)
+				if( strcmp( name, "offsety" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newTMXLayer.offsetY);
+					fscanf( file, "\"%i\"", &newTMXLayer.offsetY );
 					//printf("offsety= %i ", newTMXLayer.offsetY);
 				}
-				fscanf(file, "%c", &whitespace);
-				if(debug)
+				fscanf( file, "%c", &whitespace );
+				if( debug )
 				{
-					printf("whitespace = %c;", whitespace);
+					printf( "whitespace = %c;", whitespace );
 					//getch();
 				}
 			}
-			fscanf(file, "\n");
-			if(debug)
+			fscanf( file, "\n" );
+			if( debug )
 			{
-				printf("\n");
+				printf( "\n" );
 			}
 
-			newTMXMap.layers.push_back(newTMXLayer);
-			if(debug)
+			newTMXMap.layers.push_back( newTMXLayer );
+			if( debug )
 			{
-				printf("		id 			= %i \n", newTMXMap.layers.back().id);
-				printf("		name		= %s \n", newTMXMap.layers.back().name);
-				printf("		Width 		= %i \n", newTMXMap.layers.back().width);
-				printf("		Height 		= %i \n", newTMXMap.layers.back().height);
-				printf("		visible		= %i \n", newTMXMap.layers.back().visible);
-				printf("		locked		= %i \n", newTMXMap.layers.back().locked);
-				printf("		offsetX		= %i \n", newTMXMap.layers.back().offsetX);
-				printf("		offsetY		= %i \n", newTMXMap.layers.back().offsetY);
+				printf( "		id 			= %i \n", newTMXMap.layers.back().id 		);
+				printf( "		name		= %s \n", newTMXMap.layers.back().name 		);
+				printf( "		Width 		= %i \n", newTMXMap.layers.back().width 	);
+				printf( "		Height 		= %i \n", newTMXMap.layers.back().height 	);
+				printf( "		visible		= %i \n", newTMXMap.layers.back().visible 	);
+				printf( "		locked		= %i \n", newTMXMap.layers.back().locked 	);
+				printf( "		offsetX		= %i \n", newTMXMap.layers.back().offsetX 	);
+				printf( "		offsetY		= %i \n", newTMXMap.layers.back().offsetY 	);
 				getch();
 			}
 
-			while(strcmp(XMLTag, "/layer") != 0)
+			while( strcmp( XMLTag, "/layer" ) != 0 )
 			{
 
 				fscanf(file, "<%[^> ]", &XMLTag);
@@ -938,52 +972,53 @@ TMXMap GameEngine::LoadTMXMap(const char* filePath)
 
 	return newTMXMap;
 }
-int GameEngine::GetFirstGid(TMXMap* in, int tileSetID)
+int GameEngine::GetFirstGid( TMXMap* in, int tileSetID )
 {
-	//
 	return in->tileSets[tileSetID].firstGID;
+	//
 }
-int GameEngine::GetTypeID(TMXMap* in, int mapValue, int tileSetID)
+int GameEngine::GetTypeID( TMXMap* in, int mapValue, int tileSetID )
 {
-	mapValue = mapValue - GetFirstGid(in, tileSetID);
+	mapValue = mapValue - GetFirstGid( in, tileSetID );
 
-	for(unsigned int u = 0; u < in->tileSets[tileSetID].tiles.size(); u++)
+	for( unsigned int u = 0; u < in->tileSets[tileSetID].tiles.size(); u++ )
 	{
-		if(in->tileSets[tileSetID].tiles[u].id == mapValue)
+		if( in->tileSets[tileSetID].tiles[u].id == mapValue )
 		{
-			
-			for(unsigned int iProperty = 0; iProperty < in->tileSets[tileSetID].tiles[u].properties.size(); iProperty++)
+			for( unsigned int iProperty = 0; iProperty < in->tileSets[tileSetID].tiles[u].properties.size(); iProperty++ )
 			{
-				if(strcmp(in->tileSets[tileSetID].tiles[u].properties[iProperty].name, "typeID") == 0)
+				if( strcmp( in->tileSets[tileSetID].tiles[u].properties[iProperty].name, "typeID" ) == 0 )
 				{
 					return in->tileSets[tileSetID].tiles[u].properties[iProperty].intValue;
 				}
 			}
 		}
 	}
+
 	return 0;
 }
-int GameEngine::GetTileSetID(TMXMap* in, int mapValue)
+int GameEngine::GetTileSetID( TMXMap* in, int mapValue )
 {
-	for(unsigned int i = 0; i < in->tileSets.size(); i++)
+	for( unsigned int i = 0; i < in->tileSets.size(); i++ )
 	{
-		if(in->tileSets[i].firstGID - mapValue <= 0)
+		if( in->tileSets[i].firstGID - mapValue <= 0 )
 		{
 			return i;
 		}
 	}
+
 	return 0;
 }
-int GameEngine::GetTileID(TMXMap* in, int mapValue, int tileSetID)
+int GameEngine::GetTileID( TMXMap* in, int mapValue, int tileSetID )
 {
-	//
 	return mapValue - GetFirstGid(in, tileSetID);
+	//
 }
-void GameEngine::CreateObjectsFromMap(TMXMap* in)
+void GameEngine::CreateObjectsFromMap( TMXMap* in )
 {
 
 }
-void GameEngine::CreateObjectsFromMap(TMXMap* in, Vector2D offset)
+void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 {
 	/*unsigned int width, height;
 	unsigned int tileWidth, tileHeight;
@@ -991,59 +1026,61 @@ void GameEngine::CreateObjectsFromMap(TMXMap* in, Vector2D offset)
 	vector<TMXLayer> layers;
 	vector<TMXObjectGroup> objectGroups;*/
 
-	for(int i = 0; i < in->layers.size(); i++)
+	for( int i = 0; i < in->layers.size(); i++ )
 	{
-		for(int y = 0; y < in->layers[i].height; y++)
+		for( int y = 0; y < in->layers[i].height; y++ )
 		{
-			for(int x = 0; x < in->layers[i].width; x++)
+			for( int x = 0; x < in->layers[i].width; x++ )
 			{
 				GameObject* newObject = NULL;
 
 				int mapValue = in->layers[i].data[y * in->layers[i].width + x];
 				
-				int tileSetID = GetTileSetID(in, mapValue);
-				int typeID = GetTypeID(in, mapValue, tileSetID);
-				int tileID = GetTileID(in, mapValue, tileSetID);
-				int tileHeight = in->tileSets[tileSetID].tileHeight;
-				int tileWidth = in->tileSets[tileSetID].tileWidth;
+				int tileSetID 	= GetTileSetID( in, mapValue );
+				int typeID 		= GetTypeID( in, mapValue, tileSetID );
+				int tileID 		= GetTileID( in, mapValue, tileSetID );
+				int tileHeight 	= in->tileSets[tileSetID].tileHeight;
+				int tileWidth 	= in->tileSets[tileSetID].tileWidth;
 				
 				Vector2D newPos;
-				newPos.x = (x * tileWidth) + in->layers[i].offsetX;
-				newPos.y = (y * tileHeight) + in->layers[i].offsetY;
-				newPos = newPos + offset;	//additional offset from paramteer list
+				newPos.x 	= ( x * tileWidth ) + in->layers[i].offsetX;
+				newPos.y 	= ( y * tileHeight ) + in->layers[i].offsetY;
+				newPos 		= newPos + offset;	//additional offset from paramteer list
 
 				//printf("O %i:%i:%i tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, tileSetID, tileID, typeID, newPos.x, newPos.y);
 				//getch();
 
-				if(1) //placeholder
+				if( 1 ) //placeholder
 				{
-					newObject = new GameObject(this);
-					newObject->SetTypeID(typeID);
-					newObject->SetPos(newPos);
-					newObject->SetDimensions(in->layers[i].width, in->layers[i].height);
-					newObject->SetTileSetID(tileSetID);
-					newObject->SetTileIndex(tileID);
-					newObject->SetDrawOrder(i);
+					newObject = new GameObject( this );
+					newObject->SetTypeID	( typeID );
+					newObject->SetPos		( newPos );
+					newObject->SetDimensions( in->layers[i].width, in->layers[i].height );
+					newObject->SetTileSetID	( tileSetID );
+					newObject->SetTileIndex	( tileID );
+					newObject->SetDrawOrder	( i );
 				}
 
-				if(newObject != NULL)
+				if( newObject != NULL )
 				{
-					AddObject(newObject);
+					AddObject( newObject );
 				}
 			}
 		}
 	}
 
-	/*for(int i = 0; i < in->objectGroups.size(); i++)
+	/*for( int i = 0; i < in->objectGroups.size(); i++ )
 	{
-		for(int u = 0; u < in->objectGroups[i].objects.size(); u++)
+		for( int u = 0; u < in->objectGroups[i].objects.size(); u++ )
 		{
 			int mapValue = in->objectGroups[i].objects[u];
 		}
 	}*/
 }
+//==========================================================
 
-//Random
+
+//======================= Random ===========================
 /*void GameEngine::InitRandom()
 {
 
@@ -1052,73 +1089,82 @@ unsigned char GameEngine::NotRandom()
 {
 
 }*/
+//==========================================================
 
-//Load/Save
 
-//FindingObjects
+
+//======================= Load/Save ========================
+//==========================================================
+
+
+//=================== FindingObjects =======================
 vector<GameObject*> GameEngine::GetAllObjects()
 {
 
 }
-vector<GameObject*> GameEngine::GetAllObjects(int typeID)
+vector<GameObject*> GameEngine::GetAllObjects( int typeID )
 {
 
 }
-vector<GameObject*> GameEngine::GetObjectsAtPos(Vector2D pos)
+vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos )
 {
 
 }
-vector<GameObject*> GameEngine::GetObjectsAtPos(Vector2D pos, int typeID)
+vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos, int typeID )
 {
 
 }
-GameObject* GameEngine::GetFirstObjectAtPos(Vector2D pos)
+GameObject* GameEngine::GetFirstObjectAtPos( Vector2D pos )
 {
 
 }
-GameObject* GameEngine::GetFirstObjectAtPos(Vector2D pos, int typeID)
+GameObject* GameEngine::GetFirstObjectAtPos( Vector2D pos, int typeID )
 {
 
 }
-vector<GameObject*> GameEngine::GetObjectsInRadius(Vector2D pos, int radius)
+vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius )
 {
 
 }
-vector<GameObject*> GameEngine::GetObjectsInRadius(Vector2D pos, int radius, int typeID)
+vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius, int typeID )
 {
 
 }
-vector<GameObject*> GameEngine::GetObjectsAlongRay(Vector2D origin, Vector2D direction)
+vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D direction )
 {
 
 }
-vector<GameObject*> GameEngine::GetObjectsAlongRay(Vector2D origin, Vector2D direction, int typeID)
+vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D direction, int typeID )
 {
 
 }
-GameObject* GameEngine::GetFirstObjectAlongRay(Vector2D origin, Vector2D direction)
+GameObject* GameEngine::GetFirstObjectAlongRay( Vector2D origin, Vector2D direction )
 {
 
 }
-GameObject* GameEngine::GetFirstObjectAlongRay(Vector2D origin, Vector2D direction, int typeID)
+GameObject* GameEngine::GetFirstObjectAlongRay( Vector2D origin, Vector2D direction, int typeID )
 {
 
 }
+//==========================================================
 
-//math trasitions
+
+//==================== math trasitions =====================
 float GameEngine::Linear()
 {
 
 }
-float GameEngine::Clip(float in, float min, float max)
+float GameEngine::Clip( float in, float min, float max )
 {
-	if(in >= max)
+	if( in >= max )
 	{
 		return max;
 	}
-	if(in <= min)
+	if( in <= min )
 	{
 		return min;
 	}
+	
 	return in;
 }
+//==========================================================

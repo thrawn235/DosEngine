@@ -1,6 +1,27 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//	GameObject.h
+//
+//	by Sebastian Gurlin
+//
+//	Description:
+//	GameObject is the Base class, of which all other Objects are derived from
+//	players, enemies, walls, etc. are all children of this
+//	it contains basic functionlity that can be called by all children
+//	methods can also be overwritten, or ignored
+//
+//	Important functionality:
+//	movement and collision
+//	basic Drawing of itself
+//
+///////////////////////////////////////////////////////////////////////////////////////
+
+
 #ifndef GAMEOBJECT
 #define GAMEOBJECT
 
+
+//================== includes ==========================
 //c++ includes:
 #include <vector>
 #include <stdio.h>
@@ -11,42 +32,48 @@
 
 //djgpp includes:
 
-
 //own includes:
 #include "Vector2D.h"
 #include "GraphicsEngine.h"
 #include "TimeEngine.h"
 #include "InputEngine.h"
 #include "GameEngine.h"
+//=======================================================
 
-//defines:
+
+//================== defines: ===========================
 #define TYPEGAMEOBJECT 0
+//=======================================================
 
-class GameEngine;
 
 using namespace std;
 
-//SuperObject and Base Class
-//It can be showm, and it can move. So it has a position, direction sprite etc.
-//It can handle collision and movement, and it has dimensions (for the engine tu query)
+
+//============== forward declarations ==================
+class GameEngine;
+//======================================================
+
+
+
 class GameObject
 {
 protected:
-	int typeID;
-	Vector2D pos, direction;
-	int width, height;
-	int tileSetID, tileIndex;
-	int drawOrder;
+	int 		typeID;
+	Vector2D 	pos, direction;
+	int 		width, height;
+	int 		tileSetID, tileIndex;
+	int 		drawOrder;
 
 	GameEngine* engine;
 
 	bool onFloor;
+
 	vector<GameObject*> touchingObjects;
 public:
 	GameObject(GameEngine* newEngine);
 	~GameObject();
 
-	//Set / Get
+	//============ Set / Get =================
 	int GetTypeID();
 	Vector2D GetPos();
 	Vector2D GetDirection();
@@ -62,11 +89,14 @@ public:
 	void SetTileIndex(int newTileIndex);
 	void SetDrawOrder(int newDrawOrder);
 	void SetDimensions(int newWidth, int newHeight);
+	//======================================
 
-	//Main Loop Methods:
+
+	//======= Main Loop Methods: ===========
 	virtual void Update();
 	virtual void Draw();
-
+	//=====================================
+	
 
 	/*AddForce //Gravity
 	AddForce //Movement

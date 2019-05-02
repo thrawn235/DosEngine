@@ -1,32 +1,45 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//	main.cpp
+//
+//	by Sebastian Gurlin
+//
+//	Description:
+//	main function. entry point of the Program
+//	it will possibly contain the mainloop, file loading etc
+//	its also possible all that will move to a GameEngine mothod ad one time
+//
+///////////////////////////////////////////////////////////////////////////////////////
+
+
+//================== includes ==========================
+//c++ includes:
 #include <iostream>
 #include <conio.h>
 
+//own includes:
 #include "GameEngine.h"
 #include "GameObject.h"
+//=======================================================
+
 
 using namespace std;
 
+
+
 int main()
 {
-	//TimeEngine time;
-	GameEngine* engine = new GameEngine;
+	//======================= Init ===============================
+	GameEngine* engine = new GameEngine;						//create GameEngine
 
-	TMXMap testMap = engine->LoadTMXMap("./levels/tst2.tmx");
+	TMXMap testMap = engine->LoadTMXMap("./levels/tst2.tmx");	//Load Map
+	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));		//crrate Objects
 
-	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));
 
+	engine->graphics->SetGraphicsMode(0x13);					//enter Grphics Mode
 
-	engine->graphics->SetGraphicsMode(0x13);
-
-	
-
-	/*printf("mapData = %i \n", testMap.layers[0].data[99]);
-	printf("tileSetID = %i \n", engine->GetTileSetID(&testMap, testMap.layers[0].data[99]));
-	printf("firstGID  = %i \n", engine->GetFirstGid(&testMap, 0));
-	printf("tileID    = %i \n", engine->GetTileID(&testMap, 384, 0));
-	printf("typeID    = %i", engine->GetTypeID(&testMap, 612, 1));*/
-	
-	
+		
+	//-------------------- Loading Sprites and Tiles ------------------------
 	BMP bmp = engine->graphics->LoadBMP("./gfx/k1tiles.bmp");
 	engine->graphics->SetPalette(bmp.colorTable, 16);
 	Sprite sprite = engine->graphics->BMPToSprite(&bmp, 0);
@@ -42,26 +55,32 @@ int main()
 
 	TileSet k2Tiles = engine->graphics->ExtractTileSet(1, &sprite, Vector2D(0,0), 16, 16, 13, 53);
 	engine->graphics->AddTileSet(k2Tiles);
-
-
+	//---------------------------------------------------------------------
 	
 
+	//------------- test Object ------------------
 	GameObject* testObject;
 	testObject = new GameObject(engine);
-	testObject->SetTypeID(0);
-	//newObject->SetPos(ne);
-	testObject->SetDimensions(16,16);
-	testObject->SetTileSetID(1);
-	testObject->SetTileIndex(1);
-	testObject->SetDrawOrder(1);
+	testObject->SetTypeID		(0);
+	//newObject->SetPos 		(ne);
+	testObject->SetDimensions 	(16,16);
+	testObject->SetTileSetID 	(1);
+	testObject->SetTileIndex 	(1);
+	testObject->SetDrawOrder 	(1);
 	engine->AddObject(testObject);
+	//--------------------------------------------
+	//============================================================
 
 
+	//========================== Main Loop ======================================
 	bool running = true;
 	while(running)
 	{
-		engine->time->FrameStart();
-		engine->input->CheckKeys();
+		engine->time->FrameStart();		//init Frametiming
+
+		engine->input->CheckKeys();		//check keyboard
+
+		//------------------------ input -----------------------------
 		if(engine->input->KeyDown(ESC))
 			running = false;
 		if(engine->input->KeyDown(KEY_W))
@@ -76,10 +95,11 @@ int main()
 			engine->graphics->ChangePaletteBrightness(-1);
 		if(engine->input->KeyDown(LCTRL))
 			engine->graphics->ChangePaletteBrightness(+1);
+		//-----------------------------------------------------------
 
 		engine->graphics->ClearScreen(190);
 
-		engine->DrawAll();
+		engine->DrawAll();	//draw all Objects (that are handled by the GameEngine)
 
 
 
@@ -87,12 +107,17 @@ int main()
 		sprintf(str, "%d(%d)", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()));
 		engine->graphics->DrawText(Vector2D(0,0), 200, 0, str);*/
 		
-		engine->graphics->Flip();
-		engine->time->FrameEnd();
+		engine->graphics->Flip();	//copy Backbuffer to Screen
+
+		engine->time->FrameEnd();	//get Frametime
 	}
+	//======================================================================
+
+
+	//======================= cleanup and shutdown =========================
 	engine->graphics->BackToTextMode();
 	engine->graphics->Destroy();
-
+	//======================================================================
 
 	return 0;
 }
