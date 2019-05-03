@@ -16,7 +16,7 @@
 
 GameObject::GameObject( GameEngine* newEngine )
 {
-	typeID 		= TYPEGAMEOBJECT; //0
+	typeID 		= TYPE_GAME_OBJECT; //0
 	width 		= 16; //just a guess reset later
 	height 		= 16; //just a guess reset later
 	tileSetID 	= 0; //default
@@ -72,6 +72,16 @@ bool GameObject::IsOnFloor()
 vector<GameObject*> GameObject::GetTouchingObjects()
 {
 	return touchingObjects;
+	//
+}
+int GameObject::GetWidth()
+{
+	return width;
+	//
+}
+int GameObject::GetHeight()
+{
+	return height;
 	//
 }
 void GameObject::SetTypeID( int newTypeID )
@@ -146,3 +156,63 @@ void GameObject::Draw()
 	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
 }
 //============================================
+
+
+
+
+
+
+
+//========== Player =============
+Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID 		= TYPE_PLAYER; //0
+}
+Player::~Player()
+{
+
+}
+
+
+
+
+
+
+//========== Solid =============
+Solid::Solid( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID 		= TYPE_SOLID; //0
+}
+Solid::~Solid()
+{
+
+}
+
+
+
+
+//========== SolitTop =============
+SolidTop::SolidTop( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID 		= TYPE_SOLID_TOP; //0
+}
+SolidTop::~SolidTop()
+{
+
+}
+
+
+
+
+//========== BackGround =============
+BackGround::BackGround( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID 		= TYPE_BACK_GROUND; //0
+}
+BackGround::~BackGround()
+{
+
+}
+
+
+

@@ -32,7 +32,7 @@ int main()
 	//======================= Init ===============================
 	GameEngine* engine = new GameEngine;							//create GameEngine
 
-	TMXMap testMap = engine->LoadTMXMap("./levels/tst2.tmx");	//Load Map
+	TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");	//Load Map
 	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));			//crrate Objects
 
 
@@ -93,13 +93,13 @@ int main()
 		if(engine->input->KeyDown(ESC))
 			running = false;
 		if(engine->input->KeyDown(KEY_W))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y -1));
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y -2));
 		if(engine->input->KeyDown(KEY_A))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x -1, engine->graphics->GetCamPos().y));
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x -2, engine->graphics->GetCamPos().y));
 		if(engine->input->KeyDown(KEY_S))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +1));
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +2));
 		if(engine->input->KeyDown(KEY_D))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +1, engine->graphics->GetCamPos().y));
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +2, engine->graphics->GetCamPos().y));
 		if(engine->input->KeyDown(SPACE))
 			engine->graphics->ChangePaletteBrightness(-1);
 		if(engine->input->KeyDown(LCTRL))
@@ -114,7 +114,7 @@ int main()
 
 		char str[20];
 		sprintf(str, "%d(%d)", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()));
-		engine->graphics->DrawText(Vector2D(0,0), 200, 0, str);
+		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , 200, 0, str );
 		
 		engine->graphics->Flip();	//copy Backbuffer to Screen
 

@@ -42,7 +42,11 @@
 
 
 //================== defines: ===========================
-#define TYPEGAMEOBJECT 0
+#define TYPE_GAME_OBJECT 	0
+#define TYPE_PLAYER 		1
+#define TYPE_SOLID 			2
+#define TYPE_SOLID_TOP 		3
+#define TYPE_BACK_GROUND 	4
 //=======================================================
 
 
@@ -66,37 +70,39 @@ protected:
 
 	GameEngine* engine;
 
-	bool onFloor;
+	bool 		onFloor;
 
 	vector<GameObject*> touchingObjects;
 public:
-	GameObject(GameEngine* newEngine);
-	~GameObject();
+	GameObject 	( GameEngine* newEngine );
+	~GameObject ();
 
 	//============ Set / Get =================
-	int GetTypeID();
-	Vector2D GetPos();
-	Vector2D GetDirection();
-	int GetTileSetID();
-	int GetTileIndex();
-	int GetDrawOrder();
-	bool IsOnFloor();
-	vector<GameObject*> GetTouchingObjects();
-	void SetTypeID(int newTypeID);
-	void SetPos(Vector2D newPos);
-	void SetDirection(Vector2D newDirection);
-	void SetTileSetID(int newTileSetID);
-	void SetTileIndex(int newTileIndex);
-	void SetDrawOrder(int newDrawOrder);
-	void SetDimensions(int newWidth, int newHeight);
+	int  				GetTypeID 			();
+	Vector2D 			GetPos 				();
+	Vector2D 			GetDirection 		();
+	int 				GetTileSetID		();
+	int 				GetTileIndex   		();
+	int 				GetDrawOrder 		();
+	int 				GetWidth 			();
+	int 				GetHeight 			();
+	bool 				IsOnFloor 			();
+	vector<GameObject*> GetTouchingObjects 	();
+	void 				SetTypeID 			( int newTypeID 				);
+	void 				SetPos 				( Vector2D newPos 				);
+	void 				SetDirection 		( Vector2D newDirection 		);
+	void 				SetTileSetID 		( int newTileSetID 				);
+	void 				SetTileIndex		( int newTileIndex 				);
+	void 				SetDrawOrder 		( int newDrawOrder 				);
+	void 				SetDimensions 		( int newWidth, int newHeight 	);
 	//======================================
 
 
 	//======= Main Loop Methods: ===========
-	virtual void Update();
-	virtual void Draw();
+	virtual void Update ();
+	virtual void Draw 	();
 	//=====================================
-	
+
 
 	/*AddForce //Gravity
 	AddForce //Movement
@@ -108,6 +114,50 @@ public:
 	void Move(int newPos); //just setting of the new pos
 	vector<GameObject*> GetTouchingObjects();
 	vector<GameObject*> GetTouchingObjects(int typeID);*/
+
+	/*
+	enable
+	diable
+	invisible
+	*/
+
+	/*
+	Get Damage
+	Die
+	*/
+};
+
+
+class Player : protected GameObject
+{
+protected:
+public:
+	Player( GameEngine* newEngine );
+	~Player();
+};
+
+class Solid  : protected GameObject
+{
+protected:
+public:
+	Solid( GameEngine* newEngine );
+	~Solid();
+};
+
+class SolidTop : protected GameObject
+{
+protected:
+public:
+	SolidTop( GameEngine* newEngine );
+	~SolidTop();
+};
+
+class BackGround  : protected GameObject
+{
+protected:
+public:
+	BackGround( GameEngine* newEngine );
+	~BackGround();
 };
 
 #endif

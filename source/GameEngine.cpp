@@ -1004,6 +1004,8 @@ int GameEngine::GetTypeID( TMXMap* in, int mapValue, int tileSetID )
 }
 int GameEngine::GetTileSetID( TMXMap* in, int mapValue )
 {
+	//gets the TileSetIndex in the TMX File
+
 	for( unsigned int i = 0; i < in->tileSets.size(); i++ )
 	{
 		if( in->tileSets[i].firstGID - mapValue <= 0 )
@@ -1021,7 +1023,63 @@ int GameEngine::GetTileID( TMXMap* in, int mapValue, int tileSetID )
 }
 void GameEngine::CreateObjectsFromMap( TMXMap* in )
 {
+	/*unsigned int width, height;
+	unsigned int tileWidth, tileHeight;
+	vector<TMXTileSet> tileSets;
+	vector<TMXLayer> layers;
+	vector<TMXObjectGroup> objectGroups;*/
 
+	for( int i = 0; i < in->layers.size(); i++ )
+	{
+		for( int y = 0; y < in->layers[i].height; y++ )
+		{
+			for( int x = 0; x < in->layers[i].width; x++ )
+			{
+				GameObject* newObject = NULL;
+
+				int mapValue = in->layers[i].data[y * in->layers[i].width + x];
+				
+				//int tileSetID 	= GetTileSetID( in, mapValue );
+				int tileSetID 	= GetTileSetIDBySource( in->tileSets[GetTileSetID( in, mapValue )].source );
+				int typeID 		= GetTypeID( in, mapValue, tileSetID );
+				int tileID 		= GetTileID( in, mapValue, tileSetID );
+				int tileHeight 	= in->tileSets[tileSetID].tileHeight;
+				int tileWidth 	= in->tileSets[tileSetID].tileWidth;
+				
+				Vector2D newPos;
+				newPos.x 	= ( x * tileWidth ) + in->layers[i].offsetX;
+				newPos.y 	= ( y * tileHeight ) + in->layers[i].offsetY;
+				newPos 		= newPos;	//additional offset from paramteer list
+
+				//printf("O %i:%i:%i tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, tileSetID, tileID, typeID, newPos.x, newPos.y);
+				//getch();
+
+				if( typeID >= 0 ) //placeholder
+				{
+					newObject = new GameObject( this );
+					newObject->SetTypeID	( typeID );
+					newObject->SetPos		( newPos );
+					newObject->SetDimensions( in->layers[i].width, in->layers[i].height );
+					newObject->SetTileSetID	( tileSetID );
+					newObject->SetTileIndex	( tileID );
+					newObject->SetDrawOrder	( i );
+				}
+
+				if( newObject != NULL )
+				{
+					AddObject( newObject );
+				}
+			}
+		}
+	}
+
+	/*for( int i = 0; i < in->objectGroups.size(); i++ )
+	{
+		for( int u = 0; u < in->objectGroups[i].objects.size(); u++ )
+		{
+			int mapValue = in->objectGroups[i].objects[u];
+		}
+	}*/
 }
 void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 {
@@ -1056,7 +1114,7 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 				//printf("O %i:%i:%i tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, tileSetID, tileID, typeID, newPos.x, newPos.y);
 				//getch();
 
-				if( 1 ) //placeholder
+				if( typeID >= 0 ) //placeholder
 				{
 					newObject = new GameObject( this );
 					newObject->SetTypeID	( typeID );
@@ -1116,6 +1174,8 @@ char* GameEngine::FilePathToFileName( char* in, char cutMarker )
 }
 int GameEngine::GetTileSetIDBySource( char* source )
 {
+	//Gets the TileSetId as its used in the graphics engine! (not the one in the tmx file (see GetTileSetID for that))
+
 	for( int i = 0; i < graphics->GetNumTileSets(); i++ )
 	{
 		if( strcmp( FilePathToFileName( graphics->GetTileSetByIndex( i )->source, '/' ), FilePathToFileName( source, '/' ) ) )
@@ -1149,35 +1209,114 @@ unsigned char GameEngine::NotRandom()
 //=================== FindingObjects =======================
 vector<GameObject*> GameEngine::GetAllObjects()
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		outObjects.push_back( objects[i] );
+	}
+	
+	return outObjects;
 }
 vector<GameObject*> GameEngine::GetAllObjects( int typeID )
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		if( objects[i]->GetTypeID() == typeID )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
 }
 vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos )
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x >= objects[i]->GetPos(). x && pos.y >= objects[i]->GetPos().y 
+			&& 	pos.x < objects[i]->GetPos().x  + objects[i]->GetWidth() && pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
 }
 vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos, int typeID )
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x >= objects[i]->GetPos(). x && pos.y >= objects[i]->GetPos().y && pos.x < objects[i]->GetPos().x  + objects[i]->GetWidth() 
+			&& 	pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() && objects[i]->GetTypeID() == typeID)
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
 }
 GameObject* GameEngine::GetFirstObjectAtPos( Vector2D pos )
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x >= objects[i]->GetPos(). x && pos.y >= objects[i]->GetPos().y 
+			&& 	pos.x < objects[i]->GetPos().x  + objects[i]->GetWidth() && pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() )
+		{
+			return objects[i];
+		}
+	}
+	
+	return NULL;
 }
 GameObject* GameEngine::GetFirstObjectAtPos( Vector2D pos, int typeID )
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x >= objects[i]->GetPos(). x && pos.y >= objects[i]->GetPos().y && pos.x < objects[i]->GetPos().x  + objects[i]->GetWidth() 
+			&& 	pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() && objects[i]->GetTypeID() == typeID)
+		{
+			return objects[i];
+		}
+	}
+	
+	return NULL;
 }
 vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius )
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		Vector2D centerPos = objects[i]->GetPos();
+		centerPos.x = centerPos.x + ( objects[i]->GetWidth() / 2 );
+		centerPos.y = centerPos.y + ( objects[i]->GetHeight() / 2 );
+		if( pos.DistanceFrom( objects[i]->GetPos() ) <= radius )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
 }
 vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius, int typeID )
 {
-
+	vector<GameObject*> outObjects;
+	for( int i = 0; i < objects.size(); i++ )
+	{
+		Vector2D centerPos = objects[i]->GetPos();
+		centerPos.x = centerPos.x + ( objects[i]->GetWidth() / 2 );
+		centerPos.y = centerPos.y + ( objects[i]->GetHeight() / 2 );
+		if( pos.DistanceFrom( objects[i]->GetPos() ) <= radius && objects[i]->GetTypeID() == typeID )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
 }
 vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D direction )
 {
