@@ -188,6 +188,8 @@ public:
 	TileSet ExtractTileSet(int newID, Sprite* in, Vector2D startPos, int tileWidth, int tileHeight, int numTliesHorizontal, int numTilesVertical);
 	void AddTileSet(TileSet newTileSet);
 	TileSet* GetTileSet(int id);
+	TileSet* GetTileSetByIndex(int index);
+	int GetNumTileSets();
 	Sprite* GetTile(int tileSetID, int tileIndex);
 	void AddTile(int tlieSetID, Sprite in); //just dont
 	//void RemoveTile(int id); //just dont

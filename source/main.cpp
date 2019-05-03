@@ -32,7 +32,7 @@ int main()
 	//======================= Init ===============================
 	GameEngine* engine = new GameEngine;							//create GameEngine
 
-	TMXMap testMap = engine->LoadTMXMap("./levels/tstcmplx.tmx");	//Load Map
+	TMXMap testMap = engine->LoadTMXMap("./levels/tst2.tmx");	//Load Map
 	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));			//crrate Objects
 
 

@@ -33,8 +33,8 @@ GameEngine::~GameEngine()
 //====================== Set/Get ===========================
 GraphicsEngine* GameEngine::GetGraphics()
 {
-	//
 	return graphics;
+	//
 }
 //==========================================================
 
@@ -1041,7 +1041,8 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 
 				int mapValue = in->layers[i].data[y * in->layers[i].width + x];
 				
-				int tileSetID 	= GetTileSetID( in, mapValue );
+				//int tileSetID 	= GetTileSetID( in, mapValue );
+				int tileSetID 	= GetTileSetIDBySource( in->tileSets[GetTileSetID( in, mapValue )].source );
 				int typeID 		= GetTypeID( in, mapValue, tileSetID );
 				int tileID 		= GetTileID( in, mapValue, tileSetID );
 				int tileHeight 	= in->tileSets[tileSetID].tileHeight;
@@ -1081,6 +1082,49 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 			int mapValue = in->objectGroups[i].objects[u];
 		}
 	}*/
+}
+char* GameEngine::FilePathToFileName( char* in, char cutMarker )
+{
+	char* pCut = &in[0];
+
+	//-------- find the end of the string --------
+	while( *pCut != '\0' )
+	{
+		pCut++;
+	}
+
+	char* pEnd = pCut+1;							//inlude the \0
+
+	//---- walk back to find the marker ------
+	while( *pCut != cutMarker )
+	{
+		pCut--;
+	}
+
+	//-------- copy remaining str --------
+	pCut++;											//get rid of the /
+	char* out = ( char* )malloc( pEnd - pCut );
+	int i = 0;
+	while(*pCut != '\0')
+	{
+		out[i] = *pCut;
+		i++;
+		pCut++;
+	}
+
+	return out;
+}
+int GameEngine::GetTileSetIDBySource( char* source )
+{
+	for( int i = 0; i < graphics->GetNumTileSets(); i++ )
+	{
+		if( strcmp( FilePathToFileName( graphics->GetTileSetByIndex( i )->source, '/' ), FilePathToFileName( source, '/' ) ) )
+		{
+			return graphics->GetTileSetByIndex( i )->id;
+		}
+	}
+
+	return 0;
 }
 //==========================================================
 

@@ -1481,13 +1481,26 @@ void GraphicsEngine::AddTileSet(TileSet newTileSet)
 }
 TileSet* GraphicsEngine::GetTileSet(int id)
 {
-	for(unsigned int i = 0; i < tileSets.size(); i++)
+	for( unsigned int i = 0; i < tileSets.size(); i++ )
 	{
-		if(tileSets[i].id == id)
+		if( tileSets[i].id == id )
 		{
 			return &tileSets[i];
 		}
 	}
+	return NULL;
+}
+int GraphicsEngine::GetNumTileSets()
+{
+	return tileSets.size();
+}
+TileSet* GraphicsEngine::GetTileSetByIndex(int index)
+{
+	if(index >= 0 && index < tileSets.size())
+	{
+		return &tileSets[index];
+	}
+
 	return NULL;
 }
 Sprite* GraphicsEngine::GetTile(int tileSetID, int tileIndex)

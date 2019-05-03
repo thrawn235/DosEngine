@@ -92,6 +92,8 @@ public:
 	int 	GetTileSetID		( TMXMap* in, int mapValue 					);
 	int 	GetTileID 			( TMXMap* in, int mapValue, int tileSetID 	);
 	int 	GetFirstGid 		( TMXMap* in, int tileSetID 				);
+	char*	FilePathToFileName	( char* in, char cutMarker 					);
+	int 	GetTileSetIDBySource( char* source 								);
 	//==============================================
 
 
