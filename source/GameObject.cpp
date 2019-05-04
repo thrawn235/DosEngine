@@ -154,6 +154,8 @@ void GameObject::Draw()
 {
 	//no error checking due to performance
 	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	//engine->graphics->DrawLine( pos, Vector2D( pos.x + width, pos.y + height ), 8 );
+	//engine->graphics->DrawLine( Vector2D( pos.x , pos.y +height ), Vector2D( pos.x + width, pos.y ), 8 );
 }
 //============================================
 
@@ -166,11 +168,20 @@ void GameObject::Draw()
 //========== Player =============
 Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
 {
-	typeID 		= TYPE_PLAYER; //0
+	typeID  = TYPE_PLAYER; //1
 }
 Player::~Player()
 {
 
+}
+void Player::Update()
+{
+
+}
+void Player::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	engine->graphics->DrawRect( pos, width-1, height-1, 2);
 }
 
 
@@ -181,11 +192,20 @@ Player::~Player()
 //========== Solid =============
 Solid::Solid( GameEngine* newEngine ) : GameObject( newEngine )
 {
-	typeID 		= TYPE_SOLID; //0
+	typeID = TYPE_SOLID; //2
 }
 Solid::~Solid()
 {
 
+}
+void Solid::Update()
+{
+
+}
+void Solid::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	engine->graphics->DrawRect( pos, width-1, height-1, 1);
 }
 
 
@@ -194,11 +214,20 @@ Solid::~Solid()
 //========== SolitTop =============
 SolidTop::SolidTop( GameEngine* newEngine ) : GameObject( newEngine )
 {
-	typeID 		= TYPE_SOLID_TOP; //0
+	typeID = TYPE_SOLID_TOP; //3
 }
 SolidTop::~SolidTop()
 {
 
+}
+void SolidTop::Update()
+{
+
+}
+void SolidTop::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	engine->graphics->DrawHLine( pos, width, 2);
 }
 
 
@@ -207,12 +236,23 @@ SolidTop::~SolidTop()
 //========== BackGround =============
 BackGround::BackGround( GameEngine* newEngine ) : GameObject( newEngine )
 {
-	typeID 		= TYPE_BACK_GROUND; //0
+	typeID = TYPE_BACK_GROUND; //4
 }
 BackGround::~BackGround()
 {
 
 }
+void BackGround::Update()
+{
 
+}
+void BackGround::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	engine->graphics->DrawPixel( pos, 15);
+	engine->graphics->DrawPixel( Vector2D( pos.x + width-1, pos.y ), 15);
+	engine->graphics->DrawPixel( Vector2D( pos.x, pos.y + height-1 ), 15);
+	engine->graphics->DrawPixel( Vector2D( pos.x + width-1, pos.y + height-1 ), 15);
+}
 
 

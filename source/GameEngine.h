@@ -72,7 +72,7 @@ public:
 	//=========== Object Management ================
 	void AddObject 		( GameObject* newObject 		);
 	void RemoveObject 	( GameObject* in 				);
-	void RemoveObject 	( int index 					);
+	void RemoveObject 	( unsigned int index 			);
 	void RemoveObjects 	( vector<GameObject*> objects 	);
 	void ClearObjects 	();
 	//==============================================
@@ -85,15 +85,14 @@ public:
 
 
 	//================= Level ======================
-	TMXMap 	LoadTMXMap			( const char* filePath						);
-	void 	CreateObjectsFromMap( TMXMap* in 								);
-	void 	CreateObjectsFromMap( TMXMap* in, Vector2D offset 				);
-	int 	GetTypeID			( TMXMap* in, int mapValue, int tileSetID 	);
-	int 	GetTileSetID		( TMXMap* in, int mapValue 					);
-	int 	GetTileID 			( TMXMap* in, int mapValue, int tileSetID 	);
-	int 	GetFirstGid 		( TMXMap* in, int tileSetID 				);
-	char*	FilePathToFileName	( char* in, char cutMarker 					);
-	int 	GetTileSetIDBySource( char* source 								);
+	TMXMap 	LoadTMXMap			( const char* filePath							);
+	void 	CreateObjectsFromMap( TMXMap* in 									);
+	void 	CreateObjectsFromMap( TMXMap* in, Vector2D offset 					);
+	int 	GetTypeID			( TMXMap* in, int mapValue, int TMXTileSetIndex );
+	int 	GetTMXTileSetIndex	( TMXMap* in, int mapValue 						);
+	int 	GetTileID 			( TMXMap* in, int mapValue, int TMXTileSetIndex	);
+	int 	GetTileSetID 		( TMXMap* in, int TMXTileSetIndex 				);
+	int 	GetFirstGid 		( TMXMap* in, int tileSetID 					);
 	//==============================================
 
 

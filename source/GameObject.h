@@ -128,36 +128,48 @@ public:
 };
 
 
-class Player : protected GameObject
+class Player : public GameObject
 {
 protected:
 public:
 	Player( GameEngine* newEngine );
 	~Player();
+
+	virtual void Update ();
+	virtual void Draw 	();
 };
 
-class Solid  : protected GameObject
+class Solid  : public GameObject
 {
 protected:
 public:
 	Solid( GameEngine* newEngine );
 	~Solid();
+
+	virtual void Update ();
+	virtual void Draw 	();
 };
 
-class SolidTop : protected GameObject
+class SolidTop : public GameObject
 {
 protected:
 public:
 	SolidTop( GameEngine* newEngine );
 	~SolidTop();
+
+	virtual void Update ();
+	virtual void Draw 	();
 };
 
-class BackGround  : protected GameObject
+class BackGround  : public GameObject
 {
 protected:
 public:
 	BackGround( GameEngine* newEngine );
 	~BackGround();
+
+	virtual void Update ();
+	virtual void Draw 	();
 };
 
 #endif

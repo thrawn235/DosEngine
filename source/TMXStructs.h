@@ -28,6 +28,7 @@ struct TMXObject
 	float rotation;
 	int gid;
 	bool visible;
+	int typeID;
 	vector<TMXProperty> properties;
 };
 
@@ -89,6 +90,7 @@ struct TMXGroup
 struct TMXTile
 {
 	int id;
+	int typeID;
 	vector<TMXProperty> properties;
 };
 
@@ -105,6 +107,7 @@ struct TMXTileSet
 	vector<TMXTile> tiles;
 	vector<TMXProperty> properties;
 	TMXImage image;
+	int tileSetID;
 	//grid
 	int tileOffsetX, tileOffsetY;
 	//terraintypes

@@ -32,39 +32,51 @@ int main()
 	//======================= Init ===============================
 	GameEngine* engine = new GameEngine;							//create GameEngine
 
-	TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");	//Load Map
-	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));			//crrate Objects
+	TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
+	
 
 
 	engine->graphics->SetGraphicsMode(0x13);						//enter Grphics Mode
 
 		
-	//-------------------- Loading Sprites and Tiles ------------------------
-	BMP bmp = engine->graphics->LoadBMP("./gfx/k1tiles.bmp");
-	//engine->graphics->SetPalette(bmp.colorTable, 16);
-	Sprite sprite = engine->graphics->BMPToSprite(&bmp, 0);
-	engine->graphics->FreeBMP(&bmp);
 
-	TileSet k1Tiles = engine->graphics->ExtractTileSet(0, &sprite, Vector2D(0,0), 16, 16, 13, 53);
-	engine->graphics->AddTileSet(k1Tiles);
-
-
-	bmp = engine->graphics->LoadBMP("./gfx/k2tiles.bmp");
-	sprite = engine->graphics->BMPToSprite(&bmp, 1);
-	engine->graphics->FreeBMP(&bmp);
-
-	TileSet k2Tiles = engine->graphics->ExtractTileSet(1, &sprite, Vector2D(0,0), 16, 16, 13, 53);
-	engine->graphics->AddTileSet(k2Tiles);
-
-
+	BMP bmp;
+	Sprite  sprite;	
+	//-------------------- Load Universal Game Assets -----------------------
 	bmp = engine->graphics->LoadBMP("./gfx/txtwhite.bmp");
 	engine->graphics->SetPalette(bmp.colorTable, 17);
 	sprite = engine->graphics->BMPToSprite(&bmp, 3);
 	engine->graphics->FreeBMP(&bmp);
 
-	TileSet txtwhite = engine->graphics->ExtractTileSet(200, &sprite, Vector2D(0,0), 8, 8, 16, 6);
+	TileSet txtwhite = engine->graphics->ExtractTileSet(1, &sprite, Vector2D(0,0), 8, 8, 16, 6);	//tileSetId = 1
 	engine->graphics->AddTileSet(txtwhite);
+
+	//------------------------- Load GameSprites ----------------------------
+
+
+	//------------------------- Load Level Tiles ------------------------
+	bmp = engine->graphics->LoadBMP("./gfx/k1tiles.bmp");
+	sprite = engine->graphics->BMPToSprite(&bmp, 0);
+	engine->graphics->FreeBMP(&bmp);
+
+	TileSet k1Tiles = engine->graphics->ExtractTileSet(100, &sprite, Vector2D(0,0), 16, 16, 13, 53); //tileSetId = 100 (hast to mach property in TMXFile)
+	engine->graphics->AddTileSet(k1Tiles);
+
+
+	bmp = engine->graphics->LoadBMP("./gfx/k3tiles.bmp");
+	sprite = engine->graphics->BMPToSprite(&bmp, 1);
+	engine->graphics->FreeBMP(&bmp);
+
+	TileSet k2Tiles = engine->graphics->ExtractTileSet(101, &sprite, Vector2D(0,0), 16, 16, 13, 53); //tileSetId = 101 (hast to mach property in TMXFile)
+	engine->graphics->AddTileSet(k2Tiles);
 	//---------------------------------------------------------------------
+
+	engine->CreateObjectsFromMap(&testMap, Vector2D(0,0));			//crrate Objects
+
+	/*printf( "%i\n", engine->GetTileSetID(&testMap, 274) );
+	printf( "%i\n", engine->GetTileSetID(&testMap, 276) );
+	printf( "%s %i\n", testMap.tileSets[0].source, engine->GetTileSetIDBySource( testMap.tileSets[0].source ) );
+	printf( "%s %i\n", testMap.tileSets[1].source, engine->GetTileSetIDBySource( testMap.tileSets[1].source ) );*/
 	
 
 	//------------- test Object ------------------
@@ -111,11 +123,12 @@ int main()
 
 		engine->DrawAll();	//draw all Objects (that are handled by the GameEngine)
 
-
+		//----------------- print Framerate -----------------------
 		char str[20];
 		sprintf(str, "%d(%d)", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()));
-		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , 200, 0, str );
-		
+		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , 1, 0, str );
+		//--------------------------------------------------------
+
 		engine->graphics->Flip();	//copy Backbuffer to Screen
 
 		engine->time->FrameEnd();	//get Frametime
