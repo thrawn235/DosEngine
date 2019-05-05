@@ -305,16 +305,16 @@ bool GameObject::Collision()
 }
 void GameObject::Move()
 {
-	pos = pos + direction;
+	pos = pos + (direction * engine->time->GetDelta());
 	//
 }
 void GameObject::Friction( float slickness )
 {
-	printf( "direction= %f:%f \n", direction.x, direction.y);
+	//printf( "direction= %f:%f \n", direction.x, direction.y);
 	direction.x = direction.x / 1.2;
 	direction.y = direction.y / 1.2;
-	printf( "direction= %f:%f \n", direction.x, direction.y);
-	getch();
+	//printf( "direction= %f:%f \n", direction.x, direction.y);
+	//getch();
 	//
 }
 
@@ -358,19 +358,11 @@ void Player::Update()
 
 
 	AddForce( movement );
-	/*printf( "movement= %f:%f \n", movement.x, movement.y);
-	printf( "direction= %f:%f \n", direction.x, direction.y);
-	printf( "pos= %f:%f \n\n", pos.x, pos.y);*/
 	
 	
-
 	Move();
+	
 	Friction( 0.2f );
-
-	/*printf( "movement= %f:%f \n", movement.x, movement.y);
-	printf( "direction= %f:%f \n", direction.x, direction.y);
-	printf( "pos= %f:%f \n\n", pos.x, pos.y);
-	getch();*/
 
 	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
 	engine->graphics->SetCamCenter( centerPos );

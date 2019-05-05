@@ -153,7 +153,7 @@ int main()
 
 		//----------------- print Framerate -----------------------
 		char str[20];
-		sprintf(str, "%d(%d)", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()));
+		sprintf(str, "%d(%d)%f", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()), engine->time->GetDelta() );
 		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , 1, 0, str );
 		//--------------------------------------------------------
 
