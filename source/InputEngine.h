@@ -1,6 +1,24 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//	InputEngine.h
+//
+//	by Sebastian Gurlin
+//
+//	Description:
+//	The Class is supposed to handle all input
+//	keyboard, mouse, joystick etc
+//	its just handling keyboard right now
+//	it polls the keoyborad directly each frame, no bios functions or interupts
+//	that has to be changed, since polling is slow and misses multiple key presses 
+//
+///////////////////////////////////////////////////////////////////////////////////////
+
+
 #ifndef INPUTENGINE
 #define INPUTENGINE
 
+
+//================== includes ==========================
 //c++ includes:
 #include <vector>
 
@@ -13,7 +31,9 @@
 
 //own includes:
 
-//defines
+//=======================================================
+
+//==================== defines ==========================
 #define ESC 		0x01
 #define SPACE 		0x39
 #define ENTER 		0x1C
@@ -33,8 +53,11 @@
 #define KEY_DOWN	0x50
 #define KEY_LEFT 	0x4b
 #define KEY_RIGHT 	0x4d
+//=======================================================
+
 
 using namespace std;
+
 
 class InputEngine
 {
@@ -46,7 +69,7 @@ public:
 	~InputEngine 			();
 
 	void CheckKeys 			();
-	bool KeyDown 			(unsigned char scanCode);
+	bool KeyDown 			( unsigned char scanCode );
 
 	void ClearBiosKeyBuffer ();
 };

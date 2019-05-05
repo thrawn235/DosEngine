@@ -43,7 +43,7 @@ struct BMPFileHEader
 	long sizeInBytes;
 	char reserved[4];
 	long pixelArrayOffset;
-}__attribute__((packed));
+}__attribute__( ( packed ) );
 
 struct BMPDIBHeader
 {
@@ -58,7 +58,7 @@ struct BMPDIBHeader
 	long int 		verticalResolution;
 	long int 		numColors;
 	long int 		numImportantColors;
-}__attribute__((packed));
+}__attribute__( ( packed ) );
 
 struct BMP
 {
@@ -134,86 +134,86 @@ public:
 	int 		GetScreenHeight			();
 	int 		GetBitDepth 			();
 	Vector2D 	GetCamPos 				();
-	void 		SetCamPos 				(Vector2D newPos);
-	void 		SetCamCenter 			(Vector2D newPos);
-	void 		SetCamPos 				(int newPosX, int newPosY);
+	void 		SetCamPos 				( Vector2D newPos );
+	void 		SetCamCenter 			( Vector2D newPos );
+	void 		SetCamPos 				( int newPosX, int newPosY );
 	
 	//Init
-	void 		SetGraphicsMode 		(int newMode);
+	void 		SetGraphicsMode 		( int newMode );
 	int 		GetMode 				();
 	
 	//BMP
-	BMP 		LoadBMP 				(const char* filePath);
-	Sprite* 	BMPToSprite 			(BMP* in, int id);
-	void 		FreeBMP 				(BMP* in);
+	BMP 		LoadBMP 				( const char* filePath );
+	Sprite* 	BMPToSprite 			( BMP* in, int id );
+	void 		FreeBMP 				( BMP* in );
 	
 	//Palette
-	void 		SetPaletteColor 		(unsigned char index, unsigned char r, unsigned char g, unsigned char b);
-	void 		SetPalette 				(char* palette, unsigned char numColors);
-	void 		ChangePaletteBrightness (int delta);
-	void 		ChangePaletteHue 		(int deltaR, int deltaG, int deltaB);
+	void 		SetPaletteColor 		( unsigned char index, unsigned char r, unsigned char g, unsigned char b );
+	void 		SetPalette 				( char* palette, unsigned char numColors );
+	void 		ChangePaletteBrightness ( int delta );
+	void 		ChangePaletteHue 		( int deltaR, int deltaG, int deltaB );
 	char* 		GetPalette 				();
 	
 	//Graphics Primitives
-	void 		DrawPixel 				(Vector2D pos, char color);
-	void 		DrawPixel 				(int x, int y, char color);
-	void 		DrawLine 				(Vector2D start, Vector2D end, char color);
-	void 		DrawHLine 				(Vector2D start, int length, char color);
-	void 		DrawVLine 				(Vector2D start, int length, char color);
-	void 		DrawRect 				(Vector2D pos, int width, int height, char color);
-	void 		DrawFilledRect 			(Vector2D pos, int width, int height, char color);
-	void 		DrawCircle 				(Vector2D pos, int radius, char color);
-	void 		DrawFilledCircle 		(Vector2D pos, int radius, char color);
-	void 		DrawVector 				(Vector2D pos, Vector2D vec, float scale, unsigned char color);
-	void 		ClearScreen 			(char color);
+	void 		DrawPixel 				( Vector2D pos, char color );
+	void 		DrawPixel 				( int x, int y, char color );
+	void 		DrawLine 				( Vector2D start, Vector2D end, char color );
+	void 		DrawHLine 				( Vector2D start, int length, char color );
+	void 		DrawVLine 				( Vector2D start, int length, char color );
+	void 		DrawRect 				( Vector2D pos, int width, int height, char color );
+	void 		DrawFilledRect 			( Vector2D pos, int width, int height, char color );
+	void 		DrawCircle 				( Vector2D pos, int radius, char color );
+	void 		DrawFilledCircle 		( Vector2D pos, int radius, char color );
+	void 		DrawVector 				( Vector2D pos, Vector2D vec, float scale, unsigned char color );
+	void 		ClearScreen 			( char color );
 	void 		Flip 					(); //Flip or buffer copy
 	void 		WaitForRetrace 			();
 
 	
 	//Sprite Methods
-	void 		DrawSprite 				(Vector2D pos, Sprite* in);
-	void 		DrawSprite 				(Vector2D pos, Sprite* in, char transparentColor);
-	void 		DrawSprite 				(Vector2D pos, Sprite* in, bool flippedHorizontal, bool flippedVertical);
-	void 		DrawSprite 				(Vector2D pos, Sprite* in, char transparentColor, bool flippedHorizontal, bool flippedVertical);
-	void 		DrawSprite 				(Vector2D pos, int tileSetID, int tileIndex);
-	void 		DrawSprite 				(Vector2D pos, int tileSetID, int tileIndex, char transparentColor);
-	void 		DrawSprite 				(Vector2D pos, int tileSetID, int tileIndex, bool flippedHorizontal, bool flippedVertical);
-	void 		DrawSprite 				(Vector2D pos, int tileSetID, int tileIndex, char transparentColor, bool flippedHorizontal, bool flippedVertical);
-	Sprite* 	CropSprite 				(Sprite* in, int newID, Vector2D pos, int width, int height);
-	void 		AddSprite 				(Sprite* newSprite);
-	Sprite* 	GetSprite 				(int id);
-	void 		FreeSprite 				(Sprite* in);
+	void 		DrawSprite 				( Vector2D pos, Sprite* in );
+	void 		DrawSprite 				( Vector2D pos, Sprite* in, char transparentColor );
+	void 		DrawSprite 				( Vector2D pos, Sprite* in, bool flippedHorizontal, bool flippedVertical );
+	void 		DrawSprite 				( Vector2D pos, Sprite* in, char transparentColor, bool flippedHorizontal, bool flippedVertical );
+	void 		DrawSprite 				( Vector2D pos, int tileSetID, int tileIndex );
+	void 		DrawSprite 				( Vector2D pos, int tileSetID, int tileIndex, char transparentColor );
+	void 		DrawSprite 				( Vector2D pos, int tileSetID, int tileIndex, bool flippedHorizontal, bool flippedVertical );
+	void 		DrawSprite 				( Vector2D pos, int tileSetID, int tileIndex, char transparentColor, bool flippedHorizontal, bool flippedVertical );
+	Sprite* 	CropSprite 				( Sprite* in, int newID, Vector2D pos, int width, int height );
+	void 		AddSprite 				( Sprite* newSprite );
+	Sprite* 	GetSprite 				( int id );
+	void 		FreeSprite 				( Sprite* in );
 	
 	//tileSets
-	TileSet* 	NewEmptyTileSet 		(int newID, int tileWidth, int tileHeight); //just dont
-	TileSet* 	ExtractTileSet 			(int newID, Sprite* in, Vector2D startPos, int tileWidth, int tileHeight, int numTliesHorizontal, int numTilesVertical);
-	void 		AddTileSet 				(TileSet* newTileSet);
-	TileSet* 	GetTileSet 				(int id);
-	TileSet* 	GetTileSetByIndex 		(unsigned int index);
+	TileSet* 	NewEmptyTileSet 		( int newID, int tileWidth, int tileHeight ); //just dont
+	TileSet* 	ExtractTileSet 			( int newID, Sprite* in, Vector2D startPos, int tileWidth, int tileHeight, int numTliesHorizontal, int numTilesVertical );
+	void 		AddTileSet 				( TileSet* newTileSet );
+	TileSet* 	GetTileSet 				( int id );
+	TileSet* 	GetTileSetByIndex 		( unsigned int index );
 	int 		GetNumTileSets 			();
-	Sprite* 	GetTile 				(int tileSetID, int tileIndex);
-	void 		AddTile 				(int tlieSetID, Sprite* in); //just dont
-	//void RemoveTile(int id); //just dont
-	void 		DrawTileSet 			(TileSet* in, Vector2D pos, int columnWidth); // just for debugging
+	Sprite* 	GetTile 				( int tileSetID, int tileIndex );
+	void 		AddTile 				( int tlieSetID, Sprite* in ); //just dont
+	//void RemoveTile( int id ); //just dont
+	void 		DrawTileSet 			( TileSet* in, Vector2D pos, int columnWidth ); // just for debugging
 	
 	//Animations
-	bool 		PlayAnimation 			(Animation* in, Vector2D pos);
-	bool 		PlayAnimation 			(Animation* in, Vector2D pos, char transparentColor);
-	bool 		PlayAnimation 			(Animation* in, Vector2D pos, bool flippedHorizontal, bool flippedVertical);
-	bool 		PlayAnimation 			(Animation* in, Vector2D pos, char transparentColor, bool flippedHorizontal, bool flippedVertical);
+	bool 		PlayAnimation 			( Animation* in, Vector2D pos );
+	bool 		PlayAnimation 			( Animation* in, Vector2D pos, char transparentColor );
+	bool 		PlayAnimation 			( Animation* in, Vector2D pos, bool flippedHorizontal, bool flippedVertical );
+	bool 		PlayAnimation 			( Animation* in, Vector2D pos, char transparentColor, bool flippedHorizontal, bool flippedVertical );
 
 	//Windows:
-	void 		DrawWindowBorder 		(Vector2D pos, int width, int height, int tileSetID, int topLeftCorner, int topRightCorner, int bottomLeftCorner, int bottomRightCorner, int horizontalLine, int verticalLine);
-	void 		DrawWindow 				(Vector2D pos, int width, int height, int tileSetID, int topLeftCorner, int topRightCorner, int bottomLeftCorner, int bottomRightCorner, int horizontalLine, int verticalLine, int backGround);
+	void 		DrawWindowBorder 		( Vector2D pos, int width, int height, int tileSetID, int topLeftCorner, int topRightCorner, int bottomLeftCorner, int bottomRightCorner, int horizontalLine, int verticalLine );
+	void 		DrawWindow 				( Vector2D pos, int width, int height, int tileSetID, int topLeftCorner, int topRightCorner, int bottomLeftCorner, int bottomRightCorner, int horizontalLine, int verticalLine, int backGround );
 
 	//Text
-	void 		DrawText 				(Vector2D pos, int tileSetID, int firstTileIndex, const char* text);
-	void 		DrawText 				(Vector2D pos, int tileSetID, int firstTileIndex, const char* text, int transparentColor);
+	void 		DrawText 				( Vector2D pos, int tileSetID, int firstTileIndex, const char* text );
+	void 		DrawText 				( Vector2D pos, int tileSetID, int firstTileIndex, const char* text, int transparentColor );
 	
 	//Destroy
-	void 		DestroyTileSet 			(TileSet *in);
+	void 		DestroyTileSet 			( TileSet *in );
 	void 		DestroyTileSets 		();
-	void 		DestroySprite 			(Sprite* in);
+	void 		DestroySprite 			( Sprite* in );
 	void 		DestroySprites 			();
 	void		BackToTextMode 			();
 	void 		Destroy 				();
