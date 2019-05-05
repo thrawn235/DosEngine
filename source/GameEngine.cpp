@@ -1459,6 +1459,8 @@ vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius, in
 }
 vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D direction )
 {
+	/*	Doesnt Work... */
+
 	vector<GameObject*> outObjects;
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{

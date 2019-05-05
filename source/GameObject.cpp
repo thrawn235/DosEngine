@@ -171,7 +171,7 @@ void GameObject::Draw()
 }
 //============================================
 
-void GameObject::SetInsivible(bool newInvisible)
+void GameObject::SetInsivible( bool newInvisible )
 {
 	invisible = newInvisible;
 	//
@@ -187,7 +187,7 @@ void GameObject::Disable()
 	//
 }
 
-void GameObject::AddForce(Vector2D newForce)
+void GameObject::AddForce( Vector2D newForce )
 {
 	direction = direction + newForce;
 	//
@@ -310,7 +310,11 @@ void GameObject::Move()
 }
 void GameObject::Friction( float slickness )
 {
-	direction = direction * slickness;
+	printf( "direction= %f:%f \n", direction.x, direction.y);
+	direction.x = direction.x / 1.2;
+	direction.y = direction.y / 1.2;
+	printf( "direction= %f:%f \n", direction.x, direction.y);
+	getch();
 	//
 }
 
@@ -330,21 +334,43 @@ Player::~Player()
 }
 void Player::Update()
 {
-	Vector2D movement;
-	if( engine->input->KeyDown( KEY_W ) )
-		movement = Vector2D( 0, -2 );
-	if( engine->input->KeyDown( KEY_A ) )
-		movement = Vector2D( -2, 0 );	
-	if( engine->input->KeyDown( KEY_S ) )
-		movement = Vector2D( 0, 2 );
-	if( engine->input->KeyDown( KEY_D ) )
-		movement = Vector2D( 2, 0 );
+	movement = Vector2D( 0.0f, 0.0f );
+	if( engine->input->KeyDown( KEY_UP ) )
+	{
+		movement = Vector2D( 0.0f, -2.0f );
+	}
+	else if( engine->input->KeyDown( KEY_LEFT ) )
+	{
+		movement = Vector2D( -2.0f, 0.0f );	
+	}
+	else if( engine->input->KeyDown( KEY_DOWN ) )
+	{
+		movement = Vector2D( 0.0f, 2.0f );
+	}
+	else if( engine->input->KeyDown( KEY_RIGHT ) )
+	{
+		movement = Vector2D( 2.0f, 0.0f );
+	}
+	else
+	{
+		movement = Vector2D( 0.0f, 0.0f );
+	}
 
 
-	AddForce(movement);
-	Friction( 0.2f );
+	AddForce( movement );
+	/*printf( "movement= %f:%f \n", movement.x, movement.y);
+	printf( "direction= %f:%f \n", direction.x, direction.y);
+	printf( "pos= %f:%f \n\n", pos.x, pos.y);*/
+	
+	
 
 	Move();
+	Friction( 0.2f );
+
+	/*printf( "movement= %f:%f \n", movement.x, movement.y);
+	printf( "direction= %f:%f \n", direction.x, direction.y);
+	printf( "pos= %f:%f \n\n", pos.x, pos.y);
+	getch();*/
 
 	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
 	engine->graphics->SetCamCenter( centerPos );
@@ -355,7 +381,7 @@ void Player::Draw()
 	engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
 	engine->graphics->DrawRect( pos, width-1, height-1, 2);
 
-	Vector2D rayOrigin(0,0);
+	/*Vector2D rayOrigin(0,0);
 	Vector2D rayDirection(1,1);
 	Vector2D boxPos(40,20);
 	boxPos = boxPos + engine->graphics->GetCamPos();
@@ -370,6 +396,44 @@ void Player::Draw()
 		engine->graphics->DrawRect(boxPos, boxWidth, boxHeight, 8);
 		engine->graphics->DrawLine(rayOrigin, hit1, 12);
 	}
+
+	vector<GameObject*> testObjects = engine->GetAllObjects();
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 0 ), testObjects[i]->GetWidth(), 1 );
+		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 0, 0 ), testObjects[i]->GetHeight(), 1 );
+	}
+
+	testObjects = engine->GetAllObjects(TYPE_SOLID);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 1 ), testObjects[i]->GetWidth() - 1, 2 );
+		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 1, 0 ), testObjects[i]->GetHeight() - 1, 2 );
+	}
+	testObjects = engine->GetObjectsAtPos(pos);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 2 ), testObjects[i]->GetWidth() - 2, 3 );
+		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 2, 0 ), testObjects[i]->GetHeight() - 2, 3 );
+	}
+	testObjects = engine->GetObjectsAtPos(pos, TYPE_SOLID);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 3 ), testObjects[i]->GetWidth() - 3, 3 );
+		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 3, 0 ), testObjects[i]->GetHeight() - 3, 3 );
+	}
+	testObjects = engine->GetObjectsInRadius(pos, 50);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 4 ), testObjects[i]->GetWidth() - 4, 4 );
+		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 4, 0 ), testObjects[i]->GetHeight() - 4, 4 );
+	}
+	testObjects = engine->GetObjectsAlongRay(pos, Vector2D( -1, -1 ) );
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 5 ), testObjects[i]->GetWidth() - 5, 6 );
+		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 5, 0 ), testObjects[i]->GetHeight() - 5, 6 );
+	}*/
 }
 
 

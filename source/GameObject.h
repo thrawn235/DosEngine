@@ -139,6 +139,8 @@ public:
 class Player : public GameObject
 {
 protected:
+	Vector2D movement;
+	
 public:
 	Player( GameEngine* newEngine );
 	~Player();
