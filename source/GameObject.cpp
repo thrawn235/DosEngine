@@ -26,6 +26,8 @@ GameObject::GameObject( GameEngine* newEngine )
 	engine 		= newEngine;
 
 	onFloor 	= false;
+	invisible	= false;
+	enabled		= true;
 }
 GameObject::~GameObject()
 {
@@ -142,6 +144,16 @@ void GameObject::SetDimensions( int newWidth, int newHeight )
 		height = 0;
 	}
 }
+bool GameObject::GetEnabled()
+{
+	return enabled;
+	//
+}
+bool GameObject::GetInvisible()
+{
+	return invisible;
+	//
+}
 //============================================
 
 
@@ -159,6 +171,148 @@ void GameObject::Draw()
 }
 //============================================
 
+void GameObject::SetInsivible(bool newInvisible)
+{
+	invisible = newInvisible;
+	//
+}
+void GameObject::Enable()
+{
+	enabled = true;
+	//
+}
+void GameObject::Disable()
+{
+	enabled = false;
+	//
+}
+
+void GameObject::AddForce(Vector2D newForce)
+{
+	direction = direction + newForce;
+	//
+}
+bool GameObject::RayBoxIntersect( Vector2D origin, Vector2D dir, Vector2D* hit, Vector2D boxPos, int boxWidth, int boxHeight )
+{
+	Vector2D boxTopLeft 	= boxPos;
+	Vector2D boxBottomRight = boxPos + Vector2D( boxWidth, boxHeight );
+
+	float tmin = ( boxBottomRight.x - origin.x ) / dir.x; 
+    float tmax = ( boxTopLeft.x - origin.x )  	/ dir.x; 
+ 
+    if( tmin > tmax )
+    {
+    	float temp;
+    	temp = tmin;
+    	tmin = tmax;
+    	tmax = temp;
+    } 
+ 
+    float tymin = ( boxBottomRight.y - origin.y ) 	/ dir.y; 
+    float tymax = ( boxTopLeft.y - origin.y )  		/ dir.y; 
+ 
+    if( tymin > tymax )
+	{
+		float temp;
+		temp = tymin;
+		tymin = tymax;
+		tymax = temp;
+	} 
+ 
+    if ((tmin > tymax) || (tymin > tmax))
+    {
+        return false; 
+    }
+ 	if( tmin < 0 && tmax < 0 )
+ 	{
+ 		return false;
+ 	}
+
+ 	if(tmin < 0)
+ 	{
+ 		tmin = 100000;
+ 	}
+ 	if(tmax < 0)
+ 	{
+ 		tmax = 100000;
+ 	}
+
+    if (tymin > tmin) 
+        tmin = tymin; 
+ 
+    if (tymax < tmax) 
+        tmax = tymax; 
+
+    *hit = origin + ( dir * tmin );
+    //*hit2 = origin + ( dir * tmax );
+ 
+    return true; 
+}
+bool GameObject::Collision()
+{
+	//Get cardinal direction of dorection Vector
+	Vector2D rayOrigin1 = pos;
+	Vector2D rayOrigin2 = pos + Vector2D( pos.x + width , pos.y );
+	Vector2D rayOrigin3 = pos + Vector2D( pos.x, pos.y + height );
+	Vector2D rayOrigin4 = pos + Vector2D( pos.x + width , pos.y +height );
+
+	//only test tiles that ate in a logical radius of the ray origin
+	vector<GameObject*>testObjects = engine->GetObjectsInRadius(rayOrigin1, 30, TYPE_SOLID);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		Vector2D hit;
+		if( RayBoxIntersect( rayOrigin1, direction, &hit, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
+		{
+			pos = hit;
+			return true;
+		}
+	}
+
+	testObjects = engine->GetObjectsInRadius(rayOrigin2, 30, TYPE_SOLID);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		Vector2D hit;
+		if( RayBoxIntersect( rayOrigin2, direction, &hit, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
+		{
+			pos = hit;
+			return true;
+		}
+	}
+
+	testObjects = engine->GetObjectsInRadius(rayOrigin3, 30, TYPE_SOLID);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		Vector2D hit;
+		if( RayBoxIntersect( rayOrigin3, direction, &hit, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
+		{
+			pos = hit;
+			return true;
+		}
+	}
+
+	testObjects = engine->GetObjectsInRadius(rayOrigin4, 30, TYPE_SOLID);
+	for( unsigned int i = 0; i < testObjects.size(); i++ )
+	{
+		Vector2D hit;
+		if( RayBoxIntersect( rayOrigin4, direction, &hit, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
+		{
+			pos = hit;
+			return true;
+		}
+	}
+
+	return false;
+}
+void GameObject::Move()
+{
+	pos = pos + direction;
+	//
+}
+void GameObject::Friction( float slickness )
+{
+	direction = direction * slickness;
+	//
+}
 
 
 
@@ -176,12 +330,46 @@ Player::~Player()
 }
 void Player::Update()
 {
+	Vector2D movement;
+	if( engine->input->KeyDown( KEY_W ) )
+		movement = Vector2D( 0, -2 );
+	if( engine->input->KeyDown( KEY_A ) )
+		movement = Vector2D( -2, 0 );	
+	if( engine->input->KeyDown( KEY_S ) )
+		movement = Vector2D( 0, 2 );
+	if( engine->input->KeyDown( KEY_D ) )
+		movement = Vector2D( 2, 0 );
+
+
+	AddForce(movement);
+	Friction( 0.2f );
+
+	Move();
+
+	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
+	engine->graphics->SetCamCenter( centerPos );
 
 }
 void Player::Draw()
 {
-	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
 	engine->graphics->DrawRect( pos, width-1, height-1, 2);
+
+	Vector2D rayOrigin(0,0);
+	Vector2D rayDirection(1,1);
+	Vector2D boxPos(40,20);
+	boxPos = boxPos + engine->graphics->GetCamPos();
+	int boxWidth = 20;
+	int boxHeight = 30;
+	engine->graphics->DrawRect(boxPos, boxWidth, boxHeight, 2);
+	engine->graphics->DrawLine(rayOrigin, rayDirection * 60, 2);
+
+	Vector2D hit1(5,10);
+	if( RayBoxIntersect(rayOrigin, rayDirection, &hit1, boxPos, boxWidth, boxHeight) )
+	{	
+		engine->graphics->DrawRect(boxPos, boxWidth, boxHeight, 8);
+		engine->graphics->DrawLine(rayOrigin, hit1, 12);
+	}
 }
 
 

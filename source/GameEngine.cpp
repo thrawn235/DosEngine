@@ -36,6 +36,16 @@ GraphicsEngine* GameEngine::GetGraphics()
 	return graphics;
 	//
 }
+TimeEngine* GameEngine::GetTime()
+{
+	return time;
+	//
+}
+InputEngine* GameEngine::GetInput()
+{
+	return input;
+	//
+}
 //==========================================================
 
 
@@ -94,7 +104,10 @@ void GameEngine::UpdateAll()
 {
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		objects[i]->Update();
+		if( objects[i]->GetEnabled() )
+		{
+			objects[i]->Update();
+		}
 	}
 }
 void GameEngine::DrawAll()
@@ -116,7 +129,10 @@ void GameEngine::DrawAll()
 
 	for(unsigned int i = 0; i < drawObjects.size(); i++)
 	{
-		drawObjects[i]->Draw();
+		if( !drawObjects[i]->GetInvisible() )
+		{
+			drawObjects[i]->Draw();
+		}
 	}
 }
 //==========================================================
@@ -144,6 +160,10 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 
 	//open File, read only (txt mode)
 	FILE* file = fopen( filePath, "r" );
+	if( file == NULL )
+	{
+		Quit( "Error opening TMX File" );
+	}
 
 	//read XML Data
 	fscanf( file, "<?xml version=\"%f\" encoding=\"%[^\"]\"?>\n", &newTMXMap.XMLVersion, newTMXMap.encoding );
@@ -159,6 +179,10 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 	if( debug )
 	{
 		printf( "XMLTag= %s \n", XMLTag );
+	}
+	if( strcmp( XMLTag, "map" ) != 0 )
+	{
+		Quit( "couldnt find map XML tag. Invalid TMX File" );
 	}
 
 	fscanf(	file, " version=\"%f\" tiledversion=\"%[^\"]\" orientation=\"%[^\"]\" renderorder=\"%[^\"]\" width=\"%i\" height=\"%i\" tilewidth=\"%i\" tileheight=\"%i\" infinite=\"%i\" nextlayerid=\"%i\" nextobjectid=\"%i\">\n", 
@@ -465,351 +489,350 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 			while( strcmp( XMLTag, "/layer" ) != 0 )
 			{
 
-				fscanf(file, "<%[^> ]", XMLTag);
-				if(debug)
+				fscanf( file, "<%[^> ]", XMLTag );
+				if( debug )
 				{
-					printf("		XMLTag= %s \n", XMLTag);
+					printf( "		XMLTag= %s \n", XMLTag );
 					getch();
 				}
 
-				if(strcmp(XMLTag, "/layer") == 0)
+				if( strcmp( XMLTag, "/layer" ) == 0 )
 				{
-					fscanf(file, ">\n");
+					fscanf( file, ">\n" );
 				}
 
-				if(strcmp(XMLTag, "properties") == 0)
+				if( strcmp( XMLTag, "properties" ) == 0 )
 				{
 					fscanf(file, ">\n");
 
-					while(strcmp(XMLTag, "/properties") != 0)
+					while( strcmp( XMLTag, "/properties" ) != 0 )
 					{
-						fscanf(file, "<%[^> ]", XMLTag);
-						if(debug)
+						fscanf( file, "<%[^> ]", XMLTag );
+						if( debug )
 						{
-							printf("			XMLTag= %s \n", XMLTag);
+							printf( "			XMLTag= %s \n", XMLTag );
 							getch();
 						}
 
 
-						if(strcmp(XMLTag, "property") == 0)
+						if( strcmp( XMLTag, "property" ) == 0 )
 						{
 							TMXProperty newProperty;
-							fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
+							fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
 							newTMXMap.layers.back().properties.push_back(newProperty);
-							if(debug)
+							if( debug )
 							{
-								printf("				name 	= %s \n", newTMXMap.layers.back().properties.back().name);
-								printf("				type 	= %s \n", newTMXMap.layers.back().properties.back().type);
-								printf("				value 	= %s \n", newTMXMap.layers.back().properties.back().stringValue);
+								printf( "				name 	= %s \n", newTMXMap.layers.back().properties.back().name 			);
+								printf( "				type 	= %s \n", newTMXMap.layers.back().properties.back().type 			);
+								printf( "				value 	= %s \n", newTMXMap.layers.back().properties.back().stringValue 	);
 								getch();
 							}
 						}
 
-						if(strcmp(XMLTag, "/properties") == 0)
+						if(strcmp( XMLTag, "/properties" ) == 0 )
 						{
-							fscanf(file, ">\n");
-							//printf("jo");
+							fscanf( file, ">\n" );
 						}
 					}
 				}
 
-				if(strcmp(XMLTag, "data") == 0)
+				if( strcmp( XMLTag, "data" ) == 0 )
 				{
-					fscanf(file, " encoding=\"%[^\"]\">\n", newTMXLayer.dataEncoding);
-					if(debug)
+					fscanf( file, " encoding=\"%[^\"]\">\n", newTMXLayer.dataEncoding );
+					if( debug )
 					{
-						printf("			encoding 	= %s \n", newTMXLayer.dataEncoding);
+						printf( "			encoding 	= %s \n", newTMXLayer.dataEncoding );
 						getch();
 					}
 
-					newTMXMap.layers.back().data = (int*)malloc(newTMXLayer.height * newTMXLayer.width * sizeof(int));
-					for(unsigned int y = 0; y < newTMXLayer.height; y++)
+					newTMXMap.layers.back().data = ( int* )malloc( newTMXLayer.height * newTMXLayer.width * sizeof( int ) );
+					for( unsigned int y = 0; y < newTMXLayer.height; y++ )
 					{
-						for(unsigned int x = 0; x < newTMXLayer.width; x++)
+						for( unsigned int x = 0; x < newTMXLayer.width; x++ )
 						{
-							fscanf(file, "%i,", &newTMXMap.layers.back().data[y * newTMXLayer.width + x]);
-							//printf("%i,", newTMXLayer.data[y * newTMXLayer.width + x]);
+							fscanf( file, "%i,", &newTMXMap.layers.back().data[y * newTMXLayer.width + x] );
+							//printf( "%i,", newTMXLayer.data[y * newTMXLayer.width + x] );
 						}
-						fscanf(file, "\n");
+						fscanf( file, "\n" );
 					}
 
-					if(debug)
+					if( debug )
 					{
-						for(unsigned int y = 0; y < newTMXLayer.height; y++)
+						for( unsigned int y = 0; y < newTMXLayer.height; y++ )
 						{
-							for(unsigned int x = 0; x < newTMXLayer.width; x++)
+							for( unsigned int x = 0; x < newTMXLayer.width; x++ )
 							{
-								printf("%i,", newTMXMap.layers.back().data[y * newTMXLayer.width + x]);
+								printf( "%i,", newTMXMap.layers.back().data[y * newTMXLayer.width + x] );
 							}
-							printf("\n");
+							printf( "\n" );
 						}
 					}
 
-					fscanf(file, "</data>\n");
+					fscanf( file, "</data>\n" );
 				}
 			}
 		}
 
-		if(strcmp(XMLTag, "objectgroup") == 0)
+		if(strcmp( XMLTag, "objectgroup" ) == 0 )
 		{
 			TMXObjectGroup newObjectGroup;
-			//fscanf(file, " id=\"%i\" name=\"%[^\"]\" width=\"%i\" height=\"%i\">\n", &newTMXLayer.id, newTMXLayer.name, &newTMXLayer.width, &newTMXLayer.height);
+			//fscanf( file, " id=\"%i\" name=\"%[^\"]\" width=\"%i\" height=\"%i\">\n", &newTMXLayer.id, newTMXLayer.name, &newTMXLayer.width, &newTMXLayer.height );
 			
 			//dealing with visible, locked and offsets
 			newObjectGroup.visible = true;
-			newObjectGroup.locked = false;
+			newObjectGroup.locked  = false;
 			newObjectGroup.offsetX = 0;
 			newObjectGroup.offsetY = 0;
 			newObjectGroup.opacity = 1;
+
 			char whitespace = ' ';
-			fscanf(file, "%c", &whitespace);
-			while(whitespace != '>')
+			fscanf( file, "%c", &whitespace );
+			while( whitespace != '>' )
 			{
 				char name[30];
 
-				fscanf(file, "%[^=]=", name);
-				if(strcmp(name, "id") == 0)
+				fscanf( file, "%[^=]=", name );
+				if( strcmp( name, "id" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newObjectGroup.id);
-					//printf("id= %i ", newObjectGroup.id);
+					fscanf( file, "\"%i\"", &newObjectGroup.id );
+					//printf( "id= %i ", newObjectGroup.id );
 				}
-				if(strcmp(name, "name") == 0)
+				if( strcmp( name, "name" ) == 0 )
 				{
-					fscanf(file, "\"%[^\"]\"", newObjectGroup.name);
-					//printf("name= %s ", newObjectGroup.name);
+					fscanf( file, "\"%[^\"]\"", newObjectGroup.name );
+					//printf( "name= %s ", newObjectGroup.name );
 				}
-				if(strcmp(name, "visible") == 0)
+				if( strcmp(name, "visible") == 0 )
 				{
-					fscanf(file, "\"%i\"", &newObjectGroup.visible);
-					//printf("visible= %i ", newObjectGroup.visible);
+					fscanf( file, "\"%i\"", &newObjectGroup.visible );
+					//printf( "visible= %i ", newObjectGroup.visible );
 				}
-				if(strcmp(name, "locked") == 0)
+				if( strcmp( name, "locked" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newObjectGroup.locked);
-					//printf("locked= %i ", newObjectGroup.locked);
+					fscanf( file, "\"%i\"", &newObjectGroup.locked );
+					//printf( "locked= %i ", newObjectGroup.locked );
 				}
-				if(strcmp(name, "offsetx") == 0)
+				if( strcmp( name, "offsetx" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newObjectGroup.offsetX);
-					//printf("offsetx= %i ", newObjectGroup.offsetX);
+					fscanf( file, "\"%i\"", &newObjectGroup.offsetX );
+					//printf( "offsetx= %i ", newObjectGroup.offsetX );
 				}
-				if(strcmp(name, "offsety") == 0)
+				if( strcmp( name, "offsety" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newObjectGroup.offsetY);
-					//printf("offsety= %i ", newObjectGroup.offsetY);
+					fscanf( file, "\"%i\"", &newObjectGroup.offsetY );
+					//printf( "offsety= %i ", newObjectGroup.offsetY );
 				}
-				fscanf(file, "%c", &whitespace);
-				if(debug)
+				fscanf( file, "%c", &whitespace );
+				if( debug )
 				{
-					printf("whitespace = %c;", whitespace);
+					printf( "whitespace = %c;", whitespace );
 					//getch();
 				}
 			}
-			fscanf(file, "\n");
-			if(debug)
+			fscanf( file, "\n" );
+			if( debug )
 			{
-				printf("\n");
+				printf( "\n" );
 			}
 
-			newTMXMap.objectGroups.push_back(newObjectGroup);
-			if(debug)
+			newTMXMap.objectGroups.push_back( newObjectGroup );
+			if( debug )
 			{
-				printf("		id 			= %i \n", newTMXMap.objectGroups.back().id);
-				printf("		name		= %s \n", newTMXMap.objectGroups.back().name);
-				printf("		visible		= %i \n", newTMXMap.objectGroups.back().visible);
-				printf("		locked		= %i \n", newTMXMap.objectGroups.back().locked);
-				printf("		offsetX		= %i \n", newTMXMap.objectGroups.back().offsetX);
-				printf("		offsetY		= %i \n", newTMXMap.objectGroups.back().offsetY);
+				printf( "		id 			= %i \n", newTMXMap.objectGroups.back().id 		);
+				printf( "		name		= %s \n", newTMXMap.objectGroups.back().name 	);
+				printf( "		visible		= %i \n", newTMXMap.objectGroups.back().visible );
+				printf( "		locked		= %i \n", newTMXMap.objectGroups.back().locked 	);
+				printf( "		offsetX		= %i \n", newTMXMap.objectGroups.back().offsetX );
+				printf( "		offsetY		= %i \n", newTMXMap.objectGroups.back().offsetY );
 				getch();
 			}
 
-			while(strcmp(XMLTag, "/objectgroup") != 0)
+			while( strcmp( XMLTag, "/objectgroup" ) != 0 )
 			{
 
-				fscanf(file, "<%[^> ]", XMLTag);
-				if(debug)
+				fscanf( file, "<%[^> ]", XMLTag );
+				if( debug )
 				{
-					printf("		XMLTag= %s \n", XMLTag);
+					printf( "		XMLTag= %s \n", XMLTag );
 					getch();
 				}
 
-				if(strcmp(XMLTag, "/objectgroup") == 0)
+				if( strcmp( XMLTag, "/objectgroup" ) == 0 )
 				{
-					fscanf(file, ">\n");
+					fscanf( file, ">\n" );
 				}
 
-				if(strcmp(XMLTag, "properties") == 0)
+				if( strcmp( XMLTag, "properties" ) == 0 )
 				{
-					fscanf(file, ">\n");
+					fscanf( file, ">\n" );
 
-					while(strcmp(XMLTag, "/properties") != 0)
+					while( strcmp( XMLTag, "/properties" ) != 0 )
 					{
-						fscanf(file, "<%[^> ]", XMLTag);
-						if(debug)
+						fscanf( file, "<%[^> ]", XMLTag );
+						if( debug )
 						{
-							printf("			XMLTag= %s \n", XMLTag);
+							printf( "			XMLTag= %s \n", XMLTag );
 							getch();
 						}
 
 
-						if(strcmp(XMLTag, "property") == 0)
+						if( strcmp( XMLTag, "property" ) == 0 )
 						{
 							TMXProperty newProperty;
-							fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
-							newTMXMap.objectGroups.back().properties.push_back(newProperty);
-							if(debug)
+							fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
+							newTMXMap.objectGroups.back().properties.push_back( newProperty );
+							if( debug )
 							{
-								printf("				name 	= %s \n", newTMXMap.objectGroups.back().properties.back().name);
-								printf("				type 	= %s \n", newTMXMap.objectGroups.back().properties.back().type);
-								printf("				value 	= %s \n", newTMXMap.objectGroups.back().properties.back().stringValue);
+								printf( "				name 	= %s \n", newTMXMap.objectGroups.back().properties.back().name	 		);
+								printf( "				type 	= %s \n", newTMXMap.objectGroups.back().properties.back().type 			);
+								printf( "				value 	= %s \n", newTMXMap.objectGroups.back().properties.back().stringValue 	);
 								getch();
 							}
 							
 						}
 
-						if(strcmp(XMLTag, "/properties") == 0)
+						if( strcmp( XMLTag, "/properties" ) == 0 )
 						{
-							fscanf(file, ">\n");
-							//printf("jo");
+							fscanf( file, ">\n" );
 						}
 					}
 				}
 
 				//read objects
-				if(strcmp(XMLTag, "object") == 0)
+				if( strcmp( XMLTag, "object" ) == 0 )
 				{
 					TMXObject newObject;
 					
 					//dealing with visible, locked and offsets
-					newObject.visible = true;
-					newObject.width = 0;
-					newObject.height = 0;
-					newObject.rotation = 0;
-					newObject.gid = 0;
-					newObject.typeID = -1;
+					newObject.visible 	= true;
+					newObject.width 	= 0;
+					newObject.height 	= 0;
+					newObject.rotation 	= 0;
+					newObject.gid 		= 0;
+					newObject.typeID 	= -1;
 					strcpy(newObject.type, "point"); //a rect is also a point. just with aditional with and height
 
 
 					char whitespace = ' ';
-					fscanf(file, "%c", &whitespace);
+					fscanf( file, "%c", &whitespace );
 					bool objectEnd = false; //ugly -.-
-					while(whitespace != '>')
+					while( whitespace != '>' )
 					{
 						char name[30];
 
-						fscanf(file, "%[^=]=", name);
-						if(strcmp(name, "id") == 0)
+						fscanf( file, "%[^=]=", name );
+						if( strcmp( name, "id" ) == 0 )
 						{
-							fscanf(file, "\"%i\"", &newObject.id);
+							fscanf( file, "\"%i\"", &newObject.id );
 						}
-						if(strcmp(name, "x") == 0)
+						if( strcmp( name, "x" ) == 0 )
 						{
-							fscanf(file, "\"%f\"", &newObject.pos.x);
+							fscanf( file, "\"%f\"", &newObject.pos.x );
 						}
-						if(strcmp(name, "y") == 0)
+						if( strcmp(name, "y" ) == 0 )
 						{
-							fscanf(file, "\"%f\"", &newObject.pos.y);
+							fscanf( file, "\"%f\"", &newObject.pos.y );
 						}
-						if(strcmp(name, "width") == 0)
+						if( strcmp( name, "width" ) == 0 )
 						{
-							fscanf(file, "\"%i\"", &newObject.width);
+							fscanf( file, "\"%i\"", &newObject.width );
 						}
-						if(strcmp(name, "height") == 0)
+						if( strcmp( name, "height" ) == 0 )
 						{
-							fscanf(file, "\"%i\"", &newObject.height);
+							fscanf( file, "\"%i\"", &newObject.height );
 						}
-						if(strcmp(name, "name") == 0)
+						if( strcmp( name, "name" ) == 0 )
 						{
-							fscanf(file, "\"%[^\"]\"", newObject.name);
+							fscanf( file, "\"%[^\"]\"", newObject.name );
 						}
-						if(strcmp(name, "gid") == 0)
+						if( strcmp( name, "gid" ) == 0 )
 						{
-							fscanf(file, "\"%i\"", &newObject.gid);
+							fscanf( file, "\"%i\"", &newObject.gid );
 						}
-						if(strcmp(name, "rotation") == 0)
+						if( strcmp( name, "rotation" ) == 0 )
 						{
-							fscanf(file, "\"%f\"", &newObject.rotation);
+							fscanf( file, "\"%f\"", &newObject.rotation );
 						}
-						fscanf(file, "%c", &whitespace);
-						if(whitespace == '/')
+						fscanf( file, "%c", &whitespace );
+						if( whitespace == '/' )
 						{
-							fscanf(file, "%c", &whitespace);
+							fscanf( file, "%c", &whitespace );
 							objectEnd = true;
 						}
-						if(debug)
+						if( debug )
 						{
-							printf("whitespace = %c;", whitespace);
+							printf( "whitespace = %c;", whitespace );
 							//getch();
 						}
 					}
-					fscanf(file, "\n");
-					if(debug)
+					fscanf( file, "\n" );
+					if( debug )
 					{
-						printf("\n");
+						printf( "\n" );
 					}
 
-					newTMXMap.objectGroups.back().objects.push_back(newObject);
+					newTMXMap.objectGroups.back().objects.push_back( newObject );
 					if(debug)
 					{
-						printf("		id 			= %i \n", newTMXMap.objectGroups.back().objects.back().id);
-						printf("		X			= %f \n", newTMXMap.objectGroups.back().objects.back().pos.x);
-						printf("		Y			= %f \n", newTMXMap.objectGroups.back().objects.back().pos.y);
-						printf("		name		= %s \n", newTMXMap.objectGroups.back().objects.back().name);
-						printf("		visible		= %i \n", newTMXMap.objectGroups.back().objects.back().visible);
-						printf("		width		= %i \n", newTMXMap.objectGroups.back().objects.back().width);
-						printf("		height		= %i \n", newTMXMap.objectGroups.back().objects.back().height);
+						printf( "		id 			= %i \n", newTMXMap.objectGroups.back().objects.back().id 		);
+						printf( "		X			= %f \n", newTMXMap.objectGroups.back().objects.back().pos.x 	);
+						printf( "		Y			= %f \n", newTMXMap.objectGroups.back().objects.back().pos.y 	);
+						printf( "		name		= %s \n", newTMXMap.objectGroups.back().objects.back().name 	);
+						printf( "		visible		= %i \n", newTMXMap.objectGroups.back().objects.back().visible 	);
+						printf( "		width		= %i \n", newTMXMap.objectGroups.back().objects.back().width 	);
+						printf( "		height		= %i \n", newTMXMap.objectGroups.back().objects.back().height 	);
 						getch();
 					}
 
-					while(strcmp(XMLTag, "/object") != 0 && !objectEnd)
+					while( strcmp( XMLTag, "/object" ) != 0 && !objectEnd )
 					{
-						fscanf(file, "<%[^> ]", XMLTag);
-						if(debug)
+						fscanf( file, "<%[^> ]", XMLTag );
+						if( debug )
 						{
-							printf("			XMLTag= %s \n", XMLTag);
+							printf( "			XMLTag= %s \n", XMLTag );
 							getch();
 						}
 
-						if(strcmp(XMLTag, "/object") == 0)
+						if( strcmp( XMLTag, "/object" ) == 0 )
 						{
-							fscanf(file, ">\n");
+							fscanf( file, ">\n" );
 						}
 
-						if(strcmp(XMLTag, "properties") == 0)
+						if( strcmp( XMLTag, "properties" ) == 0 )
 						{
-							fscanf(file, ">\n");
+							fscanf( file, ">\n" );
 
-							while(strcmp(XMLTag, "/properties") != 0)
+							while( strcmp( XMLTag, "/properties" ) != 0 )
 							{
-								fscanf(file, "<%[^> ]", XMLTag);
-								if(debug)
+								fscanf( file, "<%[^> ]", XMLTag );
+								if( debug )
 								{
-									printf("				XMLTag= %s \n", XMLTag);
+									printf( "				XMLTag= %s \n", XMLTag );
 									getch();
 								}
 
 
-								if(strcmp(XMLTag, "property") == 0)
+								if( strcmp( XMLTag, "property" ) == 0 )
 								{
 									TMXProperty newProperty;
-									fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
-									newTMXMap.objectGroups.back().objects.back().properties.push_back(newProperty);
-									if(debug)
+									fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
+									newTMXMap.objectGroups.back().objects.back().properties.push_back( newProperty );
+									if( debug )
 									{
-										printf("					name 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().name);
-										printf("					type 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().type);
-										printf("					value 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().stringValue);
+										printf( "					name 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().name 		);
+										printf( "					type 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().type 		);
+										printf( "					value 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().stringValue);
 										
 										//getch();
 									}
-									if( strcmp(newProperty.name, "typeID") == 0 )
+									if( strcmp( newProperty.name, "typeID" ) == 0 )
 									{
-										newTMXMap.objectGroups.back().objects.back().typeID = atoi(newProperty.stringValue);
+										newTMXMap.objectGroups.back().objects.back().typeID = atoi( newProperty.stringValue );
 									}
 									
 								}
 
-								if(strcmp(XMLTag, "/properties") == 0)
+								if( strcmp( XMLTag, "/properties" ) == 0 )
 								{
 									fscanf(file, ">\n");
 									//printf("jo");
@@ -817,16 +840,16 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 							}
 						}
 
-						if(strcmp(XMLTag, "ellipse/") == 0)
+						if( strcmp( XMLTag, "ellipse/" ) == 0 )
 						{
-							strcpy(newObject.type, "ellipse");
-							fscanf(file, ">\n");
+							strcpy( newObject.type, "ellipse" );
+							fscanf( file, ">\n" );
 						}
 
-						if(strcmp(XMLTag, "point/") == 0)
+						if( strcmp( XMLTag, "point/" ) == 0 )
 						{
-							strcpy(newObject.type, "point");
-							fscanf(file, ">\n");
+							strcpy( newObject.type, "point" );
+							fscanf( file, ">\n" );
 						}
 
 
@@ -836,7 +859,7 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 			}
 		}
 
-		if(strcmp(XMLTag, "imagelayer") == 0)
+		if( strcmp( XMLTag, "imagelayer" ) == 0 )
 		{
 			TMXImageLayer newImageLayer;
 			//dealing with visible, locked and offsets
@@ -849,137 +872,136 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 
 			char whitespace = ' ';
 			bool objectEnd = false; //ugly -.-
-			fscanf(file, "%c", &whitespace);
-			while(whitespace != '>')
+			fscanf( file, "%c", &whitespace );
+			while( whitespace != '>' )
 			{
 				char name[30];
 
-				fscanf(file, "%[^=]=", name);
-				if(strcmp(name, "id") == 0)
+				fscanf( file, "%[^=]=", name );
+				if(strcmp( name, "id") == 0 )
 				{
-					fscanf(file, "\"%i\"", &newImageLayer.id);
-					//printf("id= %i ", newObjectGroup.id);
+					fscanf( file, "\"%i\"", &newImageLayer.id );
+					//printf( "id= %i ", newObjectGroup.id );
 				}
-				if(strcmp(name, "name") == 0)
+				if( strcmp( name, "name" ) == 0 )
 				{
-					fscanf(file, "\"%[^\"]\"", newImageLayer.name);
-					//printf("name= %s ", newObjectGroup.name);
+					fscanf( file, "\"%[^\"]\"", newImageLayer.name );
+					//printf( "name= %s ", newObjectGroup.name );
 				}
-				if(strcmp(name, "visible") == 0)
+				if( strcmp( name, "visible" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newImageLayer.visible);
-					//printf("visible= %i ", newObjectGroup.visible);
+					fscanf( file, "\"%i\"", &newImageLayer.visible );
+					//printf( "visible= %i ", newObjectGroup.visible );
 				}
-				if(strcmp(name, "offsetx") == 0)
+				if( strcmp( name, "offsetx" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newImageLayer.offsetX);
-					//printf("offsetx= %i ", newObjectGroup.offsetX);
+					fscanf( file, "\"%i\"", &newImageLayer.offsetX );
+					//printf( "offsetx= %i ", newObjectGroup.offsetX );
 				}
-				if(strcmp(name, "offsety") == 0)
+				if( strcmp( name, "offsety" ) == 0 )
 				{
-					fscanf(file, "\"%i\"", &newImageLayer.offsetY);
-					//printf("offsety= %i ", newObjectGroup.offsetY);
+					fscanf( file, "\"%i\"", &newImageLayer.offsetY );
+					//printf( "offsety= %i ", newObjectGroup.offsetY );
 				}
-				if(strcmp(name, "opacity") == 0)
+				if( strcmp( name, "opacity" ) == 0 )
 				{
-					fscanf(file, "\"%f\"", &newImageLayer.opacity);
-					//printf("offsety= %i ", newObjectGroup.offsetY);
+					fscanf( file, "\"%f\"", &newImageLayer.opacity );
+					//printf( "offsety= %i ", newObjectGroup.offsetY );
 				}
-				fscanf(file, "%c", &whitespace);
-				if(whitespace == '/')
+				fscanf( file, "%c", &whitespace );
+				if( whitespace == '/' )
 				{
-					fscanf(file, "%c", &whitespace);
+					fscanf( file, "%c", &whitespace );
 					objectEnd = true;
 				}
-				if(debug)
+				if( debug )
 				{
-					printf("whitespace = %c;", whitespace);
+					printf( "whitespace = %c;", whitespace );
 					//getch();
 				}
 			}
-			fscanf(file, "\n");
-			if(debug)
+			fscanf( file, "\n" );
+			if( debug )
 			{
-				printf("\n");
+				printf( "\n" );
 			}
 
-			newTMXMap.imageLayers.push_back(newImageLayer);
+			newTMXMap.imageLayers.push_back( newImageLayer );
 			if(debug)
 			{
-				printf("		id 			= %i \n", newTMXMap.imageLayers.back().id);
-				printf("		name		= %s \n", newTMXMap.imageLayers.back().name);
-				printf("		visible		= %i \n", newTMXMap.imageLayers.back().visible);
-				printf("		offsetX		= %i \n", newTMXMap.imageLayers.back().offsetX);
-				printf("		offsetY		= %i \n", newTMXMap.imageLayers.back().offsetY);
-				printf("		opacity		= %f \n", newTMXMap.imageLayers.back().opacity);
+				printf( "		id 			= %i \n", newTMXMap.imageLayers.back().id 		);
+				printf( "		name		= %s \n", newTMXMap.imageLayers.back().name 	);
+				printf( "		visible		= %i \n", newTMXMap.imageLayers.back().visible 	);
+				printf( "		offsetX		= %i \n", newTMXMap.imageLayers.back().offsetX 	);
+				printf( "		offsetY		= %i \n", newTMXMap.imageLayers.back().offsetY 	);
+				printf( "		opacity		= %f \n", newTMXMap.imageLayers.back().opacity 	);
 				getch();
 			}
 
-			while(strcmp(XMLTag, "/imagelayer") != 0 && !objectEnd)
+			while( strcmp(XMLTag, "/imagelayer" ) != 0 && !objectEnd )
 			{
-				fscanf(file, "<%[^> ]", XMLTag);
-				if(debug)
+				fscanf( file, "<%[^> ]", XMLTag );
+				if( debug )
 				{
-					printf("		XMLTag= %s \n", XMLTag);
+					printf( "		XMLTag= %s \n", XMLTag );
 					getch();
 				}
 
-				if(strcmp(XMLTag, "/imagelayer") == 0)
+				if( strcmp( XMLTag, "/imagelayer" ) == 0 )
 				{
 					fscanf(file, ">\n");
 				}
 
-				if(strcmp(XMLTag, "properties") == 0)
+				if( strcmp( XMLTag, "properties" ) == 0 )
 				{
-					fscanf(file, ">\n");
+					fscanf( file, ">\n" );
 
-					while(strcmp(XMLTag, "/properties") != 0)
+					while( strcmp( XMLTag, "/properties" ) != 0 )
 					{
-						fscanf(file, "<%[^> ]", XMLTag);
-						if(debug)
+						fscanf( file, "<%[^> ]", XMLTag );
+						if( debug )
 						{
-							printf("			XMLTag= %s \n", XMLTag);
+							printf( "			XMLTag= %s \n", XMLTag );
 							getch();
 						}
 
 
-						if(strcmp(XMLTag, "property") == 0)
+						if( strcmp( XMLTag, "property" ) == 0 )
 						{
 							TMXProperty newProperty;
-							fscanf(file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue);
+							fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
 							newTMXMap.imageLayers.back().properties.push_back(newProperty);
 							if(debug)
 							{
-								printf("				name 	= %s \n", newTMXMap.imageLayers.back().properties.back().name);
-								printf("				type 	= %s \n", newTMXMap.imageLayers.back().properties.back().type);
-								printf("				value 	= %s \n", newTMXMap.imageLayers.back().properties.back().stringValue);
+								printf( "				name 	= %s \n", newTMXMap.imageLayers.back().properties.back().name 		);
+								printf( "				type 	= %s \n", newTMXMap.imageLayers.back().properties.back().type 		);
+								printf( "				value 	= %s \n", newTMXMap.imageLayers.back().properties.back().stringValue);
 								getch();
 							}
 							
 						}
 
-						if(strcmp(XMLTag, "/properties") == 0)
+						if( strcmp( XMLTag, "/properties" ) == 0 )
 						{
-							fscanf(file, ">\n");
-							//printf("jo");
+							fscanf( file, ">\n" );
 						}
 					}
 				}
 
-				if(strcmp(XMLTag, "image") == 0)
+				if( strcmp( XMLTag, "image" ) == 0 )
 				{
 					TMXImage newImage;
 
 					//char format[30];
 					//char trans[30];
 				
-					fscanf(file, " source=\"%[^\"]\" width=\"%i\" height=\"%i\"/>\n", newImage.source, &newImage.width, &newImage.height);
+					fscanf( file, " source=\"%[^\"]\" width=\"%i\" height=\"%i\"/>\n", newImage.source, &newImage.width, &newImage.height );
 				 	newTMXMap.imageLayers.back().image = newImage;
-				 	if(debug)
+				 	if( debug )
 					{
-						printf("				source 	= %s \n", newTMXMap.imageLayers.back().image.source);
-						printf("				width 	= %i \n", newTMXMap.imageLayers.back().image.width);
-						printf("				height 	= %i \n", newTMXMap.imageLayers.back().image.height);
+						printf( "				source 	= %s \n", newTMXMap.imageLayers.back().image.source 	);
+						printf( "				width 	= %i \n", newTMXMap.imageLayers.back().image.width 		);
+						printf( "				height 	= %i \n", newTMXMap.imageLayers.back().image.height 	);
 						getch();
 					}
 				 	
@@ -987,11 +1009,11 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 			}
 		}		
 	}
-	fscanf(file, ">\n");
+	fscanf( file, ">\n" );
 
-	if(debug)
+	if( debug )
 	{
-		printf("done reading tmx file!\n");
+		printf( "done reading tmx file!\n" );
 		getch();
 	}
 
@@ -1058,52 +1080,116 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 		{
 			for( unsigned int x = 0; x < in->layers[i].width; x++ )
 			{
-				GameObject* newObject = NULL;
-
 				int mapValue = in->layers[i].data[y * in->layers[i].width + x];
-				
-				//int tileSetID 	= GetTileSetID( in, mapValue );
-				int tileSetIndexInTMX  	= GetTMXTileSetIndex( in, mapValue );
-				int tileSetID 			= GetTileSetID( in, tileSetIndexInTMX );
-				int typeID 				= GetTypeID( in, mapValue, tileSetIndexInTMX );
-				int tileID 				= GetTileID( in, mapValue, tileSetIndexInTMX );
-				int tileHeight 			= in->tileSets[tileSetIndexInTMX].tileHeight;
-				int tileWidth 			= in->tileSets[tileSetIndexInTMX].tileWidth;
-				
-				Vector2D newPos;
-				newPos.x 	= ( x * tileWidth ) + in->layers[i].offsetX;
-				newPos.y 	= ( y * tileHeight ) + in->layers[i].offsetY;
-				newPos 		= newPos;	//additional offset from paramteer list
-
-				//printf("O %i:%i:%i tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, tileSetID, tileID, typeID, newPos.x, newPos.y);
-				//getch();
-
-				if( typeID >= 0 ) //placeholder
+				//printf( "mapValue = %i\n", mapValue );
+				if( mapValue > 0 )
 				{
-					newObject = new GameObject( this );
-					newObject->SetTypeID	( typeID );
-					newObject->SetPos		( newPos );
-					newObject->SetDimensions( in->layers[i].width, in->layers[i].height );
-					newObject->SetTileSetID	( tileSetID );
-					newObject->SetTileIndex	( tileID );
-					newObject->SetDrawOrder	( i );
-				}
+					GameObject* newObject = NULL;
 
-				if( newObject != NULL )
-				{
-					AddObject( newObject );
+					
+					
+					//int tileSetID 	= GetTileSetID( in, mapValue );
+					int tileSetIndexInTMX  	= GetTMXTileSetIndex( in, mapValue );
+					int tileSetID 			= GetTileSetID( in, tileSetIndexInTMX );
+					int typeID 				= GetTypeID( in, mapValue, tileSetIndexInTMX );
+					int tileID 				= GetTileID( in, mapValue, tileSetIndexInTMX );
+					int tileHeight 			= in->tileSets[tileSetIndexInTMX].tileHeight;
+					int tileWidth 			= in->tileSets[tileSetIndexInTMX].tileWidth;
+					
+					Vector2D newPos;
+					newPos.x 	= ( x * tileWidth ) + in->layers[i].offsetX;
+					newPos.y 	= ( y * tileHeight ) + in->layers[i].offsetY;
+					//newPos 		= newPos + offset;	//additional offset from paramteer list
+
+					//printf("O %i:%i:%i mapValue=%i tileSetTMX=%i TMXSource=%s tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, mapValue, tileSetIndexInTMX, in->tileSets[tileSetIndexInTMX].source, tileSetID, tileID, typeID, newPos.x, newPos.y);
+					
+
+					if( typeID == TYPE_PLAYER ) //placeholder
+					{
+						//printf("create!\n");
+						newObject = new Player( this );
+
+					}
+					else if( typeID == TYPE_SOLID ) //placeholder
+					{
+						//printf("create!\n");
+						newObject = new Solid( this );
+
+					} else if( typeID == TYPE_SOLID_TOP ) //placeholder
+					{
+						//printf("create!\n");
+						newObject = new SolidTop( this );
+
+					} else if( typeID == TYPE_BACK_GROUND ) //placeholder
+					{
+						//printf("create!\n");
+						newObject = new BackGround( this );
+						
+					}
+					else
+					{
+						//printf("create!\n");
+						if(tileSetID != -1)
+						{
+							newObject = new GameObject( this );
+					
+						}
+					}
+					if( newObject != NULL )
+					{
+						newObject->SetTypeID	( typeID );
+						newObject->SetPos		( newPos );
+						newObject->SetDimensions( tileWidth, tileHeight );
+						newObject->SetTileSetID	( tileSetID );
+						newObject->SetTileIndex	( tileID );
+						newObject->SetDrawOrder	( i );
+
+						AddObject( newObject );
+					}
+					//getch();
 				}
 			}
 		}
 	}
 
-	/*for( int i = 0; i < in->objectGroups.size(); i++ )
+	for( unsigned int i = 0; i < in->objectGroups.size(); i++ )
 	{
-		for( int u = 0; u < in->objectGroups[i].objects.size(); u++ )
+		for( unsigned int u = 0; u < in->objectGroups[i].objects.size(); u++ )
 		{
-			int mapValue = in->objectGroups[i].objects[u];
+			TMXObject* object;
+			object = &in->objectGroups[i].objects[u];
+
+			if( object->typeID != -1 )
+			{
+				GameObject* newObject = NULL;
+
+				Vector2D newPos = object->pos;
+				newPos.x 	= newPos.x + in->layers[i].offsetX;
+				newPos.y 	= newPos.y + in->layers[i].offsetY;
+				//newPos 		= newPos + offset;	//additional offset from paramteer list
+						
+				if( object->typeID == TYPE_PLAYER ) //placeholder
+				{
+					//printf("create!\n");
+					newObject = new Player( this );
+					newObject->SetDimensions( 16, 24 ); 	//hadcoded
+					newObject->SetTileSetID	( 10 );			//hardcoded
+					newObject->SetTileIndex	( 0 );			//hardcoded
+					newObject->SetDrawOrder	( 2 );			//hardcoded
+
+				}
+
+				if( newObject != NULL )
+				{
+					newObject->SetTypeID	( object->typeID ); 		//get from property
+					newObject->SetPos		( newPos );					//get from pos
+					
+
+					AddObject( newObject );
+				}
+			}
 		}
-	}*/
+	}
 }
 void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 {
@@ -1147,43 +1233,23 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 					{
 						//printf("create!\n");
 						newObject = new Player( this );
-						newObject->SetTypeID	( typeID );
-						newObject->SetPos		( newPos );
-						newObject->SetDimensions( tileWidth, tileHeight );
-						newObject->SetTileSetID	( tileSetID );
-						newObject->SetTileIndex	( tileID );
-						newObject->SetDrawOrder	( i );
+
 					}
 					else if( typeID == TYPE_SOLID ) //placeholder
 					{
 						//printf("create!\n");
 						newObject = new Solid( this );
-						newObject->SetTypeID	( typeID );
-						newObject->SetPos		( newPos );
-						newObject->SetDimensions( tileWidth, tileHeight );
-						newObject->SetTileSetID	( tileSetID );
-						newObject->SetTileIndex	( tileID );
-						newObject->SetDrawOrder	( i );
+
 					} else if( typeID == TYPE_SOLID_TOP ) //placeholder
 					{
 						//printf("create!\n");
 						newObject = new SolidTop( this );
-						newObject->SetTypeID	( typeID );
-						newObject->SetPos		( newPos );
-						newObject->SetDimensions( tileWidth, tileHeight );
-						newObject->SetTileSetID	( tileSetID );
-						newObject->SetTileIndex	( tileID );
-						newObject->SetDrawOrder	( i );
+
 					} else if( typeID == TYPE_BACK_GROUND ) //placeholder
 					{
 						//printf("create!\n");
 						newObject = new BackGround( this );
-						newObject->SetTypeID	( typeID );
-						newObject->SetPos		( newPos );
-						newObject->SetDimensions( tileWidth, tileHeight );
-						newObject->SetTileSetID	( tileSetID );
-						newObject->SetTileIndex	( tileID );
-						newObject->SetDrawOrder	( i );
+						
 					}
 					else
 					{
@@ -1191,25 +1257,18 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 						if(tileSetID != -1)
 						{
 							newObject = new GameObject( this );
-							newObject->SetTypeID	( typeID );
-							newObject->SetPos		( newPos );
-							newObject->SetDimensions( tileWidth, tileHeight );
-							newObject->SetTileSetID	( tileSetID );
-							newObject->SetTileIndex	( tileID );
-							newObject->SetDrawOrder	( i );
-							/*printf("tileSetID=%i\n", tileSetID);
-							printf("tileID=%i\n\n", tileID);
-							if(tileID != 143)
-							{
-								printf("O %i:%i:%i mapValue=%i tileSetTMX=%i TMXSource=%s tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, mapValue, tileSetIndexInTMX, in->tileSets[tileSetIndexInTMX].source, tileSetID, tileID, typeID, newPos.x, newPos.y);
-					
-								getch();
-							}*/
 					
 						}
 					}
 					if( newObject != NULL )
 					{
+						newObject->SetTypeID	( typeID );
+						newObject->SetPos		( newPos );
+						newObject->SetDimensions( tileWidth, tileHeight );
+						newObject->SetTileSetID	( tileSetID );
+						newObject->SetTileIndex	( tileID );
+						newObject->SetDrawOrder	( i );
+
 						AddObject( newObject );
 					}
 					//getch();
@@ -1218,16 +1277,61 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 		}
 	}
 
-	/*for( int i = 0; i < in->objectGroups.size(); i++ )
+	for( unsigned int i = 0; i < in->objectGroups.size(); i++ )
 	{
-		for( int u = 0; u < in->objectGroups[i].objects.size(); u++ )
+		for( unsigned int u = 0; u < in->objectGroups[i].objects.size(); u++ )
 		{
-			int mapValue = in->objectGroups[i].objects[u];
+			TMXObject* object;
+			object = &in->objectGroups[i].objects[u];
+
+			if( object->typeID != -1 )
+			{
+				GameObject* newObject = NULL;
+
+				Vector2D newPos = object->pos;
+				newPos.x 	= newPos.x + in->layers[i].offsetX;
+				newPos.y 	= newPos.y + in->layers[i].offsetY;
+				newPos 		= newPos + offset;	//additional offset from paramteer list
+						
+				if( object->typeID == TYPE_PLAYER ) //placeholder
+				{
+					//printf("create!\n");
+					newObject = new Player( this );
+					newObject->SetDimensions( 16, 24 ); 	//hadcoded
+					newObject->SetTileSetID	( 10 );			//hardcoded
+					newObject->SetTileIndex	( 0 );			//hardcoded
+					newObject->SetDrawOrder	( 2 );			//hardcoded
+
+				}
+
+				if( newObject != NULL )
+				{
+					newObject->SetTypeID	( object->typeID ); 		//get from property
+					newObject->SetPos		( newPos );					//get from pos
+					
+
+					AddObject( newObject );
+				}
+			}
 		}
-	}*/
+	}
 }
 //==========================================================
 
+//================ Misc =======================
+void GameEngine::Quit(const char* message)
+{
+	//attempt to get back to text mode
+	graphics->BackToTextMode();
+
+	//Print Message
+	printf( "Error: %s \n", message );
+	printf( "Terminating Program" );
+
+	//exit Program
+	exit(EXIT_FAILURE);
+}
+//=============================================
 
 //======================= Random ===========================
 /*void GameEngine::InitRandom()
@@ -1249,13 +1353,8 @@ unsigned char GameEngine::NotRandom()
 //=================== FindingObjects =======================
 vector<GameObject*> GameEngine::GetAllObjects()
 {
-	vector<GameObject*> outObjects;
-	for( unsigned int i = 0; i < objects.size(); i++ )
-	{
-		outObjects.push_back( objects[i] );
-	}
-	
-	return outObjects;
+	return objects;
+	//
 }
 vector<GameObject*> GameEngine::GetAllObjects( int typeID )
 {
@@ -1360,11 +1459,55 @@ vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius, in
 }
 vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D direction )
 {
+	vector<GameObject*> outObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		Vector2D testPos = objects[i]->GetPos() - origin;
 
+		//4 Rays
+		int slope1A = testPos.x / testPos.y;
+		int slope1B = (testPos.x + objects[i]->GetWidth() ) / ( testPos.y + objects[i]->GetHeight() );
+
+		int slope2A = testPos.x / ( testPos.y + objects[i]->GetHeight() );
+		int slope2B = ( testPos.x + objects[i]->GetHeight() ) /  testPos.y;
+
+		//own Ray
+		direction = direction - origin;
+		int ownSlope = direction.x / direction.y;
+
+		if( ( ownSlope > slope1A && ownSlope < slope2B ) || ( ownSlope > slope2A && ownSlope < slope2B ) )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
 }
 vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D direction, int typeID )
 {
+	vector<GameObject*> outObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		Vector2D testPos = objects[i]->GetPos() - origin;
 
+		//4 Rays
+		int slope1A = testPos.x / testPos.y;
+		int slope1B = (testPos.x + objects[i]->GetWidth() ) / ( testPos.y + objects[i]->GetHeight() );
+
+		int slope2A = testPos.x / ( testPos.y + objects[i]->GetHeight() );
+		int slope2B = ( testPos.x + objects[i]->GetHeight() ) /  testPos.y;
+
+		//own Ray
+		direction = direction - origin;
+		int ownSlope = direction.x / direction.y;
+
+		if( ( ( ownSlope > slope1A && ownSlope < slope2B ) || ( ownSlope > slope2A && ownSlope < slope2B ) ) && objects[i]->GetTypeID() == typeID )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
 }
 GameObject* GameEngine::GetFirstObjectAlongRay( Vector2D origin, Vector2D direction )
 {

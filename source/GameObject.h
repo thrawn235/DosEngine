@@ -71,6 +71,8 @@ protected:
 	GameEngine* engine;
 
 	bool 		onFloor;
+	bool		invisible;
+	bool 		enabled;
 
 	vector<GameObject*> touchingObjects;
 public:
@@ -95,6 +97,8 @@ public:
 	void 				SetTileIndex		( int newTileIndex 				);
 	void 				SetDrawOrder 		( int newDrawOrder 				);
 	void 				SetDimensions 		( int newWidth, int newHeight 	);
+	bool				GetEnabled			();
+	bool				GetInvisible		();
 	//======================================
 
 
@@ -115,11 +119,15 @@ public:
 	vector<GameObject*> GetTouchingObjects();
 	vector<GameObject*> GetTouchingObjects(int typeID);*/
 
-	/*
-	enable
-	diable
-	invisible
-	*/
+	virtual void AddForce 			( Vector2D newForce );	//chang Direction Vector
+	virtual bool RayBoxIntersect	( Vector2D origin, Vector2D dir, Vector2D* hit1, Vector2D boxPos, int boxWidth, int boxHeight );
+	virtual bool Collision 			();
+	virtual void Move 				();					//update position
+	virtual void Friction 			( float slickness );
+
+	void SetInsivible 		( bool newInvisible );
+	void Enable 			();
+	void Disable 			();
 
 	/*
 	Get Damage

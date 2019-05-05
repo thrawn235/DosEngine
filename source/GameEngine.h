@@ -65,7 +65,9 @@ public:
 	~GameEngine();
 
 	//================ Set/Get =====================
-	GraphicsEngine* GetGraphics();
+	GraphicsEngine* GetGraphics ();
+	TimeEngine*  	GetTime 	();
+	InputEngine* 	GetInput 	();
 	//=============================================
 
 
@@ -94,6 +96,10 @@ public:
 	int 	GetTileSetID 		( TMXMap* in, int TMXTileSetIndex 				);
 	int 	GetFirstGid 		( TMXMap* in, int tileSetID 					);
 	//==============================================
+
+	//================ Misc =======================
+	void Quit(const char* message);
+	//=============================================
 
 
 	//================= Random =====================

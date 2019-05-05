@@ -57,6 +57,12 @@ void GraphicsEngine::SetCamPos(Vector2D newPos)
 	//
 	camPos = newPos;
 }
+void GraphicsEngine::SetCamCenter(Vector2D newPos)
+{
+	newPos.x = newPos.x - ( screenWidth / 2 );
+	newPos.y = newPos.y - ( screenHeight / 2 );
+	camPos = newPos;
+}
 void GraphicsEngine::SetCamPos(int newPosX, int newPosY)
 {
 	camPos.x = newPosX;
@@ -383,14 +389,14 @@ BMP GraphicsEngine::LoadBMP(const char* filePath)
 		return bmp;
 	}
 }
-Sprite GraphicsEngine::BMPToSprite(BMP* in, int id)
+Sprite* GraphicsEngine::BMPToSprite(BMP* in, int id)
 {
-	Sprite newSprite;
-	newSprite.id = id;
-	newSprite.width = in->DIBHeader.width;
-	newSprite.height = in->DIBHeader.height;
-	newSprite.pixelData = (char*)malloc(in->DIBHeader.bitmapSize);
-	strcpy(newSprite.source, in->source);
+	Sprite* newSprite = new Sprite;
+	newSprite->id = id;
+	newSprite->width = in->DIBHeader.width;
+	newSprite->height = in->DIBHeader.height;
+	newSprite->pixelData = (char*)malloc(in->DIBHeader.bitmapSize);
+	strcpy(newSprite->source, in->source);
 	
 	//bmps are stored upside down!!
 	//going to correct it for sprites
@@ -401,7 +407,7 @@ Sprite GraphicsEngine::BMPToSprite(BMP* in, int id)
 		destY--;
 		for(int x = 0; x < in->DIBHeader.width; x++)
 		{
-			newSprite.pixelData[destY * newSprite.width + x] = in->pixelArray[y * in->DIBHeader.width + x];
+			newSprite->pixelData[destY * newSprite->width + x] = in->pixelArray[y * in->DIBHeader.width + x];
 		}
 	}
 
@@ -1392,37 +1398,38 @@ void GraphicsEngine::DrawSprite(Vector2D pos, int tileSetID, int tileIndex, char
 		}
 	}
 }
-Sprite GraphicsEngine::CropSprite(Sprite* in, int newID, Vector2D pos, int width, int height)
+Sprite* GraphicsEngine::CropSprite(Sprite* in, int newID, Vector2D pos, int width, int height)
 {
 	if(pos.x >= 0 && pos.y >= 0 && pos.x < in->width && pos.y < in->height)
 	{
-		Sprite newSprite;
-		newSprite.id = newID;
-		newSprite.width = width;
-		newSprite.height = height;
+		Sprite* newSprite = new Sprite;
+		newSprite->id = newID;
+		newSprite->width = width;
+		newSprite->height = height;
 		if(pos.x + width > in->width)
 		{
-			newSprite.width = in->width - pos.x;
+			newSprite->width = in->width - pos.x;
 		}
 		if(pos.y + height > in->height)
 		{
-			newSprite.height = in->height - pos.y;
+			newSprite->height = in->height - pos.y;
 		}
 
-		newSprite.pixelData = (char*)malloc(width*height*sizeof(char));
+		newSprite->pixelData = (char*)malloc(width*height*sizeof(char));
 		
 		for(int y = 0; y < height; y++)
 		{
 			for(int x = 0; x < width; x++)
 			{
-				newSprite.pixelData[y * width + x] = in->pixelData[((int)pos.y + y) * in->width + ((int)pos.x + x)];
+				newSprite->pixelData[y * width + x] = in->pixelData[((int)pos.y + y) * in->width + ((int)pos.x + x)];
 			}
 		}
 
 		return newSprite;
 	}
+	return NULL;
 }
-void GraphicsEngine::AddSprite(Sprite newSprite)
+void GraphicsEngine::AddSprite(Sprite* newSprite)
 {
 	//
 	sprites.push_back(newSprite);
@@ -1431,9 +1438,9 @@ Sprite* GraphicsEngine::GetSprite(int id)
 {
 	for(unsigned int i = 0; i < sprites.size(); i++)
 	{
-		if(sprites[i].id == id)
+		if(sprites[i]->id == id)
 		{
-			return &sprites[i];
+			return sprites[i];
 		}
 	}
 	return NULL;
@@ -1442,25 +1449,26 @@ void GraphicsEngine::FreeSprite(Sprite* in)
 {
 	//
 	free(in->pixelData);
+	delete in;
 }
 
 //tileSets
-TileSet GraphicsEngine::NewEmptyTileSet(int newID, int tileWidth, int tileHeight) //just dont
+TileSet* GraphicsEngine::NewEmptyTileSet(int newID, int tileWidth, int tileHeight) //just dont
 {
-	TileSet newTileSet;
-	newTileSet.id = newID;
-	newTileSet.tileWidth = tileWidth; //just a guess. not reliable
-	newTileSet.tileHeight = tileHeight; //just a guess. not reliable
+	TileSet* newTileSet = new TileSet;
+	newTileSet->id = newID;
+	newTileSet->tileWidth = tileWidth; //just a guess. not reliable
+	newTileSet->tileHeight = tileHeight; //just a guess. not reliable
 
 	return newTileSet;
 }
-TileSet GraphicsEngine::ExtractTileSet(int newID, Sprite* in, Vector2D startPos, int tileWidth, int tileHeight, int numTliesHorizontal, int numTilesVertical)
+TileSet* GraphicsEngine::ExtractTileSet(int newID, Sprite* in, Vector2D startPos, int tileWidth, int tileHeight, int numTliesHorizontal, int numTilesVertical)
 {
-	TileSet newTileSet;
-	newTileSet.id = newID;
-	newTileSet.tileWidth = tileWidth;
-	newTileSet.tileHeight = tileHeight;
-	strcpy(newTileSet.source, in->source);
+	TileSet* newTileSet = new TileSet;
+	newTileSet->id = newID;
+	newTileSet->tileWidth = tileWidth;
+	newTileSet->tileHeight = tileHeight;
+	strcpy(newTileSet->source, in->source);
 
 	for(int y = 0; y < numTilesVertical; y++)
 	{
@@ -1468,13 +1476,13 @@ TileSet GraphicsEngine::ExtractTileSet(int newID, Sprite* in, Vector2D startPos,
 		{
 			int tileIndex = y * numTliesHorizontal + x;
 			Vector2D tilePosOffset = Vector2D(x*tileWidth, y*tileWidth);
-			newTileSet.tiles.push_back(CropSprite(in, tileIndex, startPos + tilePosOffset, tileWidth, tileHeight));
+			newTileSet->tiles.push_back(CropSprite(in, tileIndex, startPos + tilePosOffset, tileWidth, tileHeight));
 		}
 	}
 
 	return newTileSet;
 }
-void GraphicsEngine::AddTileSet(TileSet newTileSet)
+void GraphicsEngine::AddTileSet(TileSet* newTileSet)
 {
 	//
 	tileSets.push_back(newTileSet);
@@ -1483,9 +1491,9 @@ TileSet* GraphicsEngine::GetTileSet(int id)
 {
 	for( unsigned int i = 0; i < tileSets.size(); i++ )
 	{
-		if( tileSets[i].id == id )
+		if( tileSets[i]->id == id )
 		{
-			return &tileSets[i];
+			return tileSets[i];
 		}
 	}
 	return NULL;
@@ -1495,11 +1503,11 @@ int GraphicsEngine::GetNumTileSets()
 	return tileSets.size();
 	//
 }
-TileSet* GraphicsEngine::GetTileSetByIndex(int index)
+TileSet* GraphicsEngine::GetTileSetByIndex(unsigned int index)
 {
 	if(index >= 0 && index < tileSets.size())
 	{
-		return &tileSets[index];
+		return tileSets[index];
 	}
 
 	return NULL;
@@ -1508,12 +1516,12 @@ Sprite* GraphicsEngine::GetTile(int tileSetID, int tileIndex)
 {
 	//
 	TileSet* tileSet = GetTileSet(tileSetID);
-	return &tileSet->tiles[tileIndex];
+	return tileSet->tiles[tileIndex];
 }
-void GraphicsEngine::AddTile(int tileSetID, Sprite in) //just dont
+void GraphicsEngine::AddTile(int tileSetID, Sprite* in) //just dont
 {
 	TileSet* tileSet = GetTileSet(tileSetID);
-	in.id = tileSet->tiles.size();
+	in->id = tileSet->tiles.size();
 	tileSet->tiles.push_back(in);
 }
 /*void GraphicsEngine::RemoveTile(int id) //just dont
@@ -1532,7 +1540,7 @@ void GraphicsEngine::DrawTileSet(TileSet* in, Vector2D pos, int columnWidth) // 
 			drawPos.y = drawPos.y + in->tileHeight;
 			drawPos.x = pos.x;
 		}
-		DrawSprite(drawPos, &in->tiles[i]);
+		DrawSprite(drawPos, in->tiles[i]);
 		x++;
 		drawPos.x = drawPos.x + in->tileWidth;
 		
@@ -1781,15 +1789,17 @@ void GraphicsEngine::DestroyTileSet(TileSet *in)
 {
 	for(unsigned int i = 0; i < in->tiles.size(); i++)
 	{
-		FreeSprite(&in->tiles[i]);
+		FreeSprite(in->tiles[i]);
+		//delete in->tiles[i];
 	}
 	in->tiles.clear();
+	delete in;
 }
 void GraphicsEngine::DestroyTileSets()
 {
 	for(unsigned int i = 0; i < tileSets.size(); i++)
 	{
-		DestroyTileSet(&tileSets[i]);
+		DestroyTileSet(tileSets[i]);
 	}
 	tileSets.clear();
 }
@@ -1802,7 +1812,7 @@ void GraphicsEngine::DestroySprites()
 {
 	for(unsigned int i = 0; i < sprites.size(); i++)
 	{
-		FreeSprite(&sprites[i]);
+		FreeSprite(sprites[i]);
 	}
 	sprites.clear();
 }
