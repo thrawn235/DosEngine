@@ -19,6 +19,8 @@ GameEngine::GameEngine()
 {
 	__djgpp_nearptr_enable();
 
+	randomIndex = 0;
+
 	graphics 	= new GraphicsEngine;
 	time 		= new TimeEngine;
 	input 		= new InputEngine;
@@ -134,6 +136,90 @@ void GameEngine::DrawAll()
 			drawObjects[i]->Draw();
 		}
 	}
+}
+//==========================================================
+
+
+//===================== Assets =============================
+void GameEngine::LoadAssets()
+{
+	BMP bmp;
+	Sprite*  sprite;	
+	//-------------------- Load Universal Game Assets -----------------------
+	bmp = graphics->LoadBMP("./gfx/txtwhite.bmp");
+	graphics->SetPalette(bmp.colorTable, 17);
+	sprite = graphics->BMPToSprite(&bmp, 3);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* txtwhite = graphics->ExtractTileSet( ASSET_TXT_WHITE, sprite, Vector2D( 0,0 ), 8, 8, 16, 6 );	//tileSetId = 1
+	graphics->AddTileSet(txtwhite);
+	graphics->FreeSprite(sprite);
+
+
+	bmp = graphics->LoadBMP("./gfx/apogee.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_APOGEE);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	bmp = graphics->LoadBMP("./gfx/an.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_AN);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	bmp = graphics->LoadBMP("./gfx/idblack.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_ID_BLACK);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	bmp = graphics->LoadBMP("./gfx/ofan.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_OF_AN);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	bmp = graphics->LoadBMP("./gfx/present.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_PRESENTS);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	bmp = graphics->LoadBMP("./gfx/product.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_PRODUCTION);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	//------------------------- Load GameSprites ----------------------------
+	bmp = graphics->LoadBMP("./gfx/walk.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 3);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* keenWalk = graphics->ExtractTileSet( ASSET_KEEN_WALK, sprite, Vector2D( 0,0 ), 16, 24, 17, 2);	//tileSetId = 10
+	graphics->AddTileSet(keenWalk);
+	graphics->FreeSprite(sprite);
+
+
+	//------------------------- Load Level Tiles ------------------------
+	bmp = graphics->LoadBMP("./gfx/k1tiles.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 0);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* k1Tiles = graphics->ExtractTileSet( ASSET_K1_TILES, sprite, Vector2D( 0,0 ), 16, 16, 13, 53 ); //tileSetId = 100 (hast to mach property in TMXFile)
+	graphics->AddTileSet(k1Tiles);
+	graphics->FreeSprite(sprite);
+
+
+	bmp = graphics->LoadBMP("./gfx/k3tiles.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 1);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* k2Tiles = graphics->ExtractTileSet( ASSET_K3_TILES, sprite, Vector2D( 0,0 ), 16, 16, 13, 53); //tileSetId = 101 (hast to mach property in TMXFile)
+	graphics->AddTileSet(k2Tiles);
+	graphics->FreeSprite(sprite);
+	//---------------------------------------------------------------------
 }
 //==========================================================
 
@@ -1126,6 +1212,12 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 						newObject = new BackGround( this );
 						
 					}
+					else if( typeID == TYPE_BACK_GROUND_ANIMATION ) //placeholder
+					{
+						//printf("create!\n");
+						newObject = new BackGroundAnimation( this );
+						
+					}
 					else
 					{
 						//printf("create!\n");
@@ -1334,14 +1426,12 @@ void GameEngine::Quit(const char* message)
 //=============================================
 
 //======================= Random ===========================
-/*void GameEngine::InitRandom()
+unsigned char GameEngine::GetRandom()
 {
-
+	unsigned char number = randomTable[randomIndex];
+	randomIndex = number;
+	return number;
 }
-unsigned char GameEngine::NotRandom()
-{
-
-}*/
 //==========================================================
 
 

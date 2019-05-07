@@ -42,11 +42,13 @@
 
 
 //================== defines: ===========================
-#define TYPE_GAME_OBJECT 	0
-#define TYPE_PLAYER 		1
-#define TYPE_SOLID 			2
-#define TYPE_SOLID_TOP 		3
-#define TYPE_BACK_GROUND 	4
+#define TYPE_GAME_OBJECT 			0
+#define TYPE_PLAYER 				1
+#define TYPE_SOLID 					2
+#define TYPE_SOLID_TOP 				3
+#define TYPE_BACK_GROUND 			4
+#define TYPE_BACK_GROUND_ANIMATION	5
+#define TYPE_BANNER					6
 //=======================================================
 
 
@@ -80,25 +82,25 @@ public:
 	~GameObject ();
 
 	//============ Set / Get =================
-	int  				GetTypeID 			();
-	Vector2D 			GetPos 				();
-	Vector2D 			GetDirection 		();
-	int 				GetTileSetID		();
-	int 				GetTileIndex   		();
-	int 				GetDrawOrder 		();
-	int 				GetWidth 			();
-	int 				GetHeight 			();
-	bool 				IsOnFloor 			();
-	vector<GameObject*> GetTouchingObjects 	();
-	void 				SetTypeID 			( int newTypeID 				);
-	void 				SetPos 				( Vector2D newPos 				);
-	void 				SetDirection 		( Vector2D newDirection 		);
-	void 				SetTileSetID 		( int newTileSetID 				);
-	void 				SetTileIndex		( int newTileIndex 				);
-	void 				SetDrawOrder 		( int newDrawOrder 				);
-	void 				SetDimensions 		( int newWidth, int newHeight 	);
-	bool				GetEnabled			();
-	bool				GetInvisible		();
+	virtual int  				GetTypeID 			();
+	virtual Vector2D 			GetPos 				();
+	virtual Vector2D 			GetDirection 		();
+	virtual int 				GetTileSetID		();
+	virtual int 				GetTileIndex   		();
+	virtual int 				GetDrawOrder 		();
+	virtual int 				GetWidth 			();
+	virtual int 				GetHeight 			();
+	virtual bool 				IsOnFloor 			();
+	virtual vector<GameObject*> GetTouchingObjects 	();
+	virtual void 				SetTypeID 			( int newTypeID 				);
+	virtual void 				SetPos 				( Vector2D newPos 				);
+	virtual void 				SetDirection 		( Vector2D newDirection 		);
+	virtual void 				SetTileSetID 		( int newTileSetID 				);
+	virtual void 				SetTileIndex		( int newTileIndex 				);
+	virtual void 				SetDrawOrder 		( int newDrawOrder 				);
+	virtual void 				SetDimensions 		( int newWidth, int newHeight 	);
+	virtual bool				GetEnabled			();
+	virtual bool				GetInvisible		();
 	//======================================
 
 
@@ -180,6 +182,33 @@ public:
 
 	virtual void Update ();
 	virtual void Draw 	();
+};
+
+class BackGroundAnimation  : public GameObject
+{
+protected:
+	Animation anim;
+public:
+	BackGroundAnimation( GameEngine* newEngine );
+	~BackGroundAnimation();
+
+	virtual void SetTileIndex	( int newTileIndex 				);
+
+	virtual void Update 		();
+	virtual void Draw 			();
+};
+
+class Banner  : public GameObject
+{
+protected:
+	bool showEverything;
+	int showEverythingTimeStamp;
+public:
+	Banner( GameEngine* newEngine );
+	~Banner();
+
+	virtual void Update 		();
+	virtual void Draw 			();
 };
 
 #endif

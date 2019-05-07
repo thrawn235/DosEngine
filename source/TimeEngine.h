@@ -60,6 +60,7 @@ public:
 
 	//generalTiming
 	int GetCurrentTime 			();
+	int GetCurrentTimeInMS		();
 
 	//Conversion
 	int TicksToMilliSeconds 	( uclock_t ticksIn );

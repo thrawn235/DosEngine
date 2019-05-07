@@ -60,6 +60,11 @@ int TimeEngine::GetCurrentTime()
 	//
 	return uclock();
 }
+int TimeEngine::GetCurrentTimeInMS()
+{
+	//
+	return uclock() / ( UCLOCKS_PER_SEC / 1000 );
+}
 
 //Conversion
 int TimeEngine::TicksToMilliSeconds( uclock_t ticksIn )

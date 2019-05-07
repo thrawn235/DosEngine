@@ -252,9 +252,9 @@ bool GameObject::Collision()
 {
 	//Get cardinal direction of dorection Vector
 	Vector2D rayOrigin1 = pos;
-	Vector2D rayOrigin2 = pos + Vector2D( pos.x + width , pos.y );
+	/*Vector2D rayOrigin2 = pos + Vector2D( pos.x + width , pos.y );
 	Vector2D rayOrigin3 = pos + Vector2D( pos.x, pos.y + height );
-	Vector2D rayOrigin4 = pos + Vector2D( pos.x + width , pos.y +height );
+	Vector2D rayOrigin4 = pos + Vector2D( pos.x + width , pos.y +height );*/
 
 	//only test tiles that ate in a logical radius of the ray origin
 	vector<GameObject*>testObjects = engine->GetObjectsInRadius(rayOrigin1, 30, TYPE_SOLID);
@@ -268,13 +268,13 @@ bool GameObject::Collision()
 		}
 	}
 
-	testObjects = engine->GetObjectsInRadius(rayOrigin2, 30, TYPE_SOLID);
+	/*testObjects = engine->GetObjectsInRadius(rayOrigin2, 30, TYPE_SOLID);
 	for( unsigned int i = 0; i < testObjects.size(); i++ )
 	{
 		Vector2D hit;
 		if( RayBoxIntersect( rayOrigin2, direction, &hit, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
 		{
-			pos = hit;
+			pos = hit - Vector2D( pos.x + width , pos.y );
 			return true;
 		}
 	}
@@ -285,7 +285,7 @@ bool GameObject::Collision()
 		Vector2D hit;
 		if( RayBoxIntersect( rayOrigin3, direction, &hit, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
 		{
-			pos = hit;
+			pos = hit - Vector2D( pos.x, pos.y + height );
 			return true;
 		}
 	}
@@ -296,23 +296,30 @@ bool GameObject::Collision()
 		Vector2D hit;
 		if( RayBoxIntersect( rayOrigin4, direction, &hit, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
 		{
-			pos = hit;
+			pos = hit - Vector2D( pos.x + width , pos.y +height );
 			return true;
 		}
-	}
+	}*/
 
 	return false;
 }
 void GameObject::Move()
 {
-	pos = pos + (direction * engine->time->GetDelta());
+	pos = pos + direction * engine->time->GetDelta();
 	//
 }
 void GameObject::Friction( float slickness )
 {
 	//printf( "direction= %f:%f \n", direction.x, direction.y);
-	direction.x = direction.x / 1.2;
-	direction.y = direction.y / 1.2;
+	if(direction.x != 0)
+	{
+		direction.x = direction.x * slickness;
+	}
+	
+	if(direction.y != 0)
+	{
+		direction.y = direction.y * slickness;
+	}
 	//printf( "direction= %f:%f \n", direction.x, direction.y);
 	//getch();
 	//
@@ -334,6 +341,7 @@ Player::~Player()
 }
 void Player::Update()
 {
+	
 	movement = Vector2D( 0.0f, 0.0f );
 	if( engine->input->KeyDown( KEY_UP ) )
 	{
@@ -359,10 +367,11 @@ void Player::Update()
 
 	AddForce( movement );
 	
-	
+	//Collision();
+
 	Move();
 	
-	Friction( 0.2f );
+	Friction( 0.8f );
 
 	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
 	engine->graphics->SetCamCenter( centerPos );
@@ -370,19 +379,25 @@ void Player::Update()
 }
 void Player::Draw()
 {
+	/*char str[500];
+	sprintf(str, "movement=%f:%f\ndirection=%f:%f\npos=%f:%f\n", movement.x, movement.y, direction.x, direction.y, pos.x, pos.y );
+	engine->graphics->DrawText( Vector2D( 0, 9 ) + engine->graphics->GetCamPos() , 1, 0, str );*/
+
 	engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
 	engine->graphics->DrawRect( pos, width-1, height-1, 2);
 
-	/*Vector2D rayOrigin(0,0);
+	Vector2D rayOrigin(0,0);
 	Vector2D rayDirection(1,1);
 	Vector2D boxPos(40,20);
-	boxPos = boxPos + engine->graphics->GetCamPos();
 	int boxWidth = 20;
 	int boxHeight = 30;
+	Vector2D hit = Vector2D( 0, 0 );
+	RayBoxIntersect( pos, (direction*100), &hit, boxPos, boxWidth, boxHeight );
 	engine->graphics->DrawRect(boxPos, boxWidth, boxHeight, 2);
-	engine->graphics->DrawLine(rayOrigin, rayDirection * 60, 2);
+	engine->graphics->DrawLine(pos, pos+(direction * 100), 2);
+	engine->graphics->DrawPixel(hit, 7);
 
-	Vector2D hit1(5,10);
+	/*Vector2D hit1(5,10);
 	if( RayBoxIntersect(rayOrigin, rayDirection, &hit1, boxPos, boxWidth, boxHeight) )
 	{	
 		engine->graphics->DrawRect(boxPos, boxWidth, boxHeight, 8);
@@ -455,7 +470,7 @@ void Solid::Draw()
 
 
 
-//========== SolitTop =============
+//========== SolidTop =============
 SolidTop::SolidTop( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_SOLID_TOP; //3
@@ -500,3 +515,106 @@ void BackGround::Draw()
 }
 
 
+//========== BackGroundAnimation =============
+BackGroundAnimation::BackGroundAnimation( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_BACK_GROUND_ANIMATION; //5
+
+	anim.id = 0;
+	anim.tileSetID = 0;
+	anim.firstTileIndex = 0;
+	anim.numSprites = 0;
+	anim.currentFrame = 0;
+	anim.speed = 0;
+	anim.currentSpeedStep = 0;
+}
+BackGroundAnimation::~BackGroundAnimation()
+{
+
+}
+void BackGroundAnimation::SetTileIndex( int newTileIndex )
+{
+	tileIndex = newTileIndex;
+	if( tileSetID == ASSET_K1_TILES && tileIndex == 167 ) //exit sign; 2 frames
+	{
+		anim.tileSetID 		= tileSetID;
+		anim.firstTileIndex = tileIndex;
+		anim.currentFrame 	= engine->GetRandom() % 2;
+		anim.numSprites 	= 2;
+		anim.speed 			= 15;
+	}
+	if( tileSetID == ASSET_K1_TILES && tileIndex == 468 ) //Star; 4 frames
+	{
+		anim.tileSetID 		= tileSetID;
+		anim.firstTileIndex = tileIndex;
+		anim.currentFrame 	= engine->GetRandom() % 4;
+		anim.numSprites 	= 4;
+		anim.speed 			= 15;
+	}
+
+	//
+}
+void BackGroundAnimation::Update()
+{
+
+}
+void BackGroundAnimation::Draw()
+{
+	engine->graphics->PlayAnimation( &anim, pos );
+}
+
+
+
+
+//========== Banner =============
+Banner::Banner( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_BANNER; //6
+
+	AddForce( Vector2D( 0, -0.5 ) ); // set initial velocity upwards
+
+	showEverything = false;
+
+	int showEverythingTimeStamp = 0;
+}
+Banner::~Banner()
+{
+
+}
+void Banner::Update()
+{
+	Move();
+
+	if( pos.y <= (engine->graphics->GetScreenHeight() / 2) - 50 )
+	{
+		direction = Vector2D( 0, 0 );
+		showEverything = true;
+	}
+
+	if( showEverything )
+	{
+		if( showEverythingTimeStamp == 0 )
+		{
+			showEverythingTimeStamp = engine->time->GetCurrentTimeInMS();
+		}
+
+		if( engine->time->GetCurrentTimeInMS() > showEverythingTimeStamp + 4000)
+		{
+			//fade to black
+			engine->graphics->ChangePaletteBrightness( -1 );
+		}
+	}
+}
+void Banner::Draw()
+{
+	engine->graphics->DrawSprite( pos, engine->graphics->GetSprite( ASSET_APOGEE ) );
+
+	if( showEverything )
+	{
+		engine->graphics->DrawSprite(pos + Vector2D( 45, -12 ), engine->graphics->GetSprite( ASSET_AN ));
+		engine->graphics->DrawSprite(pos + Vector2D( 15, +30 ), engine->graphics->GetSprite( ASSET_PRESENTS ));
+		engine->graphics->DrawSprite(pos + Vector2D( 35, +45 ), engine->graphics->GetSprite( ASSET_OF_AN ));
+		engine->graphics->DrawSprite(pos + Vector2D( 25, +60 ), engine->graphics->GetSprite( ASSET_ID_BLACK ));
+		engine->graphics->DrawSprite(pos + Vector2D( 25, +105 ), engine->graphics->GetSprite( ASSET_PRODUCTION ));
+	}
+}

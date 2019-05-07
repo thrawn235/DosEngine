@@ -122,6 +122,7 @@ protected:
 	//camera
 	Vector2D 			camPos;
 
+
 	//tileset/ sprite and animation data
 	vector<TileSet*> 	tileSets;
 	vector<Sprite*> 	sprites;

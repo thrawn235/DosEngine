@@ -259,16 +259,31 @@ void GraphicsEngine::SetGraphicsMode( int newMode )
 		screenMemory 		= ( char* )modeInfoBlock.PhysBasePtr + __djgpp_conventional_base;
 
 		
+		//set logical screen width
+		logicalScreenWidth = screenWidth + ( screenPadding*2 );
+		logicalScreenHeight = screenHeight + ( screenPadding*2 );
+
+		backBuffer = screenMemory+( logicalScreenWidth*logicalScreenHeight );
+
+		if( debug )
+		{
+			printf( "ScreenMemoryAddress: 	%p \n", 		( void* )screenMemory 	);
+			printf( "screenWidth: 			%i \n", 				 screenWidth 	);
+			printf( "screenHeight: 			%i \n", 		         screenHeight 	);
+			printf( "screenPadding:		 	%i \n", 		         screenPadding 	);
+			printf( "logicalWidth: 			%i \n", 		logicalScreenWidth 	);
+			printf( "logicalHeight: 		%i \n", 		logicalScreenHeight 	);
+			printf( "lWidth*lHeight: 		%d \n", 		logicalScreenWidth*logicalScreenHeight	);
+			printf( "backBufferAddress: 	%p \n", 		( void* )backBuffer 	);
+			getch();	
+		}
+
 		//set mode!
 		r.x.ax = 0x4F02;
 	    r.x.bx = newMode | 0b0100000000000000;
 		__dpmi_int( 0x10, &r );
 		
-		//set logical screen width
-		logicalScreenWidth = screenWidth + ( screenPadding*2 );
-		logicalScreenHeight = screenHeight + ( screenPadding*2 );
-
-		backBuffer = screenMemory+( logicalScreenHeight*logicalScreenHeight );
+		
 
 		r.x.ax = 0x4F06;
 		r.h.bl = 00;
@@ -498,7 +513,7 @@ void GraphicsEngine::DrawPixel( Vector2D pos, char color )
 	//and assembly
 	if( pos.x > 0 && pos.y > 0 && pos.x < logicalScreenWidth && pos.y < logicalScreenHeight )
 	{
-		currentBackBuffer[( int )( pos.y * logicalScreenWidth+ pos.x )] = color;
+		currentBackBuffer[( int )( ( int )pos.y * logicalScreenWidth+ ( int )pos.x )] = color;
 	}
 }
 void GraphicsEngine::DrawPixel( int x, int y, char color )
@@ -592,7 +607,7 @@ void GraphicsEngine::DrawHLine( Vector2D start, int length, char color )
 		start.x + length > 0 && start.x + length < logicalScreenWidth )
 	{
 		
-		int startAddress = start.y * logicalScreenWidth + start.x;
+		int startAddress = ( int )start.y * logicalScreenWidth + ( int )start.x;
 		for( int i = 0; i < length; i++ )
 		{
 			currentBackBuffer[startAddress+i] = color;
@@ -608,7 +623,7 @@ void GraphicsEngine::DrawVLine( Vector2D start, int length, char color )
 		start.y + length > 0 && start.y + length < logicalScreenHeight )
 	{
 		
-		int startAddress = start.y * logicalScreenWidth + start.x;
+		int startAddress = ( int )start.y * logicalScreenWidth + ( int )start.x;
 		for( int i = 0; i < length; i++ )
 		{
 			currentBackBuffer[startAddress] = color;
@@ -635,7 +650,7 @@ void GraphicsEngine::DrawFilledRect( Vector2D pos, int width, int height, char c
 		{
 			if( width % 4 == 0 )
 			{
-				int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+				int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 				asm( "mov %2, %%al;"
 					"shl $8, %%eax;"
 					"mov %2, %%al;"
@@ -661,7 +676,7 @@ void GraphicsEngine::DrawFilledRect( Vector2D pos, int width, int height, char c
 			}
 			else
 			{
-				int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+				int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 				int widthMinus4 = width - 4;
 				asm( "mov %2, %%al;"
 					"shl $8, %%eax;"
@@ -779,7 +794,6 @@ void GraphicsEngine::ClearScreen( char color )
 }
 void GraphicsEngine::Flip() //Flip or buffer copy
 {
-	//I should not copy the left and right borders, its unnecceserily slow
 
 	WaitForRetrace();
 
@@ -816,27 +830,6 @@ void GraphicsEngine::Flip() //Flip or buffer copy
 	else
 	{
 		long sourceAddress = ( long )&backBuffer[0] + ( screenPadding * logicalScreenWidth + screenPadding );
-		/*int fourthWidth = screenWidth / 4;
-
-		asm( "mov $0, %%ebx;"
-			"loop2%=:;"
-			"	mov $0, %%ecx;"
-			"	loop1%=:;"
-			"		mov ( %%esi ), %%eax;"
-			"		mov %%eax, ( %%edi );"
-			"		add $4, %%esi;"
-			"		add $4, %%edi;"
-			"		inc %%ecx;"
-			"		cmp %2, %%ecx;"
-			"		jb loop1%=;"
-			"	add %4, %%esi;"
-			"	add %4, %%esi;"
-			"	inc %%ebx;"
-			"	cmp %3, %%ebx;"
-			"	jb loop2%=;"
-			:
-			:"S"( sourceAddress ), "D"( &screenMemory[0] ), "m"( fourthWidth ), "m"( screenHeight ), "m"( screenPadding )
-			:"eax", "ebx", "ecx", "memory" );	*/
 
 		//optimized asm:
 		asm( "mov %3, %%ebx;"
@@ -872,7 +865,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, Sprite* in )
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		asm( "mov %4, %%ebx;"
 			"loop1%=:;"	
@@ -900,7 +893,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, Sprite* in, char transparentColor
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		//if transparent, slower because we have to go pixel by pixel
 		asm( "mov %4, %%ebx;"
@@ -931,7 +924,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, Sprite* in, bool flippedHorizonta
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		if( !flippedVertical && !flippedHorizontal )
 		{
@@ -1027,7 +1020,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, Sprite* in, char transparentColor
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		//if transparent, slower because we have to go pixel by pixel
 		if( !flippedVertical && !flippedHorizontal )
@@ -1145,7 +1138,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, int tileSetID, int tileIndex )
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		asm( "mov %4, %%ebx;"
 			"loop1%=:;"	
@@ -1173,7 +1166,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, int tileSetID, int tileIndex, cha
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		//if transparent, slower because we have to go pixel by pixel
 		asm( "mov %4, %%ebx;"
@@ -1206,7 +1199,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, int tileSetID, int tileIndex, boo
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		if( !flippedVertical && !flippedHorizontal )
 		{
@@ -1304,7 +1297,7 @@ void GraphicsEngine::DrawSprite( Vector2D pos, int tileSetID, int tileIndex, cha
 
 	if( pos.x > 0 && pos.y > 0 && pos.x+in->width < logicalScreenWidth && pos.y + in->height < logicalScreenHeight )
 	{
-		int startAddress = ( int )currentBackBuffer + ( pos.y * logicalScreenWidth + pos.x );
+		int startAddress = ( int )currentBackBuffer + ( ( int )pos.y * logicalScreenWidth + ( int )pos.x );
 
 		//if transparent, slower because we have to go pixel by pixel
 		if( !flippedVertical && !flippedHorizontal )

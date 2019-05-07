@@ -47,59 +47,41 @@ int main()
 	//======================= Init ===============================
 	GameEngine* engine = new GameEngine;							//create GameEngine
 
-	TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
 	
+	printf("Welcome to thrawns Keen!\n");
 
-
+	printf("getting into graphics mode...\n");
 	engine->graphics->SetGraphicsMode(0x13);						//enter Grphics Mode
+
+	engine->LoadAssets();
+
+	TMXMap testMap = engine->LoadTMXMap("./levels/startup.tmx");		//Load Map
+	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+
+	GameObject* testObject;
+	testObject = new Banner		( engine );
+	testObject->SetTypeID		( 6 );
+	testObject->SetPos 			( Vector2D( 100, 210 ) );
+	testObject->SetDimensions 	( 16, 16 );
+	testObject->SetTileSetID 	( ASSET_K1_TILES );
+	testObject->SetTileIndex 	( 468 );
+	testObject->SetDrawOrder 	( 2 );
+	engine->AddObject(testObject);
+
+
+
+
+
+	//TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
+
+
+	
 
 		
 
-	BMP bmp;
-	Sprite*  sprite;	
-	//-------------------- Load Universal Game Assets -----------------------
-	bmp = engine->graphics->LoadBMP("./gfx/txtwhite.bmp");
-	engine->graphics->SetPalette(bmp.colorTable, 17);
-	sprite = engine->graphics->BMPToSprite(&bmp, 3);
-	engine->graphics->FreeBMP(&bmp);
+	
 
-	TileSet* txtwhite = engine->graphics->ExtractTileSet(1, sprite, Vector2D(0,0), 8, 8, 16, 6);	//tileSetId = 1
-	engine->graphics->AddTileSet(txtwhite);
-	//Sprite* cropTest = engine->graphics->CropSprite( sprite, 20, Vector2D( 0, 0 ), 10,10 );
-	//engine->graphics->FreeSprite(cropTest);
-	engine->graphics->FreeSprite(sprite);
-
-
-	//------------------------- Load GameSprites ----------------------------
-	bmp = engine->graphics->LoadBMP("./gfx/walk.bmp");
-	sprite = engine->graphics->BMPToSprite(&bmp, 3);
-	engine->graphics->FreeBMP(&bmp);
-
-	TileSet* keenWalk = engine->graphics->ExtractTileSet(10, sprite, Vector2D(0,0), 16, 24, 17, 2);	//tileSetId = 10
-	engine->graphics->AddTileSet(keenWalk);
-	engine->graphics->FreeSprite(sprite);
-
-
-	//------------------------- Load Level Tiles ------------------------
-	bmp = engine->graphics->LoadBMP("./gfx/k1tiles.bmp");
-	sprite = engine->graphics->BMPToSprite(&bmp, 0);
-	engine->graphics->FreeBMP(&bmp);
-
-	TileSet* k1Tiles = engine->graphics->ExtractTileSet(100, sprite, Vector2D(0,0), 16, 16, 13, 53); //tileSetId = 100 (hast to mach property in TMXFile)
-	engine->graphics->AddTileSet(k1Tiles);
-	engine->graphics->FreeSprite(sprite);
-
-
-	bmp = engine->graphics->LoadBMP("./gfx/k3tiles.bmp");
-	sprite = engine->graphics->BMPToSprite(&bmp, 1);
-	engine->graphics->FreeBMP(&bmp);
-
-	TileSet* k2Tiles = engine->graphics->ExtractTileSet(101, sprite, Vector2D(0,0), 16, 16, 13, 53); //tileSetId = 101 (hast to mach property in TMXFile)
-	engine->graphics->AddTileSet(k2Tiles);
-	engine->graphics->FreeSprite(sprite);
-	//---------------------------------------------------------------------
-
-	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+	//engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 
 	/*printf( "%i\n", engine->GetTileSetID(&testMap, 274) );
 	printf( "%i\n", engine->GetTileSetID(&testMap, 276) );
@@ -132,24 +114,25 @@ int main()
 		//------------------------ input -----------------------------
 		if(engine->input->KeyDown(ESC))
 			running = false;
-		/*if(engine->input->KeyDown(KEY_W))
+		if(engine->input->KeyDown(KEY_W))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y -2));
 		if(engine->input->KeyDown(KEY_A))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x -2, engine->graphics->GetCamPos().y));
 		if(engine->input->KeyDown(KEY_S))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +2));
 		if(engine->input->KeyDown(KEY_D))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +2, engine->graphics->GetCamPos().y));*/
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +2, engine->graphics->GetCamPos().y));
 		if(engine->input->KeyDown(SPACE))
 			engine->graphics->ChangePaletteBrightness(-1);
 		if(engine->input->KeyDown(LCTRL))
 			engine->graphics->ChangePaletteBrightness(+1);
 		//-----------------------------------------------------------
 
-		engine->graphics->ClearScreen(190);
+		//engine->graphics->ClearScreen(190);
 
 		engine->UpdateAll();
 		engine->DrawAll();	//draw all Objects (that are handled by the GameEngine)
+
 
 		//----------------- print Framerate -----------------------
 		char str[20];
