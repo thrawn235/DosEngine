@@ -203,6 +203,7 @@ class Banner  : public GameObject
 protected:
 	bool showEverything;
 	int showEverythingTimeStamp;
+	char* palette;
 public:
 	Banner( GameEngine* newEngine );
 	~Banner();

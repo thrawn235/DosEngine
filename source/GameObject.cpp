@@ -575,11 +575,12 @@ Banner::Banner( GameEngine* newEngine ) : GameObject( newEngine )
 
 	showEverything = false;
 
-	int showEverythingTimeStamp = 0;
+	showEverythingTimeStamp = 0;
+	palette = NULL;
 }
 Banner::~Banner()
 {
-
+	free(palette);
 }
 void Banner::Update()
 {
@@ -596,12 +597,22 @@ void Banner::Update()
 		if( showEverythingTimeStamp == 0 )
 		{
 			showEverythingTimeStamp = engine->time->GetCurrentTimeInMS();
+			palette = engine->graphics->GetPalette();
 		}
 
 		if( engine->time->GetCurrentTimeInMS() > showEverythingTimeStamp + 4000)
 		{
 			//fade to black
 			engine->graphics->ChangePaletteBrightness( -1 );
+		}
+		if( engine->time->GetCurrentTimeInMS() > showEverythingTimeStamp + 5000)
+		{
+			//delete everything
+			engine->ClearObjects();
+			engine->graphics->ClearScreen( 0 );
+			TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
+			engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+			engine->graphics->SetPalette( palette, 255 );
 		}
 	}
 }

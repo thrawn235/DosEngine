@@ -482,7 +482,7 @@ void GraphicsEngine::ChangePaletteBrightness( int delta )
 		outportb( 0x03c9, Clip( palette[index + 0] + delta, 0, 255 ) );
 		index = index + 4;
 	}
-
+	free( palette );
 }
 void GraphicsEngine::ChangePaletteHue( int deltaR, int deltaG, int deltaB )
 {
