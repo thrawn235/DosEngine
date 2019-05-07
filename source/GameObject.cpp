@@ -610,9 +610,19 @@ void Banner::Update()
 			//delete everything
 			engine->ClearObjects();
 			engine->graphics->ClearScreen( 0 );
-			TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
+			TMXMap testMap = engine->LoadTMXMap("./levels/menubg.tmx");		//Load Map
 			engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 			engine->graphics->SetPalette( palette, 255 );
+
+			GameObject* menu;
+			menu = new MainMenu	( engine );
+			//menu->SetTypeID		( TYPE_MAIN_MENU );
+			menu->SetPos 		( Vector2D( 80, 50 ) );
+			//menu->SetDimensions ( 16, 16 );
+			//menu->SetTileSetID 	( ASSET_K1_TILES );
+			//menu->SetTileIndex 	( 468 );
+			menu->SetDrawOrder 	( 2 );
+			engine->AddObject(menu);
 		}
 	}
 }
@@ -628,4 +638,88 @@ void Banner::Draw()
 		engine->graphics->DrawSprite(pos + Vector2D( 25, +60 ), engine->graphics->GetSprite( ASSET_ID_BLACK ));
 		engine->graphics->DrawSprite(pos + Vector2D( 25, +105 ), engine->graphics->GetSprite( ASSET_PRODUCTION ));
 	}
+}
+
+
+
+
+
+//========== MainMenu =============
+MainMenu::MainMenu( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_MAIN_MENU; //6
+
+	blueBallOffsetPos.SetXY( 15, 10 );
+
+	blueBallAnim.id = 0;
+	blueBallAnim.tileSetID = ASSET_8_PIXEL_BORDER_TILES;
+	blueBallAnim.firstTileIndex = 9;
+	blueBallAnim.numSprites = 6;
+	blueBallAnim.currentFrame = 0;
+	blueBallAnim.speed = 10;
+	blueBallAnim.currentSpeedStep = 0;
+
+	bool keyDown = false;
+	menuPos = 1;
+
+	palette = NULL;
+	fadeTimeStamp = 0;
+
+}
+MainMenu::~MainMenu()
+{
+
+}
+void MainMenu::Update()
+{
+	if( engine->input->KeyDown( KEY_UP ) && !keyDown && menuPos > 1 )
+	{
+		blueBallOffsetPos.y = blueBallOffsetPos.y - 8;
+		keyDown = true;
+		menuPos --;
+	}
+	else if( engine->input->KeyDown( KEY_DOWN ) && !keyDown && menuPos < 8 )
+	{
+		blueBallOffsetPos.y = blueBallOffsetPos.y + 8;	
+		keyDown = true;
+		menuPos++;
+	}
+	else
+	{
+		keyDown = false;
+	}
+
+	if(menuPos == 1 && engine->input->KeyDown( ENTER ) )
+	{
+		fadeTimeStamp = engine->time->GetCurrentTimeInMS();
+		palette = engine->graphics->GetPalette();
+	}
+
+	if( fadeTimeStamp != 0 )
+	{
+		engine->graphics->ChangePaletteBrightness( -1 );
+
+		if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 1000)
+		{
+			//delete everything
+			engine->ClearObjects();
+			engine->graphics->ClearScreen( 0 );
+			TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
+			engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+			engine->graphics->SetPalette( palette, 255 );
+		}
+	}
+
+}
+void MainMenu::Draw()
+{
+	engine->graphics->DrawWindow( pos, 20, 11, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+	char str[200];
+	sprintf(str, "New Game\nContinue Game\nStory\nAbout thrawn\nHigh Scores\nOrdering Info\nPreviews!\nRestart Demo" );
+	engine->graphics->DrawText( pos + Vector2D( 30, 10 ), ASSET_TXT_WHITE, 0, str );
+
+	sprintf(str, "Use the arrows" );
+	engine->graphics->DrawText( pos + Vector2D( 10, 80 ), ASSET_TXT_WHITE, 0, str );
+
+	engine->graphics->PlayAnimation( &blueBallAnim, pos + blueBallOffsetPos );
 }

@@ -49,6 +49,7 @@
 #define TYPE_BACK_GROUND 			4
 #define TYPE_BACK_GROUND_ANIMATION	5
 #define TYPE_BANNER					6
+#define TYPE_MAIN_MENU					7
 //=======================================================
 
 
@@ -207,6 +208,24 @@ protected:
 public:
 	Banner( GameEngine* newEngine );
 	~Banner();
+
+	virtual void Update 		();
+	virtual void Draw 			();
+};
+
+
+class MainMenu  : public GameObject
+{
+protected:
+	Animation blueBallAnim;
+	Vector2D blueBallOffsetPos;
+	bool keyDown;
+	int menuPos;
+	char* palette;
+	int fadeTimeStamp;
+public:
+	MainMenu( GameEngine* newEngine );
+	~MainMenu();
 
 	virtual void Update 		();
 	virtual void Draw 			();

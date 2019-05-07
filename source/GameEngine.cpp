@@ -156,6 +156,15 @@ void GameEngine::LoadAssets()
 	graphics->FreeSprite(sprite);
 
 
+	bmp = graphics->LoadBMP("./gfx/8pborder.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 3);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* border = graphics->ExtractTileSet( ASSET_8_PIXEL_BORDER_TILES, sprite, Vector2D( 0,0 ), 8, 8, 16, 2 );	//tileSetId = 1
+	graphics->AddTileSet(border);
+	graphics->FreeSprite(sprite);
+
+
 	bmp = graphics->LoadBMP("./gfx/apogee.bmp");
 	sprite = graphics->BMPToSprite(&bmp, ASSET_APOGEE);
 	graphics->AddSprite( sprite );
@@ -218,6 +227,15 @@ void GameEngine::LoadAssets()
 
 	TileSet* k2Tiles = graphics->ExtractTileSet( ASSET_K3_TILES, sprite, Vector2D( 0,0 ), 16, 16, 13, 53); //tileSetId = 101 (hast to mach property in TMXFile)
 	graphics->AddTileSet(k2Tiles);
+	graphics->FreeSprite(sprite);
+	
+
+	bmp = graphics->LoadBMP("./gfx/title.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 1);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* titleTiles = graphics->ExtractTileSet( ASSET_TITLE_TILES, sprite, Vector2D( 0,0 ), 16, 16, 16, 7); //tileSetId = 103 (hast to mach property in TMXFile)
+	graphics->AddTileSet(titleTiles);
 	graphics->FreeSprite(sprite);
 	//---------------------------------------------------------------------
 }

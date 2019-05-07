@@ -56,6 +56,7 @@ int main()
 	engine->LoadAssets();
 
 	TMXMap testMap = engine->LoadTMXMap("./levels/startup.tmx");		//Load Map
+
 	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 
 	GameObject* testObject;
@@ -137,7 +138,7 @@ int main()
 		//----------------- print Framerate -----------------------
 		char str[20];
 		sprintf(str, "%d(%d)%f", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()), engine->time->GetDelta() );
-		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , 1, 0, str );
+		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , ASSET_TXT_WHITE, 0, str );
 		//--------------------------------------------------------
 
 		engine->graphics->Flip();	//copy Backbuffer to Screen
