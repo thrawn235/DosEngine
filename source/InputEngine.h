@@ -70,6 +70,7 @@ public:
 
 	void CheckKeys 			();
 	bool KeyDown 			( unsigned char scanCode );
+	bool AnyKeyDown			();
 
 	void ClearBiosKeyBuffer ();
 };

@@ -592,6 +592,14 @@ void Banner::Update()
 		showEverything = true;
 	}
 
+	if( engine->input->AnyKeyDown() )
+	{
+		showEverything = true;
+
+		showEverythingTimeStamp = engine->time->GetCurrentTimeInMS() -4000;
+		palette = engine->graphics->GetPalette();
+	}
+
 	if( showEverything )
 	{
 		if( showEverythingTimeStamp == 0 )

@@ -62,6 +62,17 @@ bool InputEngine::KeyDown( unsigned char scanCode )
 	return keys[scanCode];
 	//
 }
+bool InputEngine::AnyKeyDown()
+{
+	for( int i = 0; i < 255; i++ )
+	{
+		if( keys[i] == true )
+		{
+			return true;
+		}
+	}
+	return false;
+}
 void InputEngine::ClearBiosKeyBuffer()
 {
 	//set head and tail variables of the Keybuffer in bios to 0
