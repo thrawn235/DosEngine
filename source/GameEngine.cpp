@@ -1505,6 +1505,35 @@ vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos, int typeID )
 	
 	return outObjects;
 }
+vector<GameObject*> GameEngine::GetObjectsInArea( Vector2D pos, int width, int height)
+{
+	vector<GameObject*> outObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x + width > objects[i]->GetPos().x && pos.x < objects[i]->GetPos().x + objects[i]->GetWidth()
+			&& 	pos.y + height > objects[i]->GetPos().y && pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
+}
+vector<GameObject*> GameEngine::GetObjectsInArea( Vector2D pos, int width, int height, int typeID )
+{
+	vector<GameObject*> outObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x + width > objects[i]->GetPos().x && pos.x < objects[i]->GetPos().x + objects[i]->GetWidth()
+			&& 	pos.y + height > objects[i]->GetPos().y && pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() 
+			&& 	objects[i]->GetTypeID() == typeID )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
+}
 GameObject* GameEngine::GetFirstObjectAtPos( Vector2D pos )
 {
 	vector<GameObject*> outObjects;

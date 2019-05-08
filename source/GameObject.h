@@ -123,7 +123,8 @@ public:
 	vector<GameObject*> GetTouchingObjects(int typeID);*/
 
 	virtual void AddForce 			( Vector2D newForce );	//chang Direction Vector
-	virtual bool RayBoxIntersect	( Vector2D origin, Vector2D dir, Vector2D* hit1, Vector2D boxPos, int boxWidth, int boxHeight );
+	virtual bool RayBoxIntersect	( Vector2D origin, Vector2D dir, float *tmin, Vector2D boxPos, int boxWidth, int boxHeight );
+	virtual bool BoxBoxCollision	( Vector2D pos1, int width1, int height1, Vector2D pos2, int width2, int height2 );
 	virtual bool Collision 			();
 	virtual void Move 				();					//update position
 	virtual void Friction 			( float slickness );
@@ -139,6 +140,11 @@ public:
 };
 
 
+
+
+
+
+
 class Player : public GameObject
 {
 protected:
@@ -152,6 +158,12 @@ public:
 	virtual void Draw 	();
 };
 
+
+
+
+
+
+
 class Solid  : public GameObject
 {
 protected:
@@ -162,6 +174,12 @@ public:
 	virtual void Update ();
 	virtual void Draw 	();
 };
+
+
+
+
+
+
 
 class SolidTop : public GameObject
 {
@@ -174,6 +192,12 @@ public:
 	virtual void Draw 	();
 };
 
+
+
+
+
+
+
 class BackGround  : public GameObject
 {
 protected:
@@ -185,6 +209,12 @@ public:
 	virtual void Draw 	();
 };
 
+
+
+
+
+
+
 class BackGroundAnimation  : public GameObject
 {
 protected:
@@ -193,11 +223,17 @@ public:
 	BackGroundAnimation( GameEngine* newEngine );
 	~BackGroundAnimation();
 
-	virtual void SetTileIndex	( int newTileIndex 				);
+	virtual void SetTileIndex	( int newTileIndex 	);
 
 	virtual void Update 		();
 	virtual void Draw 			();
 };
+
+
+
+
+
+
 
 class Banner  : public GameObject
 {
@@ -212,6 +248,11 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 };
+
+
+
+
+
 
 
 class MainMenu  : public GameObject

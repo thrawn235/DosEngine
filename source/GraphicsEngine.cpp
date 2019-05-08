@@ -1573,6 +1573,7 @@ bool GraphicsEngine::PlayAnimation( Animation* in, Vector2D pos )
 		if( in->currentFrame >= in->numSprites )
 		{
 			in->currentFrame = 0;
+			in->currentSpeedStep = 0;
 			return true;
 		}
 	}
@@ -1581,6 +1582,7 @@ bool GraphicsEngine::PlayAnimation( Animation* in, Vector2D pos )
 		if( in->currentFrame >= ( int )GetTileSet( in->tileSetID )->tiles.size() )
 		{
 			in->currentFrame = 0;
+			in->currentSpeedStep = 0;
 			return true;
 		}
 	}

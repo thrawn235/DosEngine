@@ -119,18 +119,20 @@ public:
 
 
 	//================ FindingObjects ==============
-	vector<GameObject*> GetAllObjects 			();
-	vector<GameObject*> GetAllObjects 			( int typeID 										);
-	vector<GameObject*> GetObjectsAtPos 		( Vector2D pos 										);
-	vector<GameObject*> GetObjectsAtPos 		( Vector2D pos, int typeID 							);
-	GameObject* 		GetFirstObjectAtPos 	( Vector2D pos 										);
-	GameObject* 		GetFirstObjectAtPos 	( Vector2D pos, int typeID 							);
-	vector<GameObject*> GetObjectsInRadius 		( Vector2D pos, int radius 							);
-	vector<GameObject*> GetObjectsInRadius 		( Vector2D pos, int radius, int typeID 				);
-	vector<GameObject*> GetObjectsAlongRay 		( Vector2D origin, Vector2D direction 				);
-	vector<GameObject*> GetObjectsAlongRay 		( Vector2D origin, Vector2D direction, int typeID 	);
-	GameObject* 		GetFirstObjectAlongRay 	( Vector2D origin, Vector2D direction 				);
-	GameObject* 		GetFirstObjectAlongRay 	( Vector2D origin, Vector2D direction, int typeID 	);
+	vector<GameObject*> GetAllObjects 				();
+	vector<GameObject*> GetAllObjects 				( int typeID 										);
+	vector<GameObject*> GetObjectsAtPos 			( Vector2D pos 										);
+	vector<GameObject*> GetObjectsAtPos 			( Vector2D pos, int typeID 							);
+	vector<GameObject*> GetObjectsInArea 			( Vector2D pos, int width, int height				);
+	vector<GameObject*> GetObjectsInArea 			( Vector2D pos, int width, int height, int typeID 	);
+	GameObject* 		GetFirstObjectAtPos 		( Vector2D pos 										);
+	GameObject* 		GetFirstObjectAtPos 		( Vector2D pos, int typeID 							);
+	vector<GameObject*> GetObjectsInRadius 			( Vector2D pos, int radius 							);
+	vector<GameObject*> GetObjectsInRadius 			( Vector2D pos, int radius, int typeID 				);
+	vector<GameObject*> GetObjectsAlongRay 			( Vector2D origin, Vector2D direction 				);
+	vector<GameObject*> GetObjectsAlongRay 			( Vector2D origin, Vector2D direction, int typeID 	);
+	GameObject* 		GetFirstObjectAlongRay 		( Vector2D origin, Vector2D direction 				);
+	GameObject* 		GetFirstObjectAlongRay 		( Vector2D origin, Vector2D direction, int typeID 	);
 	//==============================================
 
 

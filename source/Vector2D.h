@@ -72,13 +72,13 @@ public:
 	}*/
 	bool IsRight()
 	{
-		if(x < 0)
+		if(x > 0)
 			return true;
 		return false;
 	}
 	bool IsLeft()
 	{
-		if(x > 0)
+		if(x < 0)
 			return true;
 		return false;
 	}
