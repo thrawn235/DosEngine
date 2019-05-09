@@ -223,10 +223,10 @@ bool GameObject::RayBoxIntersect( Vector2D origin, Vector2D dir, float *tout, Ve
     {
         return false; 
     }
- 	if( tmin < 0 && tmax < 0 )
+ 	/*if( tmin <= 0 && tmax <= 0 )
  	{
  		return false;
- 	}
+ 	}*/
 
  	/*if(tmin < 0)
  	{
@@ -242,6 +242,11 @@ bool GameObject::RayBoxIntersect( Vector2D origin, Vector2D dir, float *tout, Ve
  
     if (tymax < tmax) 
         tmax = tymax; 
+
+    if(tmin < 0)
+    {
+    	return false;
+    }
 
     *tout = tmin;
 
@@ -263,8 +268,12 @@ bool GameObject::BoxBoxCollision( Vector2D pos1, int width1, int height1, Vector
 bool GameObject::Collision( )
 {
 	vector<GameObject*> objectsInRange = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
+	
+	float tmin = 10000;
+	bool rayHit = false;
+	GameObject* closestObject = NULL;
 	for( unsigned int i = 0; i < objectsInRange.size(); i++ )
-	{
+	{	
 		if( BoxBoxCollision(pos + direction, width, height, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
 		{
 			Vector2D origin = pos;
@@ -277,55 +286,126 @@ bool GameObject::Collision( )
 				origin.y = origin.y + height;
 			}
 
-			float tmin = 1;
-			if( RayBoxIntersect( origin, direction, &tmin, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
+			float t = 100000;
+			if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
 			{
-				direction = direction * tmin;
-				return true;
+				rayHit = true;
+				if( t < tmin)
+				{
+					tmin = t;
+					closestObject = objectsInRange[i];
+				}
 			}
 			else 
 			{
 				if( direction.IsDown() )
 				{
 					origin.y = origin.y - height;
-					if( RayBoxIntersect( origin, direction, &tmin, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
+					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
 					{
-						direction = direction * tmin;
-						return true;
+						rayHit = true;
+						if( t < tmin)
+						{
+							tmin = t;
+							closestObject = objectsInRange[i];
+						}
 					}
 				}
 				else
 				{
 					origin.y = origin.y + height;
-					if( RayBoxIntersect( origin, direction, &tmin, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
+					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
 					{
-						direction = direction * tmin;
-						return true;
+						rayHit = true;
+						if( t < tmin)
+						{
+							tmin = t;
+							closestObject = objectsInRange[i];
+						}
 					}
 				}
 				if( direction.IsRight() )
 				{
 					origin.x = origin.x - width;
-					if( RayBoxIntersect( origin, direction, &tmin, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth() + 2, objectsInRange[i]->GetHeight() ) )
+					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth() + 2, objectsInRange[i]->GetHeight() ) )
 					{
-						direction = direction * tmin;
-						return true;
+						rayHit = true;
+						if( t < tmin)
+						{
+							tmin = t;
+							closestObject = objectsInRange[i];
+						}
 					}
 				}
 				else
 				{
 					origin.y = origin.y + height;
-					if( RayBoxIntersect( origin, direction, &tmin, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth() + 2, objectsInRange[i]->GetHeight() ) )
+					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth() + 2, objectsInRange[i]->GetHeight() ) )
 					{
-						direction = direction * tmin;
-						return true;
+						rayHit = true;
+						if( t < tmin)
+						{
+							tmin = t;
+							closestObject = objectsInRange[i];
+						}
 					}
 				}
 			}
 		}
 	}
-	return false;
+
+	if( rayHit )
+	{
+		Vector2D v1 = direction * tmin;
+		
+
+		Vector2D hit = pos + v1;
+		if( hit.x == closestObject->GetPos().x || hit.x == closestObject->GetPos().x + closestObject->GetWidth() )
+		{
+			direction = Vector2D( v1.x , direction.y );
+		}
+		else
+		{	
+			direction = Vector2D( direction.x , v1.y );
+		}
+
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
+/*bool GameObject::Collision( )
+{
+	vector<GameObject*> objectsInRange = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
+
+	for( unsigned int i = 0; i < objectsInRange.size(); i++ )
+	{	
+		if( pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() && pos.x > objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() / 2 
+			&& pos.y > objectsInRange[i]->GetPos().y && pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() )
+		{
+			pos.x = objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth();
+		}
+		if( pos.x > objectsInRange[i]->GetPos().x && pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() / 2 
+			&& pos.y > objectsInRange[i]->GetPos().y && pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight())
+		{
+			pos.x = objectsInRange[i]->GetPos().x;
+		}
+
+		if( pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() && pos.y > objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() / 2 
+			&& pos.x > objectsInRange[i]->GetPos().x && pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() )
+		{
+			pos.y = objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight();
+		}
+		if( pos.y > objectsInRange[i]->GetPos().y && pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() / 2 
+			&& pos.x > objectsInRange[i]->GetPos().x && pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() )
+		{
+			pos.y = objectsInRange[i]->GetPos().y;
+		}
+	}
+}*/
 void GameObject::Move()
 {
 	pos = pos + direction /** engine->time->GetDelta()*/;
@@ -361,6 +441,12 @@ void GameObject::Friction( float slickness )
 Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID  = TYPE_PLAYER; //1
+
+	width = 16;
+	height = 24;
+	tileIndex = 0;
+	tileSetID = ASSET_KEEN_WALK;
+	drawOrder = 2;
 }
 Player::~Player()
 {
@@ -398,9 +484,10 @@ void Player::Update()
 
 	AddForce( movement );
 	AddForce( Vector2D( 0, 1 ) ); //gravity
-	Friction( 0.8f );
+	
 
 	Collision();
+	Friction( 0.8f );
 
 	Move();
 	
@@ -440,15 +527,15 @@ void Player::Draw()
 		engine->graphics->DrawLine(rayOrigin, hit1, 12);
 	}*/
 
-	/*vector<GameObject*> testObjects = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40 );
+	vector<GameObject*> testObjects = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID);
 	for( unsigned int i = 0; i < testObjects.size(); i++ )
 	{
-		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 0 ), testObjects[i]->GetWidth(), 7 );
-		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 0, 0 ), testObjects[i]->GetHeight(), 7 );
+		engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 0 ), testObjects[i]->GetWidth(), 1 );
+		engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 0, 0 ), testObjects[i]->GetHeight(), 1 );
 		if( BoxBoxCollision( pos + direction, width, height, testObjects[i]->GetPos(), testObjects[i]->GetWidth(), testObjects[i]->GetHeight() ) )
 		{
-			engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 1 ), testObjects[i]->GetWidth()-1, 8 );
-			engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 1, 0 ), testObjects[i]->GetHeight()-1, 8 );
+			engine->graphics->DrawHLine( testObjects[i]->GetPos() + Vector2D( 0, 1 ), testObjects[i]->GetWidth()-1, 2 );
+			engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 1, 0 ), testObjects[i]->GetHeight()-1, 2 );
 
 			Vector2D origin = pos;
 			if( direction.IsRight() )
@@ -470,7 +557,7 @@ void Player::Draw()
 				engine->graphics->DrawVLine( testObjects[i]->GetPos() + Vector2D( 2, 0 ), testObjects[i]->GetHeight()-1, 2 );
 			}
 		}
-	}*/
+	}
 
 	engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
 	engine->graphics->DrawRect( pos, width-1, height-1, 2);
@@ -516,10 +603,170 @@ void Player::Draw()
 
 
 
+
+//========== PlayerTopDown =============
+PlayerTopDown::PlayerTopDown( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID  = TYPE_PLAYER_TOP_DOWN; //1
+
+	width = 12;
+	height = 16;
+	tileIndex = 0;
+	tileSetID = ASSET_KEEN_TOP;
+	drawOrder = 2;
+
+
+	down.id = 0;
+	down.tileSetID = ASSET_KEEN_TOP;
+	down.firstTileIndex = 0;
+	down.numSprites = 4;
+	down.currentFrame = 0;
+	down.speed = 7;
+	down.currentSpeedStep = 0;
+
+	right.id = 4;
+	right.tileSetID = ASSET_KEEN_TOP;
+	right.firstTileIndex = 4;
+	right.numSprites = 4;
+	right.currentFrame = 0;
+	right.speed = 5;
+	right.currentSpeedStep = 0;
+
+	up.id = 8;
+	up.tileSetID = ASSET_KEEN_TOP;
+	up.firstTileIndex = 8;
+	up.numSprites = 4;
+	up.currentFrame = 0;
+	up.speed = 5;
+	up.currentSpeedStep = 0;
+}
+PlayerTopDown::~PlayerTopDown()
+{
+
+}
+void PlayerTopDown::Update()
+{
+	
+	movement = Vector2D( 0.0f, 0.0f );
+	if( engine->input->KeyDown( KEY_UP ) )
+	{
+		movement = Vector2D( 0.0f, -0.5f );
+	}
+	else if( engine->input->KeyDown( KEY_LEFT ) )
+	{
+		movement = Vector2D( -0.5f, 0.0f );	
+	}
+	else if( engine->input->KeyDown( KEY_DOWN ) )
+	{
+		movement = Vector2D( 0.0f, 0.5f );
+	}
+	else if( engine->input->KeyDown( KEY_RIGHT ) )
+	{
+		movement = Vector2D( 0.5f, 0.0f );
+	}
+	else
+	{
+		movement = Vector2D( 0.0f, 0.0f );
+	}
+
+
+	AddForce( movement );
+	
+
+	Collision();
+	Friction( 0.8f );
+
+	Move();
+	
+
+	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
+	engine->graphics->SetCamCenter( centerPos );
+
+}
+void PlayerTopDown::Draw()
+{
+	
+
+	if( movement.IsUp() )
+	{
+		engine->graphics->PlayAnimation( &up, pos, 7 );
+	}
+	else if( movement.IsDown() )
+	{
+		engine->graphics->PlayAnimation( &down, pos, 7 );
+	}
+	else if( movement.IsLeft() )
+	{
+		engine->graphics->PlayAnimation( &right, pos, 7, true, false );
+	}
+	else if( movement.IsRight() )
+	{
+		engine->graphics->PlayAnimation( &right, pos, 7 );
+	}
+	else
+	{
+		engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 7 );	
+	}
+}
+
+
+
+
+
+
+
+
+
+//========== CityOverWorld =============
+CityOverWorld::CityOverWorld( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID  = TYPE_CITY_OVERWORLD; //1
+
+	width = 32;
+	height = 32;
+	tileIndex = 0;					//has to be set
+	tileSetID = ASSET_K1_TILES;
+	drawOrder = 1;
+}
+CityOverWorld::~CityOverWorld()
+{
+
+}
+void CityOverWorld::Update()
+{
+
+}
+void CityOverWorld::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, 54 );
+	engine->graphics->DrawSprite( pos + Vector2D( 16, 0 ), tileSetID, 55 );
+	engine->graphics->DrawSprite( pos + Vector2D( 0, 16 ), tileSetID, 67 );
+	engine->graphics->DrawSprite( pos + Vector2D( 16, 16 ), tileSetID, 68 );
+}
+void CityOverWorld::LoadLevel()
+{
+	//Save Map ??
+
+	engine->ClearObjects();
+	engine->graphics->ClearScreen( 0 );
+	TMXMap testMap = engine->LoadTMXMap( levelPath );		//Load Map
+	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+}
+
+
+
+
+
+
+
+
+
 //========== Solid =============
 Solid::Solid( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_SOLID; //2
+
+	drawOrder = 1;
 }
 Solid::~Solid()
 {
@@ -546,6 +793,8 @@ void Solid::Draw()
 SolidTop::SolidTop( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_SOLID_TOP; //3
+
+	drawOrder = 1;
 }
 SolidTop::~SolidTop()
 {
@@ -572,6 +821,8 @@ void SolidTop::Draw()
 BackGround::BackGround( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_BACK_GROUND; //4
+
+	drawOrder = 1;
 }
 BackGround::~BackGround()
 {
@@ -602,6 +853,8 @@ void BackGround::Draw()
 BackGroundAnimation::BackGroundAnimation( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_BACK_GROUND_ANIMATION; //5
+
+	drawOrder = 1;
 
 	anim.id = 0;
 	anim.tileSetID = 0;
@@ -657,6 +910,8 @@ void BackGroundAnimation::Draw()
 Banner::Banner( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_BANNER; //6
+
+	drawOrder = 2;
 
 	AddForce( Vector2D( 0, -0.5 ) ); // set initial velocity upwards
 
@@ -801,7 +1056,7 @@ void MainMenu::Update()
 			//delete everything
 			engine->ClearObjects();
 			engine->graphics->ClearScreen( 0 );
-			TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
+			TMXMap testMap = engine->LoadTMXMap("./levels/mars.tmx");		//Load Map
 			engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 			engine->graphics->SetPalette( palette, 255 );
 		}

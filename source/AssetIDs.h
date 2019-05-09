@@ -26,7 +26,8 @@
 #define ASSET_PRODUCTION 			7
 #define ASSET_8_PIXEL_BORDER_TILES 	8
 
-#define ASSET_KEEN_WALK 10
+#define ASSET_KEEN_WALK 			10
+#define ASSET_KEEN_TOP 				11
 
 #define ASSET_K1_TILES		100
 #define ASSET_K2_TILES		101

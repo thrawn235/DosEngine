@@ -49,7 +49,9 @@
 #define TYPE_BACK_GROUND 			4
 #define TYPE_BACK_GROUND_ANIMATION	5
 #define TYPE_BANNER					6
-#define TYPE_MAIN_MENU					7
+#define TYPE_MAIN_MENU				7
+#define TYPE_PLAYER_TOP_DOWN		8
+#define TYPE_CITY_OVERWORLD			9
 //=======================================================
 
 
@@ -156,6 +158,48 @@ public:
 
 	virtual void Update ();
 	virtual void Draw 	();
+};
+
+
+
+
+
+
+
+class PlayerTopDown : public GameObject
+{
+protected:
+	Vector2D movement;
+
+	Animation right;
+	Animation up;
+	Animation down;
+	
+public:
+	PlayerTopDown( GameEngine* newEngine );
+	~PlayerTopDown();
+
+	virtual void Update ();
+	virtual void Draw 	();
+};
+
+
+
+
+
+
+
+class CityOverWorld : public GameObject
+{
+protected:
+	char levelPath[30];
+public:
+	CityOverWorld( GameEngine* newEngine );
+	~CityOverWorld();
+
+	virtual void Update 	();
+	virtual void Draw 		();
+	virtual void LoadLevel 	();
 };
 
 

@@ -1,10 +1,130 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
+<map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="3">
  <tileset firstgid="1" name="k1tiles" tilewidth="16" tileheight="16" tilecount="611" columns="13">
   <properties>
    <property name="tileSetID" type="int" value="100"/>
   </properties>
   <image source="../gfx/k1tiles.bmp" width="208" height="752"/>
+  <tile id="38">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="39">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="40">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="41">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="42">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="44">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="45">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="48">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="50">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="61">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="62">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="65">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="74">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="100">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="102">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="103">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="104">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="109">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="111">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="114">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="116">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="136">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="306">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
+  <tile id="308">
+   <properties>
+    <property name="typeID" type="int" value="2"/>
+   </properties>
+  </tile>
  </tileset>
  <layer id="1" name="Tile Layer 1" width="100" height="100">
   <data encoding="csv">
@@ -49,8 +169,8 @@
 0,0,0,0,0,0,0,0,31,31,31,31,45,101,38,38,38,38,104,31,31,31,31,74,31,46,38,38,38,104,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,31,31,31,31,46,38,38,38,38,38,115,41,41,41,110,31,31,46,38,38,38,104,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,31,31,31,31,46,38,38,38,38,38,38,38,38,38,115,41,41,101,38,38,38,104,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,31,31,31,31,46,38,132,83,38,38,38,38,38,38,38,38,55,56,38,38,38,104,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,31,31,46,38,38,38,38,38,38,38,38,38,38,38,68,69,38,38,38,104,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,31,31,31,31,46,38,132,83,38,38,38,38,38,38,38,38,79,80,38,38,38,104,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,31,31,46,38,38,38,38,38,38,38,38,38,38,38,81,82,38,38,38,104,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,31,31,105,103,38,38,38,38,38,38,38,38,38,43,40,40,40,40,40,112,31,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,31,31,105,103,38,38,38,38,38,43,40,40,112,31,31,31,31,31,31,31,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,31,31,105,40,40,40,40,40,112,31,31,0,31,31,31,31,31,31,31,31,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -110,4 +230,21 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="2" name="Object Layer 1">
+  <properties>
+   <property name="typeID" type="int" value="9"/>
+  </properties>
+  <object id="1" name="Keen" x="268" y="657.667">
+   <properties>
+    <property name="typeID" type="int" value="8"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="2" name="City 1" x="384" y="655">
+   <properties>
+    <property name="typeID" type="int" value="9"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
 </map>

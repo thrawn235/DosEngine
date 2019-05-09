@@ -123,10 +123,10 @@ int main()
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +2));
 		if(engine->input->KeyDown(KEY_D))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +2, engine->graphics->GetCamPos().y));
-		if(engine->input->KeyDown(SPACE))
-			engine->graphics->ChangePaletteBrightness(-1);
-		if(engine->input->KeyDown(LCTRL))
-			engine->graphics->ChangePaletteBrightness(+1);
+		//if(engine->input->KeyDown(SPACE))
+		//	engine->graphics->ChangePaletteBrightness(-1);
+		//if(engine->input->KeyDown(LCTRL))
+		//	engine->graphics->ChangePaletteBrightness(+1);
 		//-----------------------------------------------------------
 
 		//engine->graphics->ClearScreen(190);

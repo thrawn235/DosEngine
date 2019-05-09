@@ -1483,7 +1483,7 @@ TileSet* GraphicsEngine::ExtractTileSet( int newID, Sprite* in, Vector2D startPo
 		for( int x = 0; x < numTliesHorizontal; x++ )
 		{
 			int tileIndex = y * numTliesHorizontal + x;
-			Vector2D tilePosOffset = Vector2D( x*tileWidth, y*tileWidth );
+			Vector2D tilePosOffset = Vector2D( x*tileWidth, y*tileHeight );
 			newTileSet->tiles.push_back( CropSprite( in, tileIndex, startPos + tilePosOffset, tileWidth, tileHeight ) );
 		}
 	}

@@ -114,9 +114,12 @@ void GameEngine::UpdateAll()
 }
 void GameEngine::DrawAll()
 {
+	//performance ??
+
 	vector<GameObject*> drawObjects = objects;
-	
-	/*for( int drawOrder = 0; drawOrder < 64; drawOrder++ )
+	drawObjects.reserve(objects.size() );
+
+	for( int drawOrder = 0; drawOrder < 64; drawOrder++ )
 	{
 		for( unsigned int i = 0; i < drawObjects.size(); i++ )
 		{
@@ -126,14 +129,6 @@ void GameEngine::DrawAll()
 				drawObjects.erase( drawObjects.begin() + i ); //remove Objects from draw list. It has been drawn already
 				i--; //change i bc remove changes all the indices...
 			}
-		}
-	}*/
-
-	for(unsigned int i = 0; i < drawObjects.size(); i++)
-	{
-		if( !drawObjects[i]->GetInvisible() )
-		{
-			drawObjects[i]->Draw();
 		}
 	}
 }
@@ -208,6 +203,15 @@ void GameEngine::LoadAssets()
 
 	TileSet* keenWalk = graphics->ExtractTileSet( ASSET_KEEN_WALK, sprite, Vector2D( 0,0 ), 16, 24, 17, 2);	//tileSetId = 10
 	graphics->AddTileSet(keenWalk);
+	graphics->FreeSprite(sprite);
+
+
+	bmp = graphics->LoadBMP("./gfx/k1top.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 3);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* keenWalkTop = graphics->ExtractTileSet( ASSET_KEEN_TOP, sprite, Vector2D( 0,0 ), 12, 16, 4, 3);	//tileSetId = 11
+	graphics->AddTileSet(keenWalkTop);
 	graphics->FreeSprite(sprite);
 
 
@@ -1282,10 +1286,23 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 				{
 					//printf("create!\n");
 					newObject = new Player( this );
-					newObject->SetDimensions( 16, 24 ); 	//hadcoded
-					newObject->SetTileSetID	( 10 );			//hardcoded
-					newObject->SetTileIndex	( 0 );			//hardcoded
-					newObject->SetDrawOrder	( 2 );			//hardcoded
+					
+
+				}
+
+				if( object->typeID == TYPE_PLAYER_TOP_DOWN ) //placeholder
+				{
+					//printf("create!\n");
+					newObject = new PlayerTopDown( this );
+					
+
+				}
+
+				if( object->typeID == TYPE_CITY_OVERWORLD ) //placeholder
+				{
+					//printf("create!\n");
+					newObject = new CityOverWorld( this );
+					
 
 				}
 
@@ -1484,6 +1501,32 @@ vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos )
 	{
 		if( 	pos.x >= objects[i]->GetPos(). x && pos.y >= objects[i]->GetPos().y 
 			&& 	pos.x < objects[i]->GetPos().x  + objects[i]->GetWidth() && pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
+}
+vector<GameObject*> GameEngine::GetTouchingObjects( Vector2D testDirection )
+{
+	vector<GameObject*> outObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( 1 )
+		{
+			outObjects.push_back( objects[i] );
+		}
+	}
+	
+	return outObjects;
+}
+vector<GameObject*> GameEngine::GetTouchingObjects( Vector2D testDirection, int typeID )
+{
+	vector<GameObject*> outObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( 1 )
 		{
 			outObjects.push_back( objects[i] );
 		}

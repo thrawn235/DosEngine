@@ -121,6 +121,8 @@ public:
 	//================ FindingObjects ==============
 	vector<GameObject*> GetAllObjects 				();
 	vector<GameObject*> GetAllObjects 				( int typeID 										);
+	vector<GameObject*> GetTouchingObjects			( Vector2D testDirection							);
+	vector<GameObject*> GetTouchingObjects			( Vector2D testDirection, int typeID				);
 	vector<GameObject*> GetObjectsAtPos 			( Vector2D pos 										);
 	vector<GameObject*> GetObjectsAtPos 			( Vector2D pos, int typeID 							);
 	vector<GameObject*> GetObjectsInArea 			( Vector2D pos, int width, int height				);
