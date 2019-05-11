@@ -124,12 +124,17 @@ public:
 	vector<GameObject*> GetTouchingObjects();
 	vector<GameObject*> GetTouchingObjects(int typeID);*/
 
-	virtual void AddForce 			( Vector2D newForce );	//chang Direction Vector
-	virtual bool RayBoxIntersect	( Vector2D origin, Vector2D dir, float *tmin, Vector2D boxPos, int boxWidth, int boxHeight );
-	virtual bool BoxBoxCollision	( Vector2D pos1, int width1, int height1, Vector2D pos2, int width2, int height2 );
-	virtual bool Collision 			();
-	virtual void Move 				();					//update position
-	virtual void Friction 			( float slickness );
+	virtual void 				AddForce 			( Vector2D newForce );	//chang Direction Vector
+	virtual bool 				RayBoxIntersect		( Vector2D origin, Vector2D dir, float *tmin, Vector2D boxPos, int boxWidth, int boxHeight );
+	virtual bool 				BoxBoxCollision	 	( Vector2D pos1, int width1, int height1, Vector2D pos2, int width2, int height2 );
+	virtual float 				FindClosestCollision( vector<GameObject*> objects, GameObject* closestObject );
+	virtual vector<GameObject*> CollisionDetection 	();
+	virtual Vector2D 			VectorProjection 	( Vector2D posIn, Vector2D dirIn,  int tmin, GameObject* closestObject );
+	virtual bool 				Collision 			();
+	virtual void 				Move 				();					//update position
+	virtual void 				Friction 			( float slickness );
+	virtual bool 				FindCollisionPoint 	( GameObject* testObject, Vector2D testPoint, Vector2D* out );
+	virtual void 				SimpleCollisionResolution 	( vector<GameObject*> colliders );
 
 	void SetInsivible 		( bool newInvisible );
 	void Enable 			();
@@ -151,6 +156,9 @@ class Player : public GameObject
 {
 protected:
 	Vector2D movement;
+
+	Animation walkForward;
+	Animation walkBackward;
 	
 public:
 	Player( GameEngine* newEngine );
@@ -196,6 +204,8 @@ protected:
 public:
 	CityOverWorld( GameEngine* newEngine );
 	~CityOverWorld();
+
+	virtual void SetLevelPath( const char* newPath );
 
 	virtual void Update 	();
 	virtual void Draw 		();

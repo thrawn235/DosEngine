@@ -240,8 +240,9 @@
    </properties>
    <point/>
   </object>
-  <object id="2" name="City 1" x="384" y="655">
+  <object id="2" name="City 1" x="384" y="656">
    <properties>
+    <property name="levelPath" value="./levels/k1e1m1.tmx"/>
     <property name="typeID" type="int" value="9"/>
    </properties>
    <point/>

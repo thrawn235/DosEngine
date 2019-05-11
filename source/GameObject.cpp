@@ -192,6 +192,35 @@ void GameObject::AddForce( Vector2D newForce )
 	direction = direction + newForce;
 	//
 }
+
+bool GameObject::BoxBoxCollision( Vector2D pos1, int width1, int height1, Vector2D pos2, int width2, int height2 )
+{
+	if( 	pos1.x < pos2.x + width2 && pos1.x + width1 > pos2.x
+		&&	pos1.y < pos2.y + height2 && pos1.y + height1 > pos2.y )
+	{
+		return true;
+	}
+	
+	return false;	
+}
+
+vector<GameObject*> GameObject::CollisionDetection()
+{
+	vector<GameObject*> objectsInRange = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
+	vector<GameObject*> outObjects;
+
+
+	for( unsigned int i = 0; i < objectsInRange.size(); i++ )
+	{	
+		if( BoxBoxCollision(pos + direction, width, height, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
+		{
+			outObjects.push_back( objectsInRange[i] );
+		}
+	}
+
+	return outObjects;
+}
+
 bool GameObject::RayBoxIntersect( Vector2D origin, Vector2D dir, float *tout, Vector2D boxPos, int boxWidth, int boxHeight )
 {
 	Vector2D boxTopLeft 	= boxPos;
@@ -255,157 +284,172 @@ bool GameObject::RayBoxIntersect( Vector2D origin, Vector2D dir, float *tout, Ve
  
     return true; 
 }
-bool GameObject::BoxBoxCollision( Vector2D pos1, int width1, int height1, Vector2D pos2, int width2, int height2 )
+
+float GameObject::FindClosestCollision( vector<GameObject*> objects, GameObject* closestObject )
 {
-	if( 	pos1.x < pos2.x + width2 && pos1.x + width1 > pos2.x
-		&&	pos1.y < pos2.y + height2 && pos1.y + height1 > pos2.y )
-	{
-		return true;
-	}
-	
-	return false;	
-}
-bool GameObject::Collision( )
-{
-	vector<GameObject*> objectsInRange = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
-	
 	float tmin = 10000;
-	bool rayHit = false;
-	GameObject* closestObject = NULL;
-	for( unsigned int i = 0; i < objectsInRange.size(); i++ )
-	{	
-		if( BoxBoxCollision(pos + direction, width, height, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
-		{
-			Vector2D origin = pos;
-			if( direction.IsRight() )
-			{
-				origin.x = origin.x + width;
-			}
-			if( direction.IsDown() )
-			{
-				origin.y = origin.y + height;
-			}
+	closestObject = NULL;
 
-			float t = 100000;
-			if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		float t = 100000;
+		Vector2D origin = pos;
+		if( RayBoxIntersect( origin, direction, &t, objects[i]->GetPos(), objects[i]->GetWidth(), objects[i]->GetHeight() ) )
+		{
+			if( t < tmin)
 			{
-				rayHit = true;
-				if( t < tmin)
-				{
-					tmin = t;
-					closestObject = objectsInRange[i];
-				}
+				tmin = t;
+				closestObject = objects[i];
 			}
-			else 
+		}
+		origin = pos + Vector2D( width, 0 );
+		if( RayBoxIntersect( origin, direction, &t, objects[i]->GetPos(), objects[i]->GetWidth(), objects[i]->GetHeight() ) )
+		{
+			if( t < tmin)
 			{
-				if( direction.IsDown() )
-				{
-					origin.y = origin.y - height;
-					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
-					{
-						rayHit = true;
-						if( t < tmin)
-						{
-							tmin = t;
-							closestObject = objectsInRange[i];
-						}
-					}
-				}
-				else
-				{
-					origin.y = origin.y + height;
-					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth(), objectsInRange[i]->GetHeight() ) )
-					{
-						rayHit = true;
-						if( t < tmin)
-						{
-							tmin = t;
-							closestObject = objectsInRange[i];
-						}
-					}
-				}
-				if( direction.IsRight() )
-				{
-					origin.x = origin.x - width;
-					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth() + 2, objectsInRange[i]->GetHeight() ) )
-					{
-						rayHit = true;
-						if( t < tmin)
-						{
-							tmin = t;
-							closestObject = objectsInRange[i];
-						}
-					}
-				}
-				else
-				{
-					origin.y = origin.y + height;
-					if( RayBoxIntersect( origin, direction, &t, objectsInRange[i]->GetPos(), objectsInRange[i]->GetWidth() + 2, objectsInRange[i]->GetHeight() ) )
-					{
-						rayHit = true;
-						if( t < tmin)
-						{
-							tmin = t;
-							closestObject = objectsInRange[i];
-						}
-					}
-				}
+				tmin = t;
+				closestObject = objects[i];
+			}
+		}
+		origin = pos + Vector2D( 0, height );
+		if( RayBoxIntersect( origin, direction, &t, objects[i]->GetPos(), objects[i]->GetWidth(), objects[i]->GetHeight() ) )
+		{
+			if( t < tmin)
+			{
+				tmin = t;
+				closestObject = objects[i];
+			}
+		}
+		origin = pos + Vector2D( width, height );
+		if( RayBoxIntersect( origin, direction, &t, objects[i]->GetPos(), objects[i]->GetWidth(), objects[i]->GetHeight() ) )
+		{
+			if( t < tmin)
+			{
+				tmin = t;
+				closestObject = objects[i];
 			}
 		}
 	}
 
-	if( rayHit )
+	return tmin;
+}
+
+Vector2D GameObject::VectorProjection( Vector2D posIn, Vector2D dirIn,  int tmin, GameObject* closestObject )
+{
+	Vector2D v1 = dirIn * tmin;
+	posIn = posIn + v1;
+
+	Vector2D out;
+
+	if( (int)posIn.x == (int)closestObject->GetPos().x || (int)posIn.x == (int)closestObject->GetPos().x + closestObject->GetWidth() )
 	{
-		Vector2D v1 = direction * tmin;
-		
-
-		Vector2D hit = pos + v1;
-		if( hit.x == closestObject->GetPos().x || hit.x == closestObject->GetPos().x + closestObject->GetWidth() )
-		{
-			direction = Vector2D( v1.x , direction.y );
-		}
-		else
-		{	
-			direction = Vector2D( direction.x , v1.y );
-		}
-
-
-		return true;
+		out = Vector2D( v1.x , dirIn.y );
 	}
 	else
-	{
-		return false;
-	}
-}
-/*bool GameObject::Collision( )
-{
-	vector<GameObject*> objectsInRange = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
-
-	for( unsigned int i = 0; i < objectsInRange.size(); i++ )
 	{	
-		if( pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() && pos.x > objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() / 2 
-			&& pos.y > objectsInRange[i]->GetPos().y && pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() )
+		out = Vector2D( dirIn.x , v1.y );
+	}
+
+	return out;
+}
+
+bool GameObject::FindCollisionPoint( GameObject* testObject, Vector2D testPoint, Vector2D* out )
+{
+	if( 	testPoint.x > testObject->GetPos().x && testPoint.x < testObject->GetPos().x + testObject->GetWidth() 
+		&&	testPoint.y > testObject->GetPos().y && testPoint.y < testObject->GetPos().y + testObject->GetHeight() )
+	{
+		float xDistance = testPoint.x - ( testObject->GetWidth() + testPoint.x );
+		float yDistance = testPoint.y - ( testObject->GetHeight() + testPoint.y );
+
+
+		if( fabs( xDistance ) < fabs( yDistance ) )
 		{
-			pos.x = objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth();
+			
+			if( xDistance < 0 )
+			{
+				out->SetXY( testObject->GetPos().x, testPoint.y );
+			}
+			else
+			{
+				out->SetXY( testObject->GetPos().x + testObject->GetWidth(), testPoint.y );
+			}
+			
 		}
-		if( pos.x > objectsInRange[i]->GetPos().x && pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() / 2 
-			&& pos.y > objectsInRange[i]->GetPos().y && pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight())
+		else
 		{
-			pos.x = objectsInRange[i]->GetPos().x;
+			if( yDistance < 0 )
+			{
+				out->SetXY( testPoint.x, testObject->GetPos().y );
+			}
+			else
+			{
+				out->SetXY( testPoint.x, testObject->GetPos().y + testObject->GetHeight() );
+			}
 		}
 
-		if( pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() && pos.y > objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() / 2 
-			&& pos.x > objectsInRange[i]->GetPos().x && pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() )
+		return true;
+	}
+
+	return false;
+}
+void GameObject::SimpleCollisionResolution( vector<GameObject*> colliders )
+{
+	Vector2D nextPos = pos + direction;
+
+	for( unsigned int i = 0; i < colliders.size(); i++ )
+	{
+		Vector2D topLeft 		= nextPos;
+		
+		
+		Vector2D testPos;
+		if( FindCollisionPoint( colliders[i], topLeft, &testPos ) )
 		{
-			pos.y = objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight();
+			nextPos = testPos;
 		}
-		if( pos.y > objectsInRange[i]->GetPos().y && pos.y < objectsInRange[i]->GetPos().y + objectsInRange[i]->GetHeight() / 2 
-			&& pos.x > objectsInRange[i]->GetPos().x && pos.x < objectsInRange[i]->GetPos().x + objectsInRange[i]->GetWidth() )
+
+		Vector2D topRight 		= nextPos + Vector2D( width, 0 );
+		if( FindCollisionPoint( colliders[i], topRight, &testPos ) )
 		{
-			pos.y = objectsInRange[i]->GetPos().y;
+			nextPos = testPos;
+			nextPos = nextPos - Vector2D( width, 0 );
+		}
+
+		Vector2D bottomLeft 	= nextPos + Vector2D( 0, height );
+		if( FindCollisionPoint( colliders[i], bottomLeft, &testPos ) )
+		{
+			nextPos = testPos;
+			nextPos = nextPos - Vector2D( 0, height );
+		}
+
+		Vector2D bottomRight 	= nextPos + Vector2D( width, height );
+		if( FindCollisionPoint( colliders[i], bottomRight, &testPos ) )
+		{
+			nextPos = testPos;
+			nextPos = nextPos - Vector2D( width, height );
 		}
 	}
-}*/
+
+	direction = nextPos - pos;
+}
+
+bool GameObject::Collision( )
+{
+	vector<GameObject*> objects;
+	objects = CollisionDetection();
+
+	if( objects.size() > 0 )
+	{	
+		GameObject closestObject(engine);
+		float tmin = FindClosestCollision( objects, &closestObject );
+		if( tmin != 10000 )
+		{
+			direction = VectorProjection( pos, direction, tmin, &closestObject );
+		}
+		return true;
+	}
+	return false;
+}
+
 void GameObject::Move()
 {
 	pos = pos + direction /** engine->time->GetDelta()*/;
@@ -447,6 +491,22 @@ Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
 	tileIndex = 0;
 	tileSetID = ASSET_KEEN_WALK;
 	drawOrder = 2;
+
+	walkForward.id = 0;
+	walkForward.tileSetID = ASSET_KEEN_WALK;
+	walkForward.firstTileIndex = 1;
+	walkForward.numSprites = 3;
+	walkForward.currentFrame = 0;
+	walkForward.speed = 7;
+	walkForward.currentSpeedStep = 0;
+
+	walkBackward.id = 0;
+	walkBackward.tileSetID = ASSET_KEEN_WALK;
+	walkBackward.firstTileIndex = 4;
+	walkBackward.numSprites = 3;
+	walkBackward.currentFrame = 0;
+	walkBackward.speed = 7;
+	walkBackward.currentSpeedStep = 0;
 }
 Player::~Player()
 {
@@ -485,10 +545,13 @@ void Player::Update()
 	AddForce( movement );
 	AddForce( Vector2D( 0, 1 ) ); //gravity
 	
-
-	Collision();
 	Friction( 0.8f );
 
+
+	//Collision();
+	vector<GameObject*> colliders = CollisionDetection();
+	SimpleCollisionResolution( colliders );
+	
 	Move();
 	
 
@@ -559,7 +622,26 @@ void Player::Draw()
 		}
 	}
 
-	engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
+	
+	if( direction.x > 0 )
+	{
+		engine->graphics->PlayAnimation( &walkForward, pos, 16 );
+	}
+	else if( direction.x < 0 )
+	{
+		engine->graphics->PlayAnimation( &walkBackward, pos, 16 );
+	}
+	else
+	{
+
+		walkForward.currentFrame = 0;
+		walkForward.currentSpeedStep = 0;
+
+		walkBackward.currentFrame = 0;
+		walkBackward.currentSpeedStep = 0;
+
+		engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
+	}	
 	engine->graphics->DrawRect( pos, width-1, height-1, 2);
 
 	/*testObjects = engine->GetAllObjects(TYPE_SOLID);
@@ -670,6 +752,16 @@ void PlayerTopDown::Update()
 	}
 
 
+	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
+
+	vector<GameObject*> citiesInRange = engine->GetObjectsAtPos( centerPos, TYPE_CITY_OVERWORLD );
+	if( engine->input->KeyDown( ENTER ) && citiesInRange.size() > 0 )
+	{
+		CityOverWorld* city = (CityOverWorld*)citiesInRange[0];
+		city->LoadLevel();
+	}
+
+
 	AddForce( movement );
 	
 
@@ -679,7 +771,7 @@ void PlayerTopDown::Update()
 	Move();
 	
 
-	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
+	
 	engine->graphics->SetCamCenter( centerPos );
 
 }
@@ -732,6 +824,12 @@ CityOverWorld::~CityOverWorld()
 {
 
 }
+void CityOverWorld::SetLevelPath( const char* newPath )
+{
+	strcpy( levelPath, newPath );
+	//
+}
+
 void CityOverWorld::Update()
 {
 
@@ -745,8 +843,7 @@ void CityOverWorld::Draw()
 }
 void CityOverWorld::LoadLevel()
 {
-	//Save Map ??
-
+	engine->SaveObjectsToBank();
 	engine->ClearObjects();
 	engine->graphics->ClearScreen( 0 );
 	TMXMap testMap = engine->LoadTMXMap( levelPath );		//Load Map

@@ -95,8 +95,23 @@ void GameEngine::RemoveObjects( vector<GameObject*> inObjects )
 }
 void GameEngine::ClearObjects()
 {
+	//do not destry objects
+	objects.clear();
+}
+void GameEngine::PurgeObjects()
+{
 	//iterate through all objects and call Destroy first!
 	objects.clear();
+}
+void GameEngine::SaveObjectsToBank()
+{
+	saveBank = objects;
+	//
+}
+void GameEngine::LoadObjectsFromBank()
+{
+	objects = saveBank;
+	//
 }
 //==========================================================
 
@@ -923,19 +938,71 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 								if( strcmp( XMLTag, "property" ) == 0 )
 								{
 									TMXProperty newProperty;
-									fscanf( file, " name=\"%[^\"]\" type=\"%[^\"]\" value=\"%[^\"]\"/>\n", newProperty.name, newProperty.type, newProperty.stringValue );
+									fscanf( file, " name=\"%[^\"]\"", newProperty.name );
+
+									char nextWord[30];
+									fscanf( file, " %[^=]=", nextWord );
+									if( debug )
+										printf("nextWord=%s\n", nextWord );
+									
+									if( strcmp( nextWord, "value") == 0 )
+									{
+										if( debug )
+											printf("in value section\n" );
+
+										strcpy( newProperty.type, "string" );
+										if( strcmp( newProperty.type, "string" ) == 0 )
+										{
+											fscanf( file, "\"%[^\"]\"/>\n", newProperty.stringValue );
+										}
+
+									}
+									if(strcmp( nextWord, "type") == 0 )
+									{
+										fscanf( file, "\"%[^\"]\"", newProperty.type);
+
+										if( strcmp( newProperty.type, "int" ) == 0 )
+										{
+											fscanf( file, " value=\"%i\"/>\n", &newProperty.intValue );
+										}
+										if( strcmp( newProperty.type, "float" ) == 0 )
+										{
+											fscanf( file, " value=\"%f\"/>\n", &newProperty.floatValue );
+										}
+										if( strcmp( newProperty.type, "bool" ) == 0 )
+										{
+											fscanf( file, " value=\"%i\"/>\n", &newProperty.boolValue );
+										}
+										if( strcmp( newProperty.type, "file" ) == 0 )
+										{
+											fscanf( file, " value=\"%[^\"]\"/>\n", newProperty.fileValue );
+										}
+										if( strcmp( newProperty.type, "string" ) == 0 )
+										{
+											fscanf( file, " value=\"%[^\"]\"/>\n", newProperty.stringValue );
+										}
+									}
+
+
+
+
 									newTMXMap.objectGroups.back().objects.back().properties.push_back( newProperty );
 									if( debug )
 									{
-										printf( "					name 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().name 		);
-										printf( "					type 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().type 		);
-										printf( "					value 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().stringValue);
+										printf( "					name 			= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().name 		);
+										printf( "					type 			= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().type 		);
+										printf( "					intvalue 		= %i \n", newTMXMap.objectGroups.back().objects.back().properties.back().intValue 	);
+										printf( "					floatvalue 		= %f \n", newTMXMap.objectGroups.back().objects.back().properties.back().floatValue );
+										printf( "					boolvalue 		= %i \n", newTMXMap.objectGroups.back().objects.back().properties.back().boolValue 	);
+										printf( "					filevalue 		= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().fileValue 	);
+										printf( "					stringvalue 	= %s \n", newTMXMap.objectGroups.back().objects.back().properties.back().stringValue);
 										
 										//getch();
 									}
 									if( strcmp( newProperty.name, "typeID" ) == 0 )
 									{
-										newTMXMap.objectGroups.back().objects.back().typeID = atoi( newProperty.stringValue );
+										//newTMXMap.objectGroups.back().objects.back().typeID = atoi( newProperty.stringValue );
+										newTMXMap.objectGroups.back().objects.back().typeID = newProperty.intValue;
 									}
 									
 								}
@@ -1127,6 +1194,16 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 
 	return newTMXMap;
 }
+TMXProperty GameEngine::GetProperty( vector<TMXProperty> properties, const char* name )
+{
+	for( int i = 0; i < properties.size(); i ++ )
+	{
+		if( strcmp( properties[i].name, name ) == 0 )
+		{
+			return properties[i];
+		}
+	}
+}
 int GameEngine::GetFirstGid( TMXMap* in, int tileSetID )
 {
 	return in->tileSets[tileSetID].firstGID;
@@ -1302,8 +1379,10 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 				{
 					//printf("create!\n");
 					newObject = new CityOverWorld( this );
-					
+					CityOverWorld* city;
+					city = ( CityOverWorld* )newObject;
 
+					city->SetLevelPath( GetProperty( object->properties, "levelPath" ).stringValue );
 				}
 
 				if( newObject != NULL )

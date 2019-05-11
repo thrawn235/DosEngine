@@ -64,6 +64,8 @@ public:
 private:
 	vector<GameObject*> objects;
 
+	vector<GameObject*> saveBank;	//to save the overworld
+
 public:
 	GameEngine();
 	~GameEngine();
@@ -76,11 +78,14 @@ public:
 
 
 	//=========== Object Management ================
-	void AddObject 		( GameObject* newObject 		);
-	void RemoveObject 	( GameObject* in 				);
-	void RemoveObject 	( unsigned int index 			);
-	void RemoveObjects 	( vector<GameObject*> objects 	);
-	void ClearObjects 	();
+	void AddObject 			( GameObject* newObject 		);
+	void RemoveObject 		( GameObject* in 				);
+	void RemoveObject 		( unsigned int index 			);
+	void RemoveObjects 		( vector<GameObject*> objects 	);
+	void ClearObjects 		();
+	void PurgeObjects 		();
+	void SaveObjectsToBank 	();
+	void LoadObjectsFromBank();
 	//==============================================
 
 
@@ -94,14 +99,15 @@ public:
 	//==============================================
 
 	//================= Level ======================
-	TMXMap 	LoadTMXMap			( const char* filePath							);
-	void 	CreateObjectsFromMap( TMXMap* in 									);
-	void 	CreateObjectsFromMap( TMXMap* in, Vector2D offset 					);
-	int 	GetTypeID			( TMXMap* in, int mapValue, int TMXTileSetIndex );
-	int 	GetTMXTileSetIndex	( TMXMap* in, int mapValue 						);
-	int 	GetTileID 			( TMXMap* in, int mapValue, int TMXTileSetIndex	);
-	int 	GetTileSetID 		( TMXMap* in, int TMXTileSetIndex 				);
-	int 	GetFirstGid 		( TMXMap* in, int tileSetID 					);
+	TMXMap 			LoadTMXMap			( const char* filePath								);
+	TMXProperty		GetProperty			( vector<TMXProperty> properties, const char* name	);
+	void 			CreateObjectsFromMap( TMXMap* in 										);
+	void 			CreateObjectsFromMap( TMXMap* in, Vector2D offset 						);
+	int 			GetTypeID			( TMXMap* in, int mapValue, int TMXTileSetIndex 	);
+	int 			GetTMXTileSetIndex	( TMXMap* in, int mapValue 							);
+	int 			GetTileID 			( TMXMap* in, int mapValue, int TMXTileSetIndex		);
+	int 			GetTileSetID 		( TMXMap* in, int TMXTileSetIndex 					);
+	int 			GetFirstGid 		( TMXMap* in, int tileSetID 						);
 	//==============================================
 
 	//================ Misc =======================
