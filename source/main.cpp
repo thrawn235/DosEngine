@@ -59,49 +59,17 @@ int main()
 
 	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 
-	GameObject* testObject;
-	testObject = new Banner		( engine );
-	testObject->SetTypeID		( 6 );
-	testObject->SetPos 			( Vector2D( 100, 210 ) );
-	testObject->SetDimensions 	( 16, 16 );
-	testObject->SetTileSetID 	( ASSET_K1_TILES );
-	testObject->SetTileIndex 	( 468 );
-	testObject->SetDrawOrder 	( 2 );
-	engine->AddObject(testObject);
-
-
-
-
-
-	//TMXMap testMap = engine->LoadTMXMap("./levels/k1e1m1.tmx");		//Load Map
-
-
+	GameObject* banner;
+	banner = new Banner		( engine );
+	banner->SetTypeID		( 6 );
+	banner->SetPos 			( Vector2D( 100, 210 ) );
+	banner->SetDimensions 	( 16, 16 );
+	banner->SetTileSetID 	( ASSET_K1_TILES );
+	banner->SetTileIndex 	( 468 );
+	banner->SetDrawOrder 	( 2 );
 	
+	engine->AddObject 		(banner);
 
-		
-
-	
-
-	//engine->CreateObjectsFromMap( &testMap );			//crrate Objects
-
-	/*printf( "%i\n", engine->GetTileSetID(&testMap, 274) );
-	printf( "%i\n", engine->GetTileSetID(&testMap, 276) );
-	printf( "%s %i\n", testMap.tileSets[0].source, engine->GetTileSetIDBySource( testMap.tileSets[0].source ) );
-	printf( "%s %i\n", testMap.tileSets[1].source, engine->GetTileSetIDBySource( testMap.tileSets[1].source ) );*/
-	
-
-	//------------- test Object ------------------
-	/*GameObject* testObject;
-	testObject = new Player		( engine );
-	testObject->SetTypeID		( 0 );
-	testObject->SetPos 			( Vector2D( 30,30) );
-	testObject->SetDimensions 	( 16,24 );
-	testObject->SetTileSetID 	( 10 );
-	testObject->SetTileIndex 	( 0 );
-	testObject->SetDrawOrder 	( 2 );
-	engine->AddObject(testObject);*/
-	//--------------------------------------------
-	//============================================================
 
 
 	//========================== Main Loop ======================================

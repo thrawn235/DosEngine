@@ -138,7 +138,7 @@ void GameEngine::DrawAll()
 	{
 		for( unsigned int i = 0; i < drawObjects.size(); i++ )
 		{
-			if( drawOrder == drawObjects[i]->GetDrawOrder() )
+			if( drawOrder == drawObjects[i]->GetDrawOrder() && !drawObjects[i]->GetInvisible() )
 			{
 				drawObjects[i]->Draw();
 				drawObjects.erase( drawObjects.begin() + i ); //remove Objects from draw list. It has been drawn already
@@ -1291,31 +1291,31 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 
 					if( typeID == TYPE_PLAYER ) //placeholder
 					{
-						//printf("create!\n");
 						newObject = new Player( this );
-
 					}
 					else if( typeID == TYPE_SOLID ) //placeholder
 					{
-						//printf("create!\n");
 						newObject = new Solid( this );
 
-					} else if( typeID == TYPE_SOLID_TOP ) //placeholder
+					}
+					else if( typeID == TYPE_SOLID_TOP ) //placeholder
 					{
-						//printf("create!\n");
 						newObject = new SolidTop( this );
 
-					} else if( typeID == TYPE_BACK_GROUND ) //placeholder
+					}
+					else if( typeID == TYPE_BACK_GROUND ) //placeholder
 					{
-						//printf("create!\n");
 						newObject = new BackGround( this );
 						
 					}
 					else if( typeID == TYPE_BACK_GROUND_ANIMATION ) //placeholder
 					{
-						//printf("create!\n");
 						newObject = new BackGroundAnimation( this );
 						
+					}
+					else if( typeID == TYPE_TRAP ) //placeholder
+					{
+						newObject = new Trap( this );
 					}
 					else
 					{

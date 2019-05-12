@@ -5,6 +5,146 @@
    <property name="tileSetID" type="int" value="100"/>
   </properties>
   <image source="../gfx/k1tiles.bmp" width="208" height="752"/>
+  <tile id="169">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="170">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="171">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="172">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="208">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="209">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="210">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="211">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="212">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="213">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="214">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="215">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="216">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="217">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="218">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="219">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="250">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="251">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="252">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="253">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="266">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="267">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="268">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="269">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="279">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="280">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="281">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
+  <tile id="282">
+   <properties>
+    <property name="typeID" type="int" value="10"/>
+   </properties>
+  </tile>
  </tileset>
  <tileset firstgid="612" name="title" tilewidth="16" tileheight="16" tilecount="112" columns="16">
   <properties>
@@ -22,7 +162,7 @@
 358,358,692,693,694,695,696,697,698,699,700,701,702,703,704,705,706,707,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,
 358,358,708,709,710,711,712,713,714,715,716,717,718,719,720,721,722,723,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,
 358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,
-358,358,358,358,358,358,358,358,358,358,184,183,212,214,214,214,214,217,183,183,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,
+358,358,358,358,358,358,358,358,358,358,184,183,209,213,213,213,213,217,183,183,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,
 146,147,358,358,358,358,358,182,358,358,185,186,358,358,358,358,358,358,237,236,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,
 189,190,358,358,358,358,179,180,179,358,185,186,206,358,358,358,358,358,358,441,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,
 183,183,188,358,358,184,183,183,183,183,186,186,181,358,358,358,170,261,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,358,

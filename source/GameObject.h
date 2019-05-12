@@ -52,6 +52,7 @@
 #define TYPE_MAIN_MENU				7
 #define TYPE_PLAYER_TOP_DOWN		8
 #define TYPE_CITY_OVERWORLD			9
+#define TYPE_TRAP					10
 //=======================================================
 
 
@@ -69,6 +70,7 @@ class GameObject
 protected:
 	int 		typeID;
 	Vector2D 	pos, direction;
+	Vector2D	centerPos, centerPosOffset;
 	int 		width, height;
 	int 		tileSetID, tileIndex;
 	int 		drawOrder;
@@ -130,11 +132,15 @@ public:
 	virtual float 				FindClosestCollision( vector<GameObject*> objects, GameObject* closestObject );
 	virtual vector<GameObject*> CollisionDetection 	();
 	virtual Vector2D 			VectorProjection 	( Vector2D posIn, Vector2D dirIn,  int tmin, GameObject* closestObject );
-	virtual bool 				Collision 			();
+	virtual void 				Collision 			();
 	virtual void 				Move 				();					//update position
 	virtual void 				Friction 			( float slickness );
 	virtual bool 				FindCollisionPoint 	( GameObject* testObject, Vector2D testPoint, Vector2D* out );
 	virtual void 				SimpleCollisionResolution 	( vector<GameObject*> colliders );
+	virtual float 				RayDown 			( Vector2D origin, float length, vector<GameObject*> testObjects );
+	virtual float 				RayRight 			( Vector2D origin, float length, vector<GameObject*> testObjects );
+	virtual float 				RayUp 				( Vector2D origin, float length, vector<GameObject*> testObjects );
+	virtual float 				RayLeft 			( Vector2D origin, float length, vector<GameObject*> testObjects );
 
 	void SetInsivible 		( bool newInvisible );
 	void Enable 			();
@@ -159,13 +165,16 @@ protected:
 
 	Animation walkForward;
 	Animation walkBackward;
+
+	bool spacePressed;
 	
 public:
 	Player( GameEngine* newEngine );
 	~Player();
 
-	virtual void Update ();
-	virtual void Draw 	();
+	virtual void Update 	();
+	virtual void Draw 		();
+	virtual void Collision 	();
 };
 
 
@@ -318,12 +327,30 @@ protected:
 	int menuPos;
 	char* palette;
 	int fadeTimeStamp;
+	bool showSelf;
 public:
 	MainMenu( GameEngine* newEngine );
 	~MainMenu();
 
 	virtual void Update 		();
 	virtual void Draw 			();
+};
+
+
+
+
+
+class Trap : public GameObject
+{
+protected:
+	Animation anim;
+public:
+	Trap( GameEngine* newEngine );
+	~Trap();
+
+	virtual void Update 		();
+	virtual void Draw 			();
+	virtual void SetTileIndex	( int newTileIndex );
 };
 
 #endif

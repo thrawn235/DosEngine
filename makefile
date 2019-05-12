@@ -15,7 +15,7 @@
 
 #========= Variables ============
 CC=i586-pc-msdosdjgpp-g++
-CXXFLAGS=-Wall -O3
+CXXFLAGS=-Wall -O3 -s
 SUBDIR = ./source/
 #================================
 
@@ -41,6 +41,7 @@ $(SUBDIR)GameObject.o: $(SUBDIR)GameObject.h $(SUBDIR)Vector2D.h $(SUBDIR)GameOb
 #============================================= compile main exe and link all objects to it =======================================================
 main.exe: $(SUBDIR)Vector2D.h $(SUBDIR)TimeEngine.o $(SUBDIR)GraphicsEngine.o $(SUBDIR)GameEngine.o $(SUBDIR)InputEngine.o $(SUBDIR)GameObject.o  $(SUBDIR)main.cpp
 	$(CC) $(SUBDIR)main.cpp $(SUBDIR)GraphicsEngine.o $(SUBDIR)TimeEngine.o $(SUBDIR)GameEngine.o $(SUBDIR)InputEngine.o $(SUBDIR)GameObject.o -o main.exe $(CXXFLAGS)
+	strip main.exe
 #=================================================================================================================================================
 
 #======= start here =========
