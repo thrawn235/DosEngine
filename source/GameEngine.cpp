@@ -113,6 +113,66 @@ void GameEngine::LoadObjectsFromBank()
 	objects = saveBank;
 	//
 }
+void GameEngine::DisableAll()
+{
+	for( int i = 0; i < objects.size(); i ++ )
+	{
+		objects[i]->Disable();
+	}
+}
+void GameEngine::DisableAll( GameObject* exclude )
+{
+	for( int i = 0; i < objects.size(); i ++ )
+	{
+		if( objects[i] != exclude )
+		{
+			objects[i]->Disable();
+		}
+	}
+}
+void GameEngine::DisableAll( vector<GameObject*> excludes)
+{
+	for( int i = 0; i < objects.size(); i ++ )
+	{
+		for( int u = 0; u < excludes.size(); i ++ )
+		{
+			if( objects[i] != excludes[u] )
+			{
+				objects[i]->Disable();
+			}
+		}
+	}
+}
+void GameEngine::EnableAll()
+{
+	for( int i = 0; i < objects.size(); i ++ )
+	{
+		objects[i]->Enable();
+	}
+}
+void GameEngine::EnableAll( GameObject* exclude )
+{
+	for( int i = 0; i < objects.size(); i ++ )
+	{
+		if( objects[i] != exclude )
+		{
+			objects[i]->Enable();
+		}
+	}
+}
+void GameEngine::EnableAll( vector<GameObject*> excludes)
+{
+	for( int i = 0; i < objects.size(); i ++ )
+	{
+		for( int u = 0; u < excludes.size(); i ++ )
+		{
+			if( objects[i] != excludes[u] )
+			{
+				objects[i]->Enable();
+			}
+		}
+	}
+}
 //==========================================================
 
 
@@ -207,6 +267,12 @@ void GameEngine::LoadAssets()
 
 	bmp = graphics->LoadBMP("./gfx/product.bmp");
 	sprite = graphics->BMPToSprite(&bmp, ASSET_PRODUCTION);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	bmp = graphics->LoadBMP("./gfx/f1help.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_PRESS_F1_HELP);
 	graphics->AddSprite( sprite );
 	graphics->FreeBMP(&bmp);
 

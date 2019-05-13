@@ -1237,7 +1237,7 @@ void Banner::Update()
 			engine->graphics->SetPalette( palette, 255 );
 
 			GameObject* menu;
-			menu = new MainMenu	( engine );
+			menu = new MainMenu( engine );
 			//menu->SetTypeID		( TYPE_MAIN_MENU );
 			menu->SetPos 		( Vector2D( 80, 50 ) );
 			//menu->SetDimensions ( 16, 16 );
@@ -1245,6 +1245,22 @@ void Banner::Update()
 			//menu->SetTileIndex 	( 468 );
 			menu->SetDrawOrder 	( 2 );
 			engine->AddObject(menu);
+
+
+			GameObject* manager;
+			manager = new GameManager( engine );
+			manager->SetPos 		( Vector2D( 80, 50 ) );
+			engine->AddObject( manager );
+
+			StaticSign* helpSign;
+			helpSign = new StaticSign( engine );
+			helpSign->SetPos( Vector2D( 95, 180 ) );
+			helpSign->SetSpriteID( ASSET_PRESS_F1_HELP );
+			engine->AddObject( helpSign );
+
+			HelpWindow* helpWindow;
+			helpWindow = new HelpWindow( engine );
+			engine->AddObject( helpWindow );
 		}
 	}
 }
@@ -1298,7 +1314,7 @@ MainMenu::~MainMenu()
 }
 void MainMenu::Update()
 {
-	if( engine->input->AnyKeyDown() )
+	if( engine->input->AnyKeyDown() && ! engine->input->KeyDown( KEY_F1 ) )
 	{
 		showSelf = true;
 		invisible = false;
@@ -1340,10 +1356,13 @@ void MainMenu::Update()
 			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 1000 && menuPos == 1)
 			{
 				//delete everything
+				GameObject* manager = engine->GetAllObjects( TYPE_GAME_MANAGER )[0];
+
 				engine->ClearObjects();
 				engine->graphics->ClearScreen( 0 );
 				TMXMap testMap = engine->LoadTMXMap("./levels/mars.tmx");		//Load Map
 				engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+				engine->AddObject( manager );
 				engine->graphics->SetPalette( palette, 255 );
 			}
 			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 1000 && menuPos == 4)
@@ -1410,4 +1429,124 @@ void Trap::SetTileIndex( int newTileIndex )
 {
 	tileIndex = newTileIndex;
 	anim.firstTileIndex = newTileIndex;
+}
+
+
+
+
+
+
+
+
+
+
+//========== GameManager =============
+GameManager::GameManager( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_GAME_MANAGER; //11
+	drawOrder = 3;
+
+	showHelp = false;
+	showStats = false;
+}
+GameManager::~GameManager()
+{
+
+}
+void GameManager::Update()
+{
+	if( engine->input->KeyDown( SPACE ) )
+	{
+		showStats = true;
+	}
+	else if( engine->input->KeyDown( SPACE ) && showStats == true)
+	{
+		showStats = false;
+	}
+}
+void GameManager::Draw()
+{
+	if( showStats )
+	{
+		engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 20, 20 ), 5, 3, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+	}
+}
+
+
+
+
+
+
+
+//========== StaticSign =============
+StaticSign::StaticSign( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_STATIC_SIGN; //12
+}
+StaticSign::~StaticSign()
+{
+
+}
+void StaticSign::SetSpriteID( int newSpriteID )
+{
+	spriteID = newSpriteID;
+	//
+}
+void StaticSign::Update()
+{
+
+}
+void StaticSign::Draw()
+{
+	engine->graphics->DrawSprite( pos, engine->graphics->GetSprite( spriteID ) );
+}
+
+
+
+
+
+
+
+
+
+//========== HelpWindow =============
+HelpWindow::HelpWindow( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_HELP_WINDOW; //12
+	show = false;
+	keyDown = false;
+}
+HelpWindow::~HelpWindow()
+{
+
+}
+void HelpWindow::Update()
+{
+	if( engine->input->KeyDown( KEY_F1 ) && show == true && !keyDown )
+	{
+		show = false;
+		keyDown = true;
+		engine->EnableAll();
+	}
+	else if( engine->input->KeyDown( KEY_F1 ) && !keyDown )
+	{
+		show = true;
+		keyDown = true;
+		engine->DisableAll( this );
+	}
+	else
+	{
+		keyDown = false;
+	}
+}
+void HelpWindow::Draw()
+{
+	if( show )
+	{
+		engine->graphics->DrawWindow( Vector2D( 0, 165 ) + engine->graphics->GetCamPos() , 39, 2, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+		engine->graphics->DrawWindow( Vector2D( 0, 5 ) + engine->graphics->GetCamPos() , 39, 20, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+		char str[200];
+		sprintf(str, "Help" );
+		engine->graphics->DrawText( Vector2D( 8, 13 ) + engine->graphics->GetCamPos(), ASSET_TXT_WHITE, 0, str );
+	}
 }

@@ -53,6 +53,16 @@
 #define KEY_DOWN	0x50
 #define KEY_LEFT 	0x4b
 #define KEY_RIGHT 	0x4d
+#define KEY_F1	 	0x3b
+#define KEY_F2	 	0x3c
+#define KEY_F3	 	0x3d
+#define KEY_F4	 	0x3e
+#define KEY_F5	 	0x3f
+#define KEY_F6	 	0x40
+#define KEY_F7	 	0x41
+#define KEY_F8	 	0x42
+#define KEY_F9	 	0x43
+#define KEY_F10	 	0x44
 //=======================================================
 
 

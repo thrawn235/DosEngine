@@ -55,6 +55,10 @@ void InputEngine::CheckKeys()
 		}
 	}
 
+	char temp;
+	outportb( 0x61, ( temp = inportb( 0x61 )) | 0x80 );
+	outportb( 0x61, temp );
+
 	ClearBiosKeyBuffer();
 }
 bool InputEngine::KeyDown( unsigned char scanCode )

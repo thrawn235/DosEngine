@@ -53,6 +53,9 @@
 #define TYPE_PLAYER_TOP_DOWN		8
 #define TYPE_CITY_OVERWORLD			9
 #define TYPE_TRAP					10
+#define TYPE_GAME_MANAGER			11
+#define TYPE_STATIC_SIGN			12
+#define TYPE_HELP_WINDOW			13
 //=======================================================
 
 
@@ -351,6 +354,59 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 	virtual void SetTileIndex	( int newTileIndex );
+};
+
+
+
+
+
+
+class GameManager : public GameObject
+{
+protected:
+	bool showStats, showHelp;
+public:
+	GameManager( GameEngine* newEngine );
+	~GameManager();
+
+	virtual void Update 		();
+	virtual void Draw 			();
+};
+
+
+
+
+
+
+class StaticSign : public GameObject
+{
+protected:
+	int spriteID;
+public:
+	StaticSign( GameEngine* newEngine );
+	~StaticSign();
+
+	virtual void SetSpriteID	( int newSpriteID );
+	virtual void Update 		();
+	virtual void Draw 			();
+};
+
+
+
+
+
+
+class HelpWindow : public GameObject
+{
+protected:
+	bool show;
+	bool keyDown;
+public:
+	HelpWindow( GameEngine* newEngine );
+	~HelpWindow();
+
+	virtual void Update 		();
+	virtual void Draw 			();
 };
 
 #endif

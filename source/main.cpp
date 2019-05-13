@@ -67,7 +67,7 @@ int main()
 	banner->SetTileSetID 	( ASSET_K1_TILES );
 	banner->SetTileIndex 	( 468 );
 	banner->SetDrawOrder 	( 2 );
-	
+
 	engine->AddObject 		(banner);
 
 
@@ -79,6 +79,7 @@ int main()
 		engine->time->FrameStart();		//init Frametiming
 
 		engine->input->CheckKeys();		//check keyboard
+
 
 		//------------------------ input -----------------------------
 		if(engine->input->KeyDown(ESC))

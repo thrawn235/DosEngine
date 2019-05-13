@@ -86,6 +86,12 @@ public:
 	void PurgeObjects 		();
 	void SaveObjectsToBank 	();
 	void LoadObjectsFromBank();
+	void DisableAll			();
+	void DisableAll			( GameObject* exclude );
+	void DisableAll			( vector<GameObject*> excludes);
+	void EnableAll			();
+	void EnableAll			( GameObject* exclude );
+	void EnableAll			( vector<GameObject*> excludes);
 	//==============================================
 
 
