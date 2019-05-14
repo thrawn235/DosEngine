@@ -169,11 +169,38 @@ protected:
 	Animation walkForward;
 	Animation walkBackward;
 
+	Animation jumpLeft, jumpRight;
+	bool jumpCharging;
+	int jumpCharge;
+
 	bool spacePressed;
+
+
+	int score;
+	int extraLife;
+	int lifes;
+	int ammo;
+
+	bool pogo;
+	bool shipBattery;
+
+	bool blueKey;
+	bool redKey;
+	bool yellowKey;
 	
 public:
 	Player( GameEngine* newEngine );
 	~Player();
+
+	virtual void SetScore( int newScore );
+	virtual void SetExtraLife( int newExtraLife );
+	virtual void SetLifes( int newLifes );
+	virtual void SetAmmo( int newAmmo );
+	virtual void SetPogo( bool newPogo );
+	virtual void SetShipBattery( bool newShipBattery );
+	virtual void SetBlueKey( bool newBlueKey );
+	virtual void SetRedKey( bool newRedKey );
+	virtual void SetYelloweKey( bool newYellowKey );
 
 	virtual void Update 	();
 	virtual void Draw 		();
@@ -186,7 +213,7 @@ public:
 
 
 
-class PlayerTopDown : public GameObject
+class PlayerTopDown : public Player
 {
 protected:
 	Vector2D movement;
@@ -365,6 +392,22 @@ class GameManager : public GameObject
 {
 protected:
 	bool showStats, showHelp;
+
+	bool keyDown;
+
+	int score;
+	int extraLife;
+	int lifes;
+	int ammo;
+
+	bool pogo;
+	bool shipBattery;
+
+	bool blueKey;
+	bool redKey;
+	bool yellowKey;
+
+	Player* connectedPlayer;
 public:
 	GameManager( GameEngine* newEngine );
 	~GameManager();

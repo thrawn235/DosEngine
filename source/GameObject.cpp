@@ -440,8 +440,8 @@ void GameObject::Collision( )
 {
 	vector<GameObject*> colliders = engine->GetObjectsInArea( pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
 
-	float downLeft  = RayDown( centerPos + Vector2D( -6, 0 ), ( height / 2 ), colliders );
-	float downRight = RayDown( centerPos + Vector2D(  6, 0 ), ( height / 2 ), colliders );
+	float downLeft  = RayDown( centerPos + Vector2D( -6, 0 ), ( height / 2 )+1, colliders );
+	float downRight = RayDown( centerPos + Vector2D(  6, 0 ), ( height / 2 )+1, colliders );
 
 	if( downLeft != -1 )
 	{
@@ -494,8 +494,8 @@ void GameObject::Collision( )
 
 
 	colliders = engine->GetObjectsInArea( pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID_TOP );
-	downLeft  = RayDown( centerPos + Vector2D( -6, 5 ), ( height / 2 ) - 5, colliders );
-	downRight = RayDown( centerPos + Vector2D(  6, 5 ), ( height / 2 ) - 5, colliders );
+	downLeft  = RayDown( centerPos + Vector2D( -6, 5 ), ( height / 2 ) - 4, colliders );
+	downRight = RayDown( centerPos + Vector2D(  6, 5 ), ( height / 2 ) - 4, colliders );
 
 	if( downLeft != -1 )
 	{
@@ -675,19 +675,96 @@ Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
 
 	walkBackward.id = 0;
 	walkBackward.tileSetID = ASSET_KEEN_WALK;
-	walkBackward.firstTileIndex = 4;
+	walkBackward.firstTileIndex = 5;
 	walkBackward.numSprites = 3;
 	walkBackward.currentFrame = 0;
 	walkBackward.speed = 7;
 	walkBackward.currentSpeedStep = 0;
 
+	jumpLeft.id = 0;
+	jumpLeft.tileSetID = ASSET_KEEN_WALK;
+	jumpLeft.firstTileIndex = 14;
+	jumpLeft.numSprites = 6;
+	jumpLeft.currentFrame = 0;
+	jumpLeft.speed = 7;
+	jumpLeft.currentSpeedStep = 0;
+
+	jumpRight.id = 0;
+	jumpRight.tileSetID = ASSET_KEEN_WALK;
+	jumpRight.firstTileIndex = 8;
+	jumpRight.numSprites = 6;
+	jumpRight.currentFrame = 0;
+	jumpRight.speed = 7;
+	jumpRight.currentSpeedStep = 0;
+
+	jumpCharging = false;
+	jumpCharge = 0;
+
 	spacePressed = false;
 
 	centerPosOffset = Vector2D( width / 2, height / 2 );
+
+
+	score 		= 0;
+	extraLife 	= 20000;
+	lifes		= 4;
+	ammo 		= 0;
+
+	pogo 		= false;
+	shipBattery = false;
+
+	blueKey		= false;
+	redKey		= false;
+	yellowKey	= false;
 }
 Player::~Player()
 {
 
+}
+void Player::SetScore( int newScore )
+{
+	score = newScore;
+	//
+}
+void Player::SetExtraLife( int newExtraLife )
+{
+	extraLife = newExtraLife;
+	//
+}
+void Player::SetLifes( int newLifes )
+{
+	lifes = newLifes;
+	//
+}
+void Player::SetAmmo( int newAmmo )
+{
+	ammo = newAmmo;
+	//
+}
+void Player::SetPogo( bool newPogo )
+{
+	pogo = newPogo;
+	//
+}
+void Player::SetShipBattery( bool newShipBattery )
+{
+	shipBattery = newShipBattery;
+	//
+}
+void Player::SetBlueKey( bool newBlueKey )
+{
+	blueKey = newBlueKey;
+	//
+}
+void Player::SetRedKey( bool newRedKey )
+{
+	redKey = newRedKey;
+	//
+}
+void Player::SetYelloweKey( bool newYellowKey )
+{
+	yellowKey = newYellowKey;
+	//
 }
 void Player::Update()
 {
@@ -711,8 +788,9 @@ void Player::Update()
 	}
 	else if( engine->input->KeyDown( SPACE ) && onFloor && !spacePressed)
 	{
-		movement = Vector2D( 0.0f, -10.0f );
+		//movement = Vector2D( 0.0f, -10.0f );
 		spacePressed = true;
+		jumpCharging = true;
 	}
 	else
 	{
@@ -722,10 +800,25 @@ void Player::Update()
 	if( !engine->input->KeyDown( SPACE ) )
 	{
 		spacePressed = false;
+		jumpCharging = false;
 	}
 
 
 	AddForce( movement );
+
+	if( jumpCharging == true)
+	{	
+		jumpCharge++;
+		if( jumpCharge > 100 )
+		{
+			jumpCharge = 100;
+		}
+	}
+	if( jumpCharging == false && jumpCharge > 0 && onFloor )
+	{
+		jumpCharge = 0;
+		AddForce( Vector2D( 0.0, -10.0 ) );
+	}
 	
 	if( !onFloor )
 	{
@@ -748,32 +841,68 @@ void Player::Draw()
 	/*char str[500];
 	sprintf(str, "movement=%f:%f\ndirection=%f:%f\npos=%f:%f\n", movement.x, movement.y, direction.x, direction.y, pos.x, pos.y );
 	engine->graphics->DrawText( Vector2D( 0, 9 ) + engine->graphics->GetCamPos() , 1, 0, str );*/
-	
-	if( direction.x > 0 )
+	if( jumpCharging )
 	{
-		engine->graphics->PlayAnimation( &walkForward, pos, 16 );
-	}
-	else if( direction.x < 0 )
-	{
-		engine->graphics->PlayAnimation( &walkBackward, pos, 16 );
+		if( direction.x >= 0 )
+		{
+			engine->graphics->PlayAnimation( &jumpRight, pos, 16 );
+			if(jumpRight.currentFrame >= 5)
+				jumpRight.currentSpeedStep = 0;
+		}
+		else if( direction.x < 0 )
+		{
+			engine->graphics->PlayAnimation( &jumpLeft, pos, 16 );
+			if(jumpLeft.currentFrame >= 5)
+				jumpLeft.currentSpeedStep = 0;
+		}
 	}
 	else
 	{
-		walkForward.currentFrame = 0;
-		walkForward.currentSpeedStep = 0;
+		jumpLeft.currentFrame = 0;
+		jumpLeft.currentSpeedStep = 0;
+		jumpRight.currentSpeedStep = 0;
+		jumpRight.currentFrame = 0;
 
-		walkBackward.currentFrame = 0;
-		walkBackward.currentSpeedStep = 0;
+		if( onFloor )
+		{
+			if( direction.x > 0 )
+			{
+				engine->graphics->PlayAnimation( &walkForward, pos, 16 );
+			}
+			else if( direction.x < 0 )
+			{
+				engine->graphics->PlayAnimation( &walkBackward, pos, 16 );
+			}
+			else
+			{
+				walkForward.currentFrame = 0;
+				walkForward.currentSpeedStep = 0;
 
-		engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
-	}	
+				walkBackward.currentFrame = 0;
+				walkBackward.currentSpeedStep = 0;
+
+				engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
+			}
+		}
+		else
+		{
+			if( direction.x >= 0 )
+			{
+				engine->graphics->DrawSprite( pos, tileSetID, 13, 16 );
+			}
+			else if( direction.x < 0 )
+			{
+				engine->graphics->DrawSprite( pos, tileSetID, 19, 16 );
+			}
+		}
+	}
 }
 void  Player::Collision()
 {
 	vector<GameObject*> colliders = engine->GetObjectsInArea( pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
 
-	float downLeft  = RayDown( centerPos + Vector2D( -4, 0 ), 12, colliders );
-	float downRight = RayDown( centerPos + Vector2D(  4, 0 ), 12, colliders );
+	float downLeft  = RayDown( centerPos + Vector2D( -4, 0 ), 13, colliders );
+	float downRight = RayDown( centerPos + Vector2D(  4, 0 ), 13, colliders );
 
 	if( downLeft != -1 )
 	{
@@ -827,8 +956,8 @@ void  Player::Collision()
 
 
 	colliders = engine->GetObjectsInArea( pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID_TOP );
-	downLeft  = RayDown( centerPos + Vector2D( -6, 5 ), 7, colliders );
-	downRight = RayDown( centerPos + Vector2D(  6, 5 ), 7, colliders );
+	downLeft  = RayDown( centerPos + Vector2D( -6, 5 ), 8, colliders );
+	downRight = RayDown( centerPos + Vector2D(  6, 5 ), 8, colliders );
 
 	if( downLeft != -1 )
 	{
@@ -855,7 +984,7 @@ void  Player::Collision()
 
 
 //========== PlayerTopDown =============
-PlayerTopDown::PlayerTopDown( GameEngine* newEngine ) : GameObject( newEngine )
+PlayerTopDown::PlayerTopDown( GameEngine* newEngine ) : Player( newEngine )
 {
 	typeID  = TYPE_PLAYER_TOP_DOWN; //1
 
@@ -1195,6 +1324,7 @@ Banner::Banner( GameEngine* newEngine ) : GameObject( newEngine )
 Banner::~Banner()
 {
 	free(palette);
+	//
 }
 void Banner::Update()
 {
@@ -1446,8 +1576,24 @@ GameManager::GameManager( GameEngine* newEngine ) : GameObject( newEngine )
 	typeID = TYPE_GAME_MANAGER; //11
 	drawOrder = 3;
 
+	keyDown = false;
+
 	showHelp = false;
 	showStats = false;
+
+	score 		= 0;
+	extraLife 	= 20000;
+	lifes		= 4;
+	ammo 		= 0;
+
+	pogo 		= false;
+	shipBattery = false;
+
+	blueKey		= false;
+	redKey		= false;
+	yellowKey	= false;
+
+	connectedPlayer = NULL;
 }
 GameManager::~GameManager()
 {
@@ -1455,20 +1601,46 @@ GameManager::~GameManager()
 }
 void GameManager::Update()
 {
-	if( engine->input->KeyDown( SPACE ) )
+	if(connectedPlayer == NULL)
+	{
+		connectedPlayer = (Player*)engine->GetFirstObject( TYPE_PLAYER );
+		if( connectedPlayer == NULL)
+		{
+			connectedPlayer = (Player*)engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
+		}
+	}
+
+
+	if( engine->input->KeyDown( SPACE ) && showStats == false && !keyDown)
 	{
 		showStats = true;
+		keyDown = true;
+		engine->DisableAll( this );
+
 	}
-	else if( engine->input->KeyDown( SPACE ) && showStats == true)
+	else if( engine->input->KeyDown( SPACE ) && showStats == true  && !keyDown)
 	{
 		showStats = false;
+		keyDown = true;
+		engine->EnableAll();
+	}
+	else
+	{
+		keyDown = false;
 	}
 }
 void GameManager::Draw()
 {
-	if( showStats )
+	if( showStats && connectedPlayer != NULL )
 	{
-		engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 20, 20 ), 5, 3, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+		engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 40, 35 ), 29, 15, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+
+		char str[200];
+		sprintf(str, "    Score     extra Keen at " );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 48, 43 ), ASSET_TXT_GREY, 0, str );
+
+		sprintf(str, "     %i           %i ", score, extraLife );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 56, 51 ), ASSET_TXT_WHITE, 0, str );
 	}
 }
 
@@ -1482,6 +1654,7 @@ void GameManager::Draw()
 StaticSign::StaticSign( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_STATIC_SIGN; //12
+	//
 }
 StaticSign::~StaticSign()
 {
@@ -1499,6 +1672,7 @@ void StaticSign::Update()
 void StaticSign::Draw()
 {
 	engine->graphics->DrawSprite( pos, engine->graphics->GetSprite( spriteID ) );
+	//
 }
 
 

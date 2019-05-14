@@ -26,6 +26,7 @@
 #define ASSET_PRODUCTION 			7
 #define ASSET_8_PIXEL_BORDER_TILES 	8
 #define ASSET_PRESS_F1_HELP			9
+#define ASSET_TXT_GREY				51
 
 #define ASSET_KEEN_WALK 			10
 #define ASSET_KEEN_TOP 				11

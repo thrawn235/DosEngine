@@ -226,8 +226,17 @@ void GameEngine::LoadAssets()
 	graphics->FreeSprite(sprite);
 
 
+	bmp = graphics->LoadBMP("./gfx/txtgrey.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 4);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* txtgrey = graphics->ExtractTileSet( ASSET_TXT_GREY, sprite, Vector2D( 0,0 ), 8, 8, 16, 6 );	//tileSetId = 1
+	graphics->AddTileSet(txtgrey);
+	graphics->FreeSprite(sprite);
+
+
 	bmp = graphics->LoadBMP("./gfx/8pborder.bmp");
-	sprite = graphics->BMPToSprite(&bmp, 3);
+	sprite = graphics->BMPToSprite(&bmp, 5);
 	graphics->FreeBMP(&bmp);
 
 	TileSet* border = graphics->ExtractTileSet( ASSET_8_PIXEL_BORDER_TILES, sprite, Vector2D( 0,0 ), 8, 8, 16, 2 );	//tileSetId = 1
@@ -278,7 +287,7 @@ void GameEngine::LoadAssets()
 
 
 	//------------------------- Load GameSprites ----------------------------
-	bmp = graphics->LoadBMP("./gfx/walk.bmp");
+	bmp = graphics->LoadBMP("./gfx/player.bmp");
 	sprite = graphics->BMPToSprite(&bmp, 3);
 	graphics->FreeBMP(&bmp);
 
@@ -1638,6 +1647,19 @@ vector<GameObject*> GameEngine::GetAllObjects( int typeID )
 	}
 	
 	return outObjects;
+}
+GameObject* GameEngine::GetFirstObject( int typeID )
+{
+	vector<GameObject*> outObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( objects[i]->GetTypeID() == typeID )
+		{
+			return objects[i];
+		}
+	}
+	
+	return NULL;
 }
 vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos )
 {
