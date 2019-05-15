@@ -23,8 +23,9 @@ GameObject::GameObject( GameEngine* newEngine )
 	tileIndex 	= 0; //default
 	drawOrder 	= 0;
 
-
 	engine 		= newEngine;
+
+	UID = engine->GetUID();
 
 	onFloor 	= false;
 	invisible	= false;
@@ -156,6 +157,16 @@ bool GameObject::GetEnabled()
 bool GameObject::GetInvisible()
 {
 	return invisible;
+	//
+}
+void GameObject::SetUID( unsigned long newUID )
+{
+	UID = newUID;
+	//
+}
+unsigned long GameObject::GetUID()
+{
+	return UID;
 	//
 }
 //============================================
@@ -467,11 +478,6 @@ void GameObject::Collision( )
 		centerPos.y = centerPos.y + ( ( height / 2 ) + up );
 		direction.y = 0;
 	}
-	else if( up != -1 )
-	{
-		centerPos.y = centerPos.y + ( ( height / 2 ) + up );
-		direction.y = 0;
-	}
 	
 
 	float right = RayRight( centerPos, ( width / 2 ), colliders );
@@ -665,6 +671,8 @@ Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
 	tileSetID = ASSET_KEEN_WALK;
 	drawOrder = 2;
 
+	levelUID = 0;
+
 	walkForward.id = 0;
 	walkForward.tileSetID = ASSET_KEEN_WALK;
 	walkForward.firstTileIndex = 1;
@@ -764,6 +772,61 @@ void Player::SetRedKey( bool newRedKey )
 void Player::SetYelloweKey( bool newYellowKey )
 {
 	yellowKey = newYellowKey;
+	//
+}
+void Player::SetLevelUID( unsigned long newLevelUID )
+{
+	levelUID = newLevelUID;
+	//
+}
+int Player::GetScore()
+{
+	return score;
+	//
+}
+int Player::GetExtraLife()
+{
+	return extraLife;
+	//
+}
+int Player::GetLifes()
+{
+	return lifes;
+	//
+}
+int Player::GetAmmo()
+{
+	return ammo;
+	//
+}
+bool Player::GetPogo()
+{
+	return pogo;
+	//
+}
+bool Player::GetShipBattery()
+{
+	return shipBattery;
+	//
+}
+bool Player::GetBlueKey()
+{
+	return blueKey;
+	//
+}
+bool Player::GetRedKey()
+{
+	return redKey;
+	//
+}
+bool Player::GetYelloweKey()
+{
+	return yellowKey;
+	//
+}
+unsigned long Player::GetLevelUID()
+{
+	return levelUID;
 	//
 }
 void Player::Update()
@@ -1141,11 +1204,17 @@ void CityOverWorld::Draw()
 }
 void CityOverWorld::LoadLevel()
 {
+	Player* overWorldPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
 	engine->SaveObjectsToBank();
 	engine->ClearObjects();
 	engine->graphics->ClearScreen( 0 );
 	TMXMap testMap = engine->LoadTMXMap( levelPath );		//Load Map
 	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+	Player* inLevelPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER );
+	inLevelPlayer->SetLevelUID( overWorldPlayer->GetLevelUID() );
+	inLevelPlayer->SetScore( overWorldPlayer->GetScore() );
+	inLevelPlayer->SetLevelUID( UID );
+	overWorldPlayer->SetLevelUID( UID );
 }
 
 
@@ -1298,6 +1367,7 @@ void BackGroundAnimation::Update()
 void BackGroundAnimation::Draw()
 {
 	engine->graphics->PlayAnimation( &anim, pos );
+	//
 }
 
 
@@ -1554,6 +1624,7 @@ void Trap::Update()
 void Trap::Draw()
 {
 	engine->graphics->PlayAnimation( &anim, pos );
+	//
 }
 void Trap::SetTileIndex( int newTileIndex )
 {
@@ -1723,4 +1794,50 @@ void HelpWindow::Draw()
 		sprintf(str, "Help" );
 		engine->graphics->DrawText( Vector2D( 8, 13 ) + engine->graphics->GetCamPos(), ASSET_TXT_WHITE, 0, str );
 	}
+}
+
+
+
+
+
+
+
+
+//========== Exit =============
+Exit::Exit( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_EXIT; //14
+}
+Exit::~Exit()
+{
+
+}
+void Exit::Update()
+{
+	vector<GameObject*> objects = engine->GetObjectsInArea( pos, 32,32 , TYPE_PLAYER );
+	if( objects.size() >= 1 )
+	{
+		BackToOverworld();
+	}
+}
+void Exit::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	engine->graphics->DrawPixel( pos, 15);
+	engine->graphics->DrawPixel( Vector2D( pos.x + width-1, pos.y ), 15);
+	engine->graphics->DrawPixel( Vector2D( pos.x, pos.y + height-1 ), 15);
+	engine->graphics->DrawPixel( Vector2D( pos.x + width-1, pos.y + height-1 ), 15);
+}
+void Exit::BackToOverworld()
+{
+	engine->graphics->ClearScreen( 0 );
+
+	Player* inLevelPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER );
+	engine->ClearObjects();
+	engine->LoadObjectsFromBank();
+	Player* overWorldPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
+	overWorldPlayer->SetScore( inLevelPlayer->GetScore() );
+	//destroy city
+	GameObject* city = engine->GetObjectByUID( inLevelPlayer->GetLevelUID() );
+	engine->RemoveObject( city );
 }

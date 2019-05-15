@@ -24,6 +24,8 @@ GameEngine::GameEngine()
 	graphics 	= new GraphicsEngine;
 	time 		= new TimeEngine;
 	input 		= new InputEngine;
+
+	lastUID     = 0;
 }
 GameEngine::~GameEngine()
 {
@@ -172,6 +174,11 @@ void GameEngine::EnableAll( vector<GameObject*> excludes)
 			}
 		}
 	}
+}
+unsigned long GameEngine::GetUID()
+{
+	lastUID++;
+	return lastUID;
 }
 //==========================================================
 
@@ -1392,6 +1399,10 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					{
 						newObject = new Trap( this );
 					}
+					else if( typeID == TYPE_EXIT ) //placeholder
+					{
+						newObject = new Exit( this );
+					}
 					else
 					{
 						//printf("create!\n");
@@ -1865,6 +1876,18 @@ GameObject* GameEngine::GetFirstObjectAlongRay( Vector2D origin, Vector2D direct
 GameObject* GameEngine::GetFirstObjectAlongRay( Vector2D origin, Vector2D direction, int typeID )
 {
 
+}
+GameObject* GameEngine::GetObjectByUID( unsigned long UID )
+{
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( objects[i]->GetUID() == UID )
+		{
+			return objects[i];
+		}
+	}
+
+	return NULL;
 }
 //==========================================================
 

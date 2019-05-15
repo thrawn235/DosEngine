@@ -56,6 +56,7 @@
 #define TYPE_GAME_MANAGER			11
 #define TYPE_STATIC_SIGN			12
 #define TYPE_HELP_WINDOW			13
+#define TYPE_EXIT					14
 //=======================================================
 
 
@@ -84,6 +85,8 @@ protected:
 	bool		invisible;
 	bool 		enabled;
 
+	unsigned long UID;
+
 	vector<GameObject*> touchingObjects;
 public:
 	GameObject 	( GameEngine* newEngine );
@@ -109,6 +112,8 @@ public:
 	virtual void 				SetDimensions 		( int newWidth, int newHeight 	);
 	virtual bool				GetEnabled			();
 	virtual bool				GetInvisible		();
+	virtual unsigned long		GetUID				();
+	virtual void				SetUID				( unsigned long newUID );
 	//======================================
 
 
@@ -175,6 +180,8 @@ protected:
 
 	bool spacePressed;
 
+	unsigned long levelUID;
+
 
 	int score;
 	int extraLife;
@@ -192,19 +199,31 @@ public:
 	Player( GameEngine* newEngine );
 	~Player();
 
-	virtual void SetScore( int newScore );
-	virtual void SetExtraLife( int newExtraLife );
-	virtual void SetLifes( int newLifes );
-	virtual void SetAmmo( int newAmmo );
-	virtual void SetPogo( bool newPogo );
-	virtual void SetShipBattery( bool newShipBattery );
-	virtual void SetBlueKey( bool newBlueKey );
-	virtual void SetRedKey( bool newRedKey );
-	virtual void SetYelloweKey( bool newYellowKey );
+	virtual void 			SetScore 		( int newScore );
+	virtual void 			SetExtraLife 	( int newExtraLife );
+	virtual void 			SetLifes 		( int newLifes );
+	virtual void 			SetAmmo 		( int newAmmo );
+	virtual void 			SetPogo 		( bool newPogo );
+	virtual void 			SetShipBattery 	( bool newShipBattery );
+	virtual void 			SetBlueKey 		( bool newBlueKey );
+	virtual void 			SetRedKey 		( bool newRedKey );
+	virtual void 			SetYelloweKey 	( bool newYellowKey );
+	virtual void 			SetLevelUID 	( unsigned long newLevelUID );
 
-	virtual void Update 	();
-	virtual void Draw 		();
-	virtual void Collision 	();
+	virtual int 			GetScore 		();
+	virtual int 			GetExtraLife 	();
+	virtual int 			GetLifes 		();
+	virtual int 			GetAmmo 		();
+	virtual bool 			GetPogo			();
+	virtual bool 			GetShipBattery 	();
+	virtual bool 			GetBlueKey 		();
+	virtual bool 			GetRedKey 		();
+	virtual bool 			GetYelloweKey 	();
+	virtual unsigned long 	GetLevelUID 	();
+
+	virtual void 			Update 			();
+	virtual void 			Draw 			();
+	virtual void 			Collision 		();
 };
 
 
@@ -450,6 +469,22 @@ public:
 
 	virtual void Update 		();
 	virtual void Draw 			();
+};
+
+
+
+
+
+class Exit : public GameObject
+{
+protected:
+public:
+	Exit( GameEngine* newEngine );
+	~Exit();
+
+	virtual void Update 		();
+	virtual void Draw 			();
+	virtual void BackToOverworld();
 };
 
 #endif

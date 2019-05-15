@@ -15,6 +15,11 @@
     <property name="typeID" type="int" value="3"/>
    </properties>
   </tile>
+  <tile id="162">
+   <properties>
+    <property name="typeID" type="int" value="14"/>
+   </properties>
+  </tile>
   <tile id="165">
    <properties>
     <property name="typeID" type="int" value="2"/>
