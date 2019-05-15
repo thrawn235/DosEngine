@@ -451,8 +451,8 @@ void GameObject::Collision( )
 {
 	vector<GameObject*> colliders = engine->GetObjectsInArea( pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
 
-	float downLeft  = RayDown( centerPos + Vector2D( -6, 0 ), ( height / 2 )+1, colliders );
-	float downRight = RayDown( centerPos + Vector2D(  6, 0 ), ( height / 2 )+1, colliders );
+	float downLeft  = RayDown( centerPos + Vector2D( -3, 0 ), ( height / 2 ), colliders );
+	float downRight = RayDown( centerPos + Vector2D(  3, 0 ), ( height / 2 ), colliders );
 
 	if( downLeft != -1 )
 	{
@@ -1130,7 +1130,7 @@ void PlayerTopDown::Update()
 
 	Move();
 
-	Collision();
+	GameObject::Collision();
 
 	
 	engine->graphics->SetCamCenter( centerPos );
