@@ -835,29 +835,25 @@ void Player::Update()
 	movement = Vector2D( 0.0f, 0.0f );
 	if( engine->input->KeyDown( KEY_UP ) )
 	{
-		movement = Vector2D( 0.0f, -0.5f );
+		movement = movement + Vector2D( 0.0f, -0.5f );
 	}
-	else if( engine->input->KeyDown( KEY_LEFT ) )
+	if( engine->input->KeyDown( KEY_LEFT ) )
 	{
-		movement = Vector2D( -0.5f, 0.0f );	
+		movement = movement + Vector2D( -0.5f, 0.0f );	
 	}
-	else if( engine->input->KeyDown( KEY_DOWN ) )
+	if( engine->input->KeyDown( KEY_DOWN ) )
 	{
-		movement = Vector2D( 0.0f, 0.5f );
+		movement = movement + Vector2D( 0.0f, 0.5f );
 	}
-	else if( engine->input->KeyDown( KEY_RIGHT ) )
+	if( engine->input->KeyDown( KEY_RIGHT ) )
 	{
-		movement = Vector2D( 0.5f, 0.0f );
+		movement = movement + Vector2D( 0.5f, 0.0f );
 	}
-	else if( engine->input->KeyDown( SPACE ) && onFloor && !spacePressed)
+	if( engine->input->KeyDown( SPACE ) && onFloor && !spacePressed)
 	{
 		//movement = Vector2D( 0.0f, -10.0f );
 		spacePressed = true;
 		jumpCharging = true;
-	}
-	else
-	{
-		movement = Vector2D( 0.0f, 0.0f );
 	}
 	
 	if( !engine->input->KeyDown( SPACE ) )
@@ -1094,23 +1090,19 @@ void PlayerTopDown::Update()
 	movement = Vector2D( 0.0f, 0.0f );
 	if( engine->input->KeyDown( KEY_UP ) )
 	{
-		movement = Vector2D( 0.0f, -0.5f );
+		movement = movement + Vector2D( 0.0f, -0.5f );
 	}
 	else if( engine->input->KeyDown( KEY_LEFT ) )
 	{
-		movement = Vector2D( -0.5f, 0.0f );	
+		movement = movement + Vector2D( -0.5f, 0.0f );	
 	}
 	else if( engine->input->KeyDown( KEY_DOWN ) )
 	{
-		movement = Vector2D( 0.0f, 0.5f );
+		movement = movement + Vector2D( 0.0f, 0.5f );
 	}
 	else if( engine->input->KeyDown( KEY_RIGHT ) )
 	{
-		movement = Vector2D( 0.5f, 0.0f );
-	}
-	else
-	{
-		movement = Vector2D( 0.0f, 0.0f );
+		movement = movement + Vector2D( 0.5f, 0.0f );
 	}
 
 
