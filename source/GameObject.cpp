@@ -835,19 +835,19 @@ void Player::Update()
 	movement = Vector2D( 0.0f, 0.0f );
 	if( engine->input->KeyDown( KEY_UP ) )
 	{
-		movement = movement + Vector2D( 0.0f, -0.5f );
+		movement = movement + Vector2D( 0.0f, -0.4f );
 	}
 	if( engine->input->KeyDown( KEY_LEFT ) )
 	{
-		movement = movement + Vector2D( -0.5f, 0.0f );	
+		movement = movement + Vector2D( -0.4f, 0.0f );	
 	}
 	if( engine->input->KeyDown( KEY_DOWN ) )
 	{
-		movement = movement + Vector2D( 0.0f, 0.5f );
+		movement = movement + Vector2D( 0.0f, 0.4f );
 	}
 	if( engine->input->KeyDown( KEY_RIGHT ) )
 	{
-		movement = movement + Vector2D( 0.5f, 0.0f );
+		movement = movement + Vector2D( 0.4f, 0.0f );
 	}
 	if( engine->input->KeyDown( SPACE ) && onFloor && !spacePressed)
 	{
@@ -876,18 +876,26 @@ void Player::Update()
 	if( jumpCharging == false && jumpCharge > 0 && onFloor )
 	{
 		jumpCharge = 0;
-		AddForce( Vector2D( 0.0, -10.0 ) );
+		AddForce( Vector2D( 0.0, -7.0 ) );
 	}
 	
 	if( !onFloor )
 	{
 		AddForce( Vector2D( 0, 0.5 ) ); //gravity
-		Friction( 0.95f );
+		Friction( 0.90f );
 	}
 	else
 	{
-		Friction( 0.9f );
+		Friction( 0.86f );
 	}
+
+	vector<GameObject*> treasures = engine->GetObjectsInArea( pos, width, height, TYPE_TREASURE );
+	for( unsigned int i = 0; i < treasures.size(); i++ )
+	{
+		Treasure* treasure = ( Treasure* )treasures[i];
+		score = score + treasure->GetScore();
+	}
+
 
 	Move();
 
@@ -1381,11 +1389,11 @@ Banner::Banner( GameEngine* newEngine ) : GameObject( newEngine )
 	showEverything = false;
 
 	showEverythingTimeStamp = 0;
-	palette = NULL;
+	black = false;
 }
 Banner::~Banner()
 {
-	free(palette);
+	//free(palette);
 	//
 }
 void Banner::Update()
@@ -1403,7 +1411,7 @@ void Banner::Update()
 		showEverything = true;
 
 		showEverythingTimeStamp = engine->time->GetCurrentTimeInMS() -4000;
-		palette = engine->graphics->GetPalette();
+		//palette = engine->graphics->GetPalette();
 	}
 
 	if( showEverything )
@@ -1411,13 +1419,22 @@ void Banner::Update()
 		if( showEverythingTimeStamp == 0 )
 		{
 			showEverythingTimeStamp = engine->time->GetCurrentTimeInMS();
-			palette = engine->graphics->GetPalette();
+			//palette = engine->graphics->GetPalette();
 		}
 
 		if( engine->time->GetCurrentTimeInMS() > showEverythingTimeStamp + 4000)
 		{
 			//fade to black
-			engine->graphics->ChangePaletteBrightness( -1 );
+			//engine->graphics->ChangePaletteBrightness( -1 );
+			
+			
+			if( black == false )
+			{
+				if( engine->graphics->FadeOut() )
+				{
+					black = true;
+				}
+			}
 		}
 		if( engine->time->GetCurrentTimeInMS() > showEverythingTimeStamp + 5000)
 		{
@@ -1426,7 +1443,8 @@ void Banner::Update()
 			engine->graphics->ClearScreen( 0 );
 			TMXMap testMap = engine->LoadTMXMap("./levels/menubg.tmx");		//Load Map
 			engine->CreateObjectsFromMap( &testMap );			//crrate Objects
-			engine->graphics->SetPalette( palette, 255 );
+			//engine->graphics->SetPalette( palette, 255 );
+			//engine->graphics->FadeIn();
 
 			GameObject* menu;
 			menu = new MainMenu( engine );
@@ -1453,6 +1471,9 @@ void Banner::Update()
 			HelpWindow* helpWindow;
 			helpWindow = new HelpWindow( engine );
 			engine->AddObject( helpWindow );
+
+			Fader* fader = new Fader( engine );
+			engine->AddObject( fader );
 		}
 	}
 }
@@ -1494,7 +1515,6 @@ MainMenu::MainMenu( GameEngine* newEngine ) : GameObject( newEngine )
 	bool keyDown = false;
 	menuPos = 1;
 
-	palette = NULL;
 	fadeTimeStamp = 0;
 
 	showSelf = false;
@@ -1533,19 +1553,19 @@ void MainMenu::Update()
 		if(menuPos == 1 && engine->input->KeyDown( ENTER ) )
 		{
 			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
-			palette = engine->graphics->GetPalette();
+			//palette = engine->graphics->GetPalette();
 		}
 		if(menuPos == 4 && engine->input->KeyDown( ENTER ) )
 		{
 			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
-			palette = engine->graphics->GetPalette();
+			//palette = engine->graphics->GetPalette();
 		}
 
 		if( fadeTimeStamp != 0 )
 		{
-			engine->graphics->ChangePaletteBrightness( -1 );
+			engine->graphics->FadeOut();
 
-			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 1000 && menuPos == 1)
+			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 2000 && menuPos == 1)
 			{
 				//delete everything
 				GameObject* manager = engine->GetAllObjects( TYPE_GAME_MANAGER )[0];
@@ -1555,16 +1575,20 @@ void MainMenu::Update()
 				TMXMap testMap = engine->LoadTMXMap("./levels/mars.tmx");		//Load Map
 				engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 				engine->AddObject( manager );
-				engine->graphics->SetPalette( palette, 255 );
+				Fader* fader = new Fader( engine );
+				engine->AddObject( fader );
+				//engine->graphics->SetPalette( palette, 255 );
 			}
-			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 1000 && menuPos == 4)
+			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 2000 && menuPos == 4)
 			{
 				//delete everything
 				engine->ClearObjects();
 				engine->graphics->ClearScreen( 0 );
 				TMXMap testMap2 = engine->LoadTMXMap("./levels/about1.tmx");		//Load Map
 				engine->CreateObjectsFromMap( &testMap2 );			//crrate Objects
-				engine->graphics->SetPalette( palette, 255 );
+				Fader* fader = new Fader( engine );
+				engine->AddObject( fader );
+				//engine->graphics->SetPalette( palette, 255 );
 			}
 		}
 	}
@@ -1832,4 +1856,69 @@ void Exit::BackToOverworld()
 	//destroy city
 	GameObject* city = engine->GetObjectByUID( inLevelPlayer->GetLevelUID() );
 	engine->RemoveObject( city );
+}
+
+
+
+
+
+
+//========== Fader =============
+Fader::Fader( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_FADER; //14
+}
+Fader::~Fader()
+{
+
+}
+void Fader::Update()
+{
+	if( engine->graphics->FadeIn() )
+	{
+		engine->RemoveObject( this );
+	}
+}
+void Fader::Draw()
+{
+
+}
+
+
+
+
+
+//========== Treasure =============
+Treasure::Treasure( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_TREASURE; //14
+	score = 10;
+}
+Treasure::~Treasure()
+{
+
+}
+void Treasure::Update()
+{
+	
+}
+void Treasure::SetScore( int newScore )
+{
+	score = newScore;
+	//
+}
+int Treasure::GetScore()
+{
+	engine->RemoveObject( this );
+
+	return score;
+}
+void Treasure::SetTileIndex( int newTileIndex )
+{
+	tileIndex = newTileIndex;
+
+	if( tileIndex == 202 )
+	{
+		score = 100;
+	}
 }

@@ -33,7 +33,7 @@ $(SUBDIR)GraphicsEngine.o: $(SUBDIR)GraphicsEngine.h $(SUBDIR)Vector2D.h $(SUBDI
 $(SUBDIR)GameEngine.o: $(SUBDIR)GameEngine.h $(SUBDIR)Vector2D.h $(SUBDIR)GameEngine.cpp $(SUBDIR)TimeEngine.o $(SUBDIR)InputEngine.o $(SUBDIR)GameObject.o
 	$(CC) -c $(SUBDIR)GameEngine.cpp -o $(SUBDIR)GameEngine.o $(CXXFLAGS)
 
-$(SUBDIR)GameObject.o: $(SUBDIR)GameObject.h $(SUBDIR)Vector2D.h $(SUBDIR)GameObject.cpp #$(SUBDIR)GameEngine.o
+$(SUBDIR)GameObject.o: $(SUBDIR)GameObject.h $(SUBDIR)Vector2D.h $(SUBDIR)GameObject.cpp $(SUBDIR)HelperFunctions.h #$(SUBDIR)GameEngine.o
 	$(CC) -c $(SUBDIR)GameObject.cpp  -o $(SUBDIR)GameObject.o $(CXXFLAGS)
 #=====================================================================================
 

@@ -126,6 +126,12 @@ protected:
 	//tileset/ sprite and animation data
 	vector<TileSet*> 	tileSets;
 	vector<Sprite*> 	sprites;
+
+	//fadein/out
+	unsigned char savedPalette[256*4];
+	unsigned char currentPalette[256*4];
+	unsigned int fadeOut;
+	unsigned int fadeIn;
 public:
 	GraphicsEngine 						();
 	~GraphicsEngine 					();
@@ -154,6 +160,10 @@ public:
 	void 		ChangePaletteBrightness ( int delta );
 	void 		ChangePaletteHue 		( int deltaR, int deltaG, int deltaB );
 	char* 		GetPalette 				();
+	void		SaveCurrentPalette 		();
+	void		SavePaletteToBank 		();
+	bool		FadeOut					();
+	bool		FadeIn 					();
 	
 	//Graphics Primitives
 	void 		DrawPixel 				( Vector2D pos, char color );

@@ -1,0 +1,29 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//	HelperFunctions.h
+//
+//	by Sebastian Gurlin
+//
+//	Description:
+//	some Helper functions that wrap multiple calls to the engine
+//
+///////////////////////////////////////////////////////////////////////////////////////
+
+
+#ifndef GAMEOBJECT
+#define GAMEOBJECT
+
+namespace helper
+{
+	void EnterLevel()
+	{
+
+	}
+	
+	void BackToOverworld()
+	{
+
+	}
+}
+
+#endif

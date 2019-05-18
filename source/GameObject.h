@@ -38,6 +38,7 @@
 #include "TimeEngine.h"
 #include "InputEngine.h"
 #include "GameEngine.h"
+#include "HelperFunctions.h"	//has to be last!
 //=======================================================
 
 
@@ -57,6 +58,8 @@
 #define TYPE_STATIC_SIGN			12
 #define TYPE_HELP_WINDOW			13
 #define TYPE_EXIT					14
+#define TYPE_FADER					15
+#define TYPE_TREASURE				16
 //=======================================================
 
 
@@ -352,7 +355,7 @@ class Banner  : public GameObject
 protected:
 	bool showEverything;
 	int showEverythingTimeStamp;
-	char* palette;
+	bool black;
 public:
 	Banner( GameEngine* newEngine );
 	~Banner();
@@ -374,7 +377,6 @@ protected:
 	Vector2D blueBallOffsetPos;
 	bool keyDown;
 	int menuPos;
-	char* palette;
 	int fadeTimeStamp;
 	bool showSelf;
 public:
@@ -485,6 +487,38 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 	virtual void BackToOverworld();
+};
+
+
+
+
+class Fader : public GameObject
+{
+protected:
+public:
+	Fader( GameEngine* newEngine );
+	~Fader();
+
+	virtual void Update 		();
+	virtual void Draw 			();
+};
+
+
+
+class Treasure : public GameObject
+{
+protected:
+	int score;
+public:
+	Treasure( GameEngine* newEngine );
+	~Treasure();
+
+	virtual void SetScore( int newScore);
+	virtual int GetScore();
+	virtual void SetTileIndex( int newTileIndex );
+
+	virtual void Update 		();
+
 };
 
 #endif

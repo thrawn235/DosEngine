@@ -19,7 +19,7 @@ inline int Clip( int input, int min, int max )
 	{
 		return max;
 	}
-	else if( input <= min )
+	if( input <= min )
 	{
 		return min;
 	}
@@ -37,6 +37,8 @@ GraphicsEngine::GraphicsEngine()
 	backBuffer 		= NULL;
 	screenMemory 	= NULL;
 	flip 			= false;
+	fadeOut = 0;
+	fadeIn = 0;
 }
 GraphicsEngine::~GraphicsEngine()
 {
@@ -457,32 +459,60 @@ void GraphicsEngine::SetPaletteColor( unsigned char index, unsigned char r, unsi
 	outportb( 0x03c9, g );
 	outportb( 0x03c9, b );
 }
-void GraphicsEngine::SetPalette( char* palette, unsigned char numColors )
+void GraphicsEngine::SaveCurrentPalette()
+{
+	int index = 0;
+	for( int i = 0; i < 256; i++ )
+	{
+		outportb( 0x03c7, i );
+		currentPalette[index + 2] = inportb( 0x03c9 );
+		currentPalette[index + 1] = inportb( 0x03c9 );
+		currentPalette[index + 0] = inportb( 0x03c9 );
+		index = index +4;
+	}
+}
+void GraphicsEngine::SavePaletteToBank()
+{
+	int index = 0;
+	for( int i = 0; i < 256; i++ )
+	{
+		outportb( 0x03c7, i );
+		savedPalette[index + 2] = inportb( 0x03c9 );
+		savedPalette[index + 1] = inportb( 0x03c9 );
+		savedPalette[index + 0] = inportb( 0x03c9 );
+		index = index +4;
+	}
+}
+void GraphicsEngine::SetPalette( char* inPalette, unsigned char numColors )
 {
 	outportb( 0x03c8, 0 );
 	int index = 0;
 	for( int i = 0; i < numColors; i++ )
 	{
-		outportb( 0x03c9, palette[index + 2] );
-		outportb( 0x03c9, palette[index + 1] );
-		outportb( 0x03c9, palette[index + 0] );
+		outportb( 0x03c9, inPalette[index + 2] );
+		outportb( 0x03c9, inPalette[index + 1] );
+		outportb( 0x03c9, inPalette[index + 0] );
 		index = index + 4;
 	}
+
+	SaveCurrentPalette();
+	SavePaletteToBank();
 }
 void GraphicsEngine::ChangePaletteBrightness( int delta )
 {
-	char* palette = GetPalette();
-
 	outportb( 0x03c8, 0 );
 	int index = 0;
 	for( int i = 0; i < 256; i++ )
 	{
-		outportb( 0x03c9, Clip( palette[index + 2] + delta, 0, 255 ) );
-		outportb( 0x03c9, Clip( palette[index + 1] + delta, 0, 255 ) );
-		outportb( 0x03c9, Clip( palette[index + 0] + delta, 0, 255 ) );
+		outportb( 0x03c9, Clip( currentPalette[index + 2] + delta, 0, 255 ) );
+		outportb( 0x03c9, Clip( currentPalette[index + 1] + delta, 0, 255 ) );
+		outportb( 0x03c9, Clip( currentPalette[index + 0] + delta, 0, 255 ) );
+
+		currentPalette[ index + 2 ] = Clip( currentPalette[index + 2] + delta, 0, 255 );
+		currentPalette[ index + 1 ] = Clip( currentPalette[index + 1] + delta, 0, 255 );
+		currentPalette[ index + 0 ] = Clip( currentPalette[index + 0] + delta, 0, 255 );
 		index = index + 4;
 	}
-	free( palette );
 }
 void GraphicsEngine::ChangePaletteHue( int deltaR, int deltaG, int deltaB )
 {
@@ -490,19 +520,95 @@ void GraphicsEngine::ChangePaletteHue( int deltaR, int deltaG, int deltaB )
 }
 char* GraphicsEngine::GetPalette()
 {
-	char* palette = ( char* )malloc( 256*4 );
+	char* outPalette = ( char* )malloc( 256*4 );
 
 	int index = 0;
 	for( int i = 0; i < 256; i++ )
 	{
 		outportb( 0x03c7, i );
-		palette[index + 2] = inportb( 0x03c9 );
-		palette[index + 1] = inportb( 0x03c9 );
-		palette[index + 0] = inportb( 0x03c9 );
+		outPalette[index + 2] = inportb( 0x03c9 );
+		outPalette[index + 1] = inportb( 0x03c9 );
+		outPalette[index + 0] = inportb( 0x03c9 );
 		index = index +4;
 	}
 
-	return palette;
+	return outPalette;
+}
+bool GraphicsEngine::FadeOut()
+{
+	if( fadeOut == 0 )	//save palette
+	{
+		SavePaletteToBank();
+	}
+
+	if( fadeOut < 256 )
+	{
+		outportb( 0x03c8, 0 );
+		int index = 0;
+		for( int i = 0; i < 256; i++ )
+		{
+			outportb( 0x03c9, Clip( currentPalette[index + 2] -1 , 0, 255 ) );
+			outportb( 0x03c9, Clip( currentPalette[index + 1] -1 , 0, 255 ) );
+			outportb( 0x03c9, Clip( currentPalette[index + 0] -1 , 0, 255 ) );
+			index = index + 4;
+		}
+		SaveCurrentPalette();
+
+		fadeOut++;
+		return false;
+	}
+
+	fadeOut = 0;
+
+	return true;
+}
+bool GraphicsEngine::FadeIn()
+{
+	if( fadeIn > 255 )
+	{
+		fadeIn = 0;
+	}
+
+	int index = 0;
+	for( int i = 0; i < 256; i++ )
+	{
+		if( fadeIn <= savedPalette[index + 2] )
+		{
+			outportb( 0x03c9, Clip( currentPalette[index + 2] +1 , 0, 255 ) );
+		}
+		else
+		{
+			outportb( 0x03c9, Clip( currentPalette[index + 2] , 0, 255 ) );
+		}
+		if( fadeIn <= savedPalette[index + 1] )
+		{
+			outportb( 0x03c9, Clip( currentPalette[index + 1] +1 , 0, 255 ) );
+		}
+		else
+		{
+			outportb( 0x03c9, Clip( currentPalette[index + 1] , 0, 255 ) );
+		}
+		if( fadeIn <= savedPalette[index + 0 ] )
+		{
+			outportb( 0x03c9, Clip( currentPalette[index + 0] +1 , 0, 255 ) );
+		}
+		else
+		{
+			outportb( 0x03c9, Clip( currentPalette[index + 0] , 0, 255 ) );
+		}
+		index = index + 4;
+	}
+	SaveCurrentPalette();
+
+	fadeIn++;
+	if( fadeIn <= 255 )
+	{
+		return false;
+	}
+
+	fadeIn = 0;
+
+	return true;
 }
 
 //Graphics Primitives

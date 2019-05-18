@@ -1403,6 +1403,10 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					{
 						newObject = new Exit( this );
 					}
+					else if( typeID == TYPE_TREASURE ) //placeholder
+					{
+						newObject = new Treasure( this );
+					}
 					else
 					{
 						//printf("create!\n");
