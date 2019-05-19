@@ -6,7 +6,6 @@ animations:
 
 fade:
 	incorporate delta
-	fade in at the beginning
 
 keys:
 	fix "sticking" keys

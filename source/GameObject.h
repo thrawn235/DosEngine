@@ -495,8 +495,10 @@ public:
 class Fader : public GameObject
 {
 protected:
+	bool fadeOut;
 public:
 	Fader( GameEngine* newEngine );
+	Fader( GameEngine* newEngine, bool newFadeOut );
 	~Fader();
 
 	virtual void Update 		();

@@ -157,6 +157,7 @@ public:
 	//Palette
 	void 		SetPaletteColor 		( unsigned char index, unsigned char r, unsigned char g, unsigned char b );
 	void 		SetPalette 				( unsigned char* inPalette, int numColors );
+	void 		BlackOut 				();
 	void 		ChangePaletteBrightness ( int delta );
 	void 		ChangePaletteHue 		( int deltaR, int deltaG, int deltaB );
 	char* 		GetPalette 				();

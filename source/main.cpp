@@ -48,14 +48,16 @@ int main()
 	GameEngine* engine = new GameEngine;							//create GameEngine
 
 	
-	printf("Welcome to thrawns Keen!\n");
+	printf( "Welcome to thrawns Keen!\n" );
 
-	printf("getting into graphics mode...\n");
-	engine->graphics->SetGraphicsMode(0x13);						//enter Grphics Mode
+	printf( "getting into graphics mode...\n" );
+	engine->graphics->SetGraphicsMode( 0x13 );						//enter Grphics Mode
 
 	engine->LoadAssets();
 
-	TMXMap testMap = engine->LoadTMXMap("./levels/startup.tmx");		//Load Map
+	engine->graphics->BlackOut();
+
+	TMXMap testMap = engine->LoadTMXMap( "./levels/startup.tmx" );		//Load Map
 
 	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 
@@ -70,6 +72,8 @@ int main()
 
 	engine->AddObject 		(banner);
 
+	Fader* fader = new Fader 	( engine );
+	engine->AddObject 			( fader );
 
 
 	//========================== Main Loop ======================================
@@ -84,18 +88,22 @@ int main()
 		//------------------------ input -----------------------------
 		if(engine->input->KeyDown(ESC))
 			running = false;
-		if(engine->input->KeyDown(KEY_W))
+		/*if(engine->input->KeyDown(KEY_W))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y -2));
 		if(engine->input->KeyDown(KEY_A))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x -2, engine->graphics->GetCamPos().y));
 		if(engine->input->KeyDown(KEY_S))
 			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +2));
 		if(engine->input->KeyDown(KEY_D))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +2, engine->graphics->GetCamPos().y));
+			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +2, engine->graphics->GetCamPos().y));*/
 		//if(engine->input->KeyDown(SPACE))
 		//	engine->graphics->ChangePaletteBrightness(-1);
 		//if(engine->input->KeyDown(LCTRL))
 		//	engine->graphics->ChangePaletteBrightness(+1);
+		if(engine->input->KeyDown(KEY_W))
+			engine->DisableAll();
+		if(engine->input->KeyDown(KEY_A))
+			engine->EnableAll();
 		//-----------------------------------------------------------
 
 		//engine->graphics->ClearScreen(190);

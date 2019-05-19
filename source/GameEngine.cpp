@@ -1653,6 +1653,7 @@ vector<GameObject*> GameEngine::GetAllObjects()
 vector<GameObject*> GameEngine::GetAllObjects( int typeID )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(1000);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( objects[i]->GetTypeID() == typeID )
@@ -1679,6 +1680,7 @@ GameObject* GameEngine::GetFirstObject( int typeID )
 vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(10);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( 	pos.x >= objects[i]->GetPos(). x && pos.y >= objects[i]->GetPos().y 
@@ -1693,6 +1695,7 @@ vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos )
 vector<GameObject*> GameEngine::GetTouchingObjects( Vector2D testDirection )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(50);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( 1 )
@@ -1706,6 +1709,7 @@ vector<GameObject*> GameEngine::GetTouchingObjects( Vector2D testDirection )
 vector<GameObject*> GameEngine::GetTouchingObjects( Vector2D testDirection, int typeID )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(50);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( 1 )
@@ -1719,6 +1723,7 @@ vector<GameObject*> GameEngine::GetTouchingObjects( Vector2D testDirection, int 
 vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos, int typeID )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(10);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( 	pos.x >= objects[i]->GetPos(). x && pos.y >= objects[i]->GetPos().y && pos.x < objects[i]->GetPos().x  + objects[i]->GetWidth() 
@@ -1733,6 +1738,7 @@ vector<GameObject*> GameEngine::GetObjectsAtPos( Vector2D pos, int typeID )
 vector<GameObject*> GameEngine::GetObjectsInArea( Vector2D pos, int width, int height)
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( 	pos.x + width > objects[i]->GetPos().x && pos.x < objects[i]->GetPos().x + objects[i]->GetWidth()
@@ -1747,6 +1753,7 @@ vector<GameObject*> GameEngine::GetObjectsInArea( Vector2D pos, int width, int h
 vector<GameObject*> GameEngine::GetObjectsInArea( Vector2D pos, int width, int height, int typeID )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( 	pos.x + width > objects[i]->GetPos().x && pos.x < objects[i]->GetPos().x + objects[i]->GetWidth()
@@ -1790,6 +1797,7 @@ GameObject* GameEngine::GetFirstObjectAtPos( Vector2D pos, int typeID )
 vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		Vector2D centerPos = objects[i]->GetPos();
@@ -1806,6 +1814,7 @@ vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius )
 vector<GameObject*> GameEngine::GetObjectsInRadius( Vector2D pos, int radius, int typeID )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		Vector2D centerPos = objects[i]->GetPos();
@@ -1824,6 +1833,7 @@ vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D di
 	/*	Doesnt Work... */
 
 	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		Vector2D testPos = objects[i]->GetPos() - origin;
@@ -1850,6 +1860,7 @@ vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D di
 vector<GameObject*> GameEngine::GetObjectsAlongRay( Vector2D origin, Vector2D direction, int typeID )
 {
 	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		Vector2D testPos = objects[i]->GetPos() - origin;

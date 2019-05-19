@@ -724,6 +724,9 @@ Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
 	blueKey		= false;
 	redKey		= false;
 	yellowKey	= false;
+
+	GameManager* manager = new GameManager( engine );
+	engine->AddObject( manager );
 }
 Player::~Player()
 {
@@ -831,6 +834,10 @@ unsigned long Player::GetLevelUID()
 }
 void Player::Update()
 {
+
+	if( engine->input->KeyDown( KEY_D ) )
+		enabled = false;
+
 	
 	movement = Vector2D( 0.0f, 0.0f );
 	if( engine->input->KeyDown( KEY_UP ) )
@@ -1134,7 +1141,6 @@ void PlayerTopDown::Update()
 
 	
 	engine->graphics->SetCamCenter( centerPos );
-
 }
 void PlayerTopDown::Draw()
 {
@@ -1452,10 +1458,10 @@ void Banner::Update()
 			engine->AddObject(menu);
 
 
-			GameObject* manager;
+			/*GameObject* manager;
 			manager = new GameManager( engine );
 			manager->SetPos 		( Vector2D( 80, 50 ) );
-			engine->AddObject( manager );
+			engine->AddObject( manager );*/
 
 			StaticSign* helpSign;
 			helpSign = new StaticSign( engine );
@@ -1563,13 +1569,13 @@ void MainMenu::Update()
 			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 2000 && menuPos == 1)
 			{
 				//delete everything
-				GameObject* manager = engine->GetAllObjects( TYPE_GAME_MANAGER )[0];
+				//GameObject* manager = engine->GetAllObjects( TYPE_GAME_MANAGER )[0];
 
 				engine->ClearObjects();
 				engine->graphics->ClearScreen( 0 );
 				TMXMap testMap = engine->LoadTMXMap("./levels/mars.tmx");		//Load Map
 				engine->CreateObjectsFromMap( &testMap );			//crrate Objects
-				engine->AddObject( manager );
+				//engine->AddObject( manager );
 				Fader* fader = new Fader( engine );
 				engine->AddObject( fader );
 				//engine->graphics->SetPalette( palette, 255 );
@@ -1693,14 +1699,14 @@ void GameManager::Update()
 	}
 
 
-	if( engine->input->KeyDown( SPACE ) && showStats == false && !keyDown)
+	if( engine->input->KeyDown( KEY_F2 ) && showStats == false && !keyDown)
 	{
 		showStats = true;
 		keyDown = true;
 		engine->DisableAll( this );
 
 	}
-	else if( engine->input->KeyDown( SPACE ) && showStats == true  && !keyDown)
+	else if( engine->input->KeyDown( KEY_F2 ) && showStats == true  && !keyDown)
 	{
 		showStats = false;
 		keyDown = true;
@@ -1721,7 +1727,7 @@ void GameManager::Draw()
 		sprintf(str, "    Score     extra Keen at " );
 		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 48, 43 ), ASSET_TXT_GREY, 0, str );
 
-		sprintf(str, "     %i           %i ", score, extraLife );
+		sprintf(str, "     %i           %i ", connectedPlayer->GetScore(), connectedPlayer->GetExtraLife() );
 		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 56, 51 ), ASSET_TXT_WHITE, 0, str );
 	}
 }
@@ -1862,6 +1868,7 @@ void Exit::BackToOverworld()
 Fader::Fader( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_FADER; //14
+	fadeOut = false;
 }
 Fader::~Fader()
 {
@@ -1869,9 +1876,19 @@ Fader::~Fader()
 }
 void Fader::Update()
 {
-	if( engine->graphics->FadeIn() )
+	if( fadeOut )
 	{
-		engine->RemoveObject( this );
+		if( engine->graphics->FadeOut() )
+		{
+			engine->RemoveObject( this );
+		}
+	}
+	else
+	{
+		if( engine->graphics->FadeIn() )
+		{
+			engine->RemoveObject( this );
+		}
 	}
 }
 void Fader::Draw()

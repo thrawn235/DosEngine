@@ -509,6 +509,20 @@ void GraphicsEngine::SetPalette( unsigned char* inPalette, int numColors )
 	SaveCurrentPalette();
 	SavePaletteToBank();
 }
+void GraphicsEngine::BlackOut()
+{
+	outportb( 0x03c8, 0 );
+	int index = 0;
+	for( int i = 0; i < 256; i++ )
+	{
+		outportb( 0x03c9, 0);
+		outportb( 0x03c9, 0);
+		outportb( 0x03c9, 0);
+		
+		index = index + 4;
+	}
+	SaveCurrentPalette();
+}
 void GraphicsEngine::ChangePaletteBrightness( int delta )
 {
 	/*outportb( 0x03c8, 0 );
@@ -547,8 +561,13 @@ char* GraphicsEngine::GetPalette()
 }
 bool GraphicsEngine::FadeOut()
 {	
+	if( fadeIn != 0 )
+	{
+		fadeIn = 255;
+	}
+
 	int index = 0;
-	
+	outportb( 0x03c8, 0 );
 	for( int i = 0; i < 256; i++ )
 	{
 
@@ -566,20 +585,27 @@ bool GraphicsEngine::FadeOut()
 		{
 			currentPalette[ index + 0 ] = currentPalette[ index + 0 ] -1;
 		}
-
-		outportb( 0x03c8, i );
 		outportb( 0x03c9, currentPalette[index + 2]);
 		outportb( 0x03c9, currentPalette[index + 1]);
 		outportb( 0x03c9, currentPalette[index + 0]);
 
 		index = index + 4;
 	}
+
+	if( fadeOut <= 255 )
+	{
+		fadeOut ++;
+		return false;
+	}
+
+	fadeOut = 0;
+	return true;
 }
 bool GraphicsEngine::FadeIn()
 {
-	if( fadeIn > 255 )
+	if( fadeOut != 0 )
 	{
-		fadeIn = 0;
+		fadeOut = 255;
 	}
 
 	int index = 0;
