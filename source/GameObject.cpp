@@ -912,13 +912,13 @@ void Player::Draw()
 	{
 		if( direction.x >= 0 )
 		{
-			engine->graphics->PlayAnimation( &jumpRight, pos, 16 );
+			engine->graphics->PlayAnimationDelta( &jumpRight, pos, 16, engine->time->GetDelta() );
 			if(jumpRight.currentFrame >= 5)
 				jumpRight.currentSpeedStep = 0;
 		}
 		else if( direction.x < 0 )
 		{
-			engine->graphics->PlayAnimation( &jumpLeft, pos, 16 );
+			engine->graphics->PlayAnimationDelta( &jumpLeft, pos, 16, engine->time->GetDelta() );
 			if(jumpLeft.currentFrame >= 5)
 				jumpLeft.currentSpeedStep = 0;
 		}
@@ -934,11 +934,11 @@ void Player::Draw()
 		{
 			if( direction.x > 0 )
 			{
-				engine->graphics->PlayAnimation( &walkForward, pos, 16 );
+				engine->graphics->PlayAnimationDelta( &walkForward, pos, 16, engine->time->GetDelta() );
 			}
 			else if( direction.x < 0 )
 			{
-				engine->graphics->PlayAnimation( &walkBackward, pos, 16 );
+				engine->graphics->PlayAnimationDelta( &walkBackward, pos, 16, engine->time->GetDelta() );
 			}
 			else
 			{
@@ -1142,19 +1142,19 @@ void PlayerTopDown::Draw()
 
 	if( movement.IsUp() )
 	{
-		engine->graphics->PlayAnimation( &up, pos, 7 );
+		engine->graphics->PlayAnimationDelta( &up, pos, 7, engine->time->GetDelta() );
 	}
 	else if( movement.IsDown() )
 	{
-		engine->graphics->PlayAnimation( &down, pos, 7 );
+		engine->graphics->PlayAnimationDelta( &down, pos, 7, engine->time->GetDelta() );
 	}
 	else if( movement.IsLeft() )
 	{
-		engine->graphics->PlayAnimation( &right, pos, 7, true, false );
+		engine->graphics->PlayAnimationDelta( &right, pos, 7, true, false, engine->time->GetDelta() );
 	}
 	else if( movement.IsRight() )
 	{
-		engine->graphics->PlayAnimation( &right, pos, 7 );
+		engine->graphics->PlayAnimationDelta( &right, pos, 7, engine->time->GetDelta() );
 	}
 	else
 	{
@@ -1366,7 +1366,7 @@ void BackGroundAnimation::Update()
 }
 void BackGroundAnimation::Draw()
 {
-	engine->graphics->PlayAnimation( &anim, pos );
+	engine->graphics->PlayAnimationDelta( &anim, pos, engine->time->GetDelta() );
 	//
 }
 
@@ -1428,15 +1428,10 @@ void Banner::Update()
 			//engine->graphics->ChangePaletteBrightness( -1 );
 			
 			
-			if( black == false )
-			{
-				if( engine->graphics->FadeOut() )
-				{
-					black = true;
-				}
-			}
+
+			engine->graphics->FadeOut();
 		}
-		if( engine->time->GetCurrentTimeInMS() > showEverythingTimeStamp + 5000)
+		if( engine->time->GetCurrentTimeInMS() > showEverythingTimeStamp + 5500)
 		{
 			//delete everything
 			engine->ClearObjects();
@@ -1639,7 +1634,7 @@ void Trap::Update()
 }
 void Trap::Draw()
 {
-	engine->graphics->PlayAnimation( &anim, pos );
+	engine->graphics->PlayAnimationDelta( &anim, pos, engine->time->GetDelta() );
 	//
 }
 void Trap::SetTileIndex( int newTileIndex )

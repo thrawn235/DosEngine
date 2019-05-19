@@ -66,7 +66,7 @@ struct BMP
 	BMPFileHEader 	fileHeader;
 	BMPDIBHeader	DIBHeader;
 	char 			extraBitMasks[16];
-	char* 			colorTable;
+	unsigned char* 	colorTable;
 	char* 			pixelArray;
 };
 //============================================
@@ -156,7 +156,7 @@ public:
 	
 	//Palette
 	void 		SetPaletteColor 		( unsigned char index, unsigned char r, unsigned char g, unsigned char b );
-	void 		SetPalette 				( char* palette, unsigned char numColors );
+	void 		SetPalette 				( unsigned char* inPalette, int numColors );
 	void 		ChangePaletteBrightness ( int delta );
 	void 		ChangePaletteHue 		( int deltaR, int deltaG, int deltaB );
 	char* 		GetPalette 				();
@@ -212,6 +212,11 @@ public:
 	bool 		PlayAnimation 			( Animation* in, Vector2D pos, char transparentColor );
 	bool 		PlayAnimation 			( Animation* in, Vector2D pos, bool flippedHorizontal, bool flippedVertical );
 	bool 		PlayAnimation 			( Animation* in, Vector2D pos, char transparentColor, bool flippedHorizontal, bool flippedVertical );
+	
+	bool 		PlayAnimationDelta		( Animation* in, Vector2D pos, float delta );
+	bool 		PlayAnimationDelta		( Animation* in, Vector2D pos, char transparentColor, int delta );
+	bool 		PlayAnimationDelta		( Animation* in, Vector2D pos, bool flippedHorizontal, bool flippedVertical, int delta );
+	bool 		PlayAnimationDelta		( Animation* in, Vector2D pos, char transparentColor, bool flippedHorizontal, bool flippedVertical, int delta );
 
 	//Windows:
 	void 		DrawWindowBorder 		( Vector2D pos, int width, int height, int tileSetID, int topLeftCorner, int topRightCorner, int bottomLeftCorner, int bottomRightCorner, int horizontalLine, int verticalLine );

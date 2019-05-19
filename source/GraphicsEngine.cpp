@@ -39,6 +39,12 @@ GraphicsEngine::GraphicsEngine()
 	flip 			= false;
 	fadeOut = 0;
 	fadeIn = 0;
+
+	for( unsigned int i = 0; i < 256*4; i++ )
+	{
+		currentPalette[i] = 0;
+		savedPalette[i] = 0;
+	}
 }
 GraphicsEngine::~GraphicsEngine()
 {
@@ -383,7 +389,7 @@ BMP GraphicsEngine::LoadBMP( const char* filePath )
 			}
 
 			//read Color Table:
-			bmp.colorTable = ( char* )malloc( bmp.DIBHeader.numColors * 4 );
+			bmp.colorTable = ( unsigned char* )malloc( bmp.DIBHeader.numColors * 4 );
 			fread( bmp.colorTable, bmp.DIBHeader.numColors * 4, 1, file );
 
 			if( debug )
@@ -458,6 +464,10 @@ void GraphicsEngine::SetPaletteColor( unsigned char index, unsigned char r, unsi
 	outportb( 0x03c9, r );
 	outportb( 0x03c9, g );
 	outportb( 0x03c9, b );
+
+	currentPalette[ index + 2 ] = r;
+	currentPalette[ index + 1 ] = g;
+	currentPalette[ index + 0 ] = b;
 }
 void GraphicsEngine::SaveCurrentPalette()
 {
@@ -476,31 +486,32 @@ void GraphicsEngine::SavePaletteToBank()
 	int index = 0;
 	for( int i = 0; i < 256; i++ )
 	{
-		outportb( 0x03c7, i );
-		savedPalette[index + 2] = inportb( 0x03c9 );
-		savedPalette[index + 1] = inportb( 0x03c9 );
-		savedPalette[index + 0] = inportb( 0x03c9 );
+		savedPalette[ index + 2 ] = currentPalette[index + 2];
+		savedPalette[ index + 1 ] = currentPalette[index + 1];
+		savedPalette[ index + 0 ] = currentPalette[index + 0];
 		index = index +4;
 	}
+
+	fadeOut = 0;
 }
-void GraphicsEngine::SetPalette( char* inPalette, unsigned char numColors )
+void GraphicsEngine::SetPalette( unsigned char* inPalette, int numColors )
 {
 	outportb( 0x03c8, 0 );
 	int index = 0;
 	for( int i = 0; i < numColors; i++ )
 	{
-		outportb( 0x03c9, inPalette[index + 2] );
-		outportb( 0x03c9, inPalette[index + 1] );
-		outportb( 0x03c9, inPalette[index + 0] );
+		outportb( 0x03c9, inPalette[index + 2]);
+		outportb( 0x03c9, inPalette[index + 1]);
+		outportb( 0x03c9, inPalette[index + 0]);
+		
 		index = index + 4;
 	}
-
 	SaveCurrentPalette();
 	SavePaletteToBank();
 }
 void GraphicsEngine::ChangePaletteBrightness( int delta )
 {
-	outportb( 0x03c8, 0 );
+	/*outportb( 0x03c8, 0 );
 	int index = 0;
 	for( int i = 0; i < 256; i++ )
 	{
@@ -512,7 +523,7 @@ void GraphicsEngine::ChangePaletteBrightness( int delta )
 		currentPalette[ index + 1 ] = Clip( currentPalette[index + 1] + delta, 0, 255 );
 		currentPalette[ index + 0 ] = Clip( currentPalette[index + 0] + delta, 0, 255 );
 		index = index + 4;
-	}
+	}*/
 }
 void GraphicsEngine::ChangePaletteHue( int deltaR, int deltaG, int deltaB )
 {
@@ -535,32 +546,34 @@ char* GraphicsEngine::GetPalette()
 	return outPalette;
 }
 bool GraphicsEngine::FadeOut()
-{
-	if( fadeOut == 0 )	//save palette
+{	
+	int index = 0;
+	
+	for( int i = 0; i < 256; i++ )
 	{
-		SavePaletteToBank();
-	}
 
-	if( fadeOut < 256 )
-	{
-		outportb( 0x03c8, 0 );
-		int index = 0;
-		for( int i = 0; i < 256; i++ )
+		if( currentPalette[ index + 2 ] > 0 )
 		{
-			outportb( 0x03c9, Clip( currentPalette[index + 2] -1 , 0, 255 ) );
-			outportb( 0x03c9, Clip( currentPalette[index + 1] -1 , 0, 255 ) );
-			outportb( 0x03c9, Clip( currentPalette[index + 0] -1 , 0, 255 ) );
-			index = index + 4;
+			currentPalette[ index + 2 ] = currentPalette[ index + 2 ] -1;
 		}
-		SaveCurrentPalette();
 
-		fadeOut++;
-		return false;
+		if( currentPalette[ index + 1 ] > 0 )
+		{
+			currentPalette[ index + 1 ] = currentPalette[ index + 1 ] -1;
+		}
+
+		if( currentPalette[ index + 0 ] > 0 )
+		{
+			currentPalette[ index + 0 ] = currentPalette[ index + 0 ] -1;
+		}
+
+		outportb( 0x03c8, i );
+		outportb( 0x03c9, currentPalette[index + 2]);
+		outportb( 0x03c9, currentPalette[index + 1]);
+		outportb( 0x03c9, currentPalette[index + 0]);
+
+		index = index + 4;
 	}
-
-	fadeOut = 0;
-
-	return true;
 }
 bool GraphicsEngine::FadeIn()
 {
@@ -575,6 +588,7 @@ bool GraphicsEngine::FadeIn()
 		if( fadeIn <= savedPalette[index + 2] )
 		{
 			outportb( 0x03c9, Clip( currentPalette[index + 2] +1 , 0, 255 ) );
+			currentPalette[ index + 2 ] = Clip( currentPalette[index + 2] +1, 0, 255 );
 		}
 		else
 		{
@@ -583,6 +597,7 @@ bool GraphicsEngine::FadeIn()
 		if( fadeIn <= savedPalette[index + 1] )
 		{
 			outportb( 0x03c9, Clip( currentPalette[index + 1] +1 , 0, 255 ) );
+			currentPalette[ index + 1 ] = Clip( currentPalette[index + 1] +1, 0, 255 );
 		}
 		else
 		{
@@ -591,14 +606,15 @@ bool GraphicsEngine::FadeIn()
 		if( fadeIn <= savedPalette[index + 0 ] )
 		{
 			outportb( 0x03c9, Clip( currentPalette[index + 0] +1 , 0, 255 ) );
+			currentPalette[ index + 0 ] = Clip( currentPalette[index + 0] +1, 0, 255 );
 		}
 		else
 		{
 			outportb( 0x03c9, Clip( currentPalette[index + 0] , 0, 255 ) );
 		}
+
 		index = index + 4;
 	}
-	SaveCurrentPalette();
 
 	fadeIn++;
 	if( fadeIn <= 255 )
@@ -1765,6 +1781,129 @@ bool GraphicsEngine::PlayAnimation( Animation* in, Vector2D pos, char transparen
 		in->currentFrame++;
 	}
 	in->currentSpeedStep++;
+
+	if( in->numSprites != 0 )
+	{
+		if( in->currentFrame >= in->numSprites )
+		{
+			in->currentFrame = 0;
+			return true;
+		}
+	}
+	else
+	{
+		if( in->currentFrame >= ( int )GetTileSet( in->tileSetID )->tiles.size() )
+		{
+			in->currentFrame = 0;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool GraphicsEngine::PlayAnimationDelta( Animation* in, Vector2D pos, float delta )
+{
+	//eventually delta time should be incorporated
+
+	DrawSprite( pos, in->tileSetID, in->firstTileIndex + in->currentFrame );
+	if( in->currentSpeedStep >= in->speed )
+	{
+		in->currentSpeedStep = 0;
+		in->currentFrame++;
+	}
+	in->currentSpeedStep = in->currentSpeedStep + delta;
+
+	if( in->numSprites != 0 )
+	{
+		if( in->currentFrame >= in->numSprites )
+		{
+			in->currentFrame = 0;
+			in->currentSpeedStep = 0;
+			return true;
+		}
+	}
+	else
+	{
+		if( in->currentFrame >= ( int )GetTileSet( in->tileSetID )->tiles.size() )
+		{
+			in->currentFrame = 0;
+			in->currentSpeedStep = 0;
+			return true;
+		}
+	}
+	return false;
+}
+bool GraphicsEngine::PlayAnimationDelta( Animation* in, Vector2D pos, char transparentColor, int delta )
+{
+	//eventually delta time should be incorporated
+
+	DrawSprite( pos, in->tileSetID, in->firstTileIndex + in->currentFrame, transparentColor );
+	if( in->currentSpeedStep >= in->speed )
+	{
+		in->currentSpeedStep = 0;
+		in->currentFrame++;
+	}
+	in->currentSpeedStep = in->currentSpeedStep + delta;
+
+	if( in->numSprites != 0 )
+	{
+		if( in->currentFrame >= in->numSprites )
+		{
+			in->currentFrame = 0;
+			return true;
+		}
+	}
+	else
+	{
+		if( in->currentFrame >= ( int )GetTileSet( in->tileSetID )->tiles.size() )
+		{
+			in->currentFrame = 0;
+			return true;
+		}
+	}
+	return false;
+}
+bool GraphicsEngine::PlayAnimationDelta( Animation* in, Vector2D pos, bool flippedHorizontal, bool flippedVertical, int delta )
+{
+	//eventually delta time should be incorporated
+
+	DrawSprite( pos, in->tileSetID, in->firstTileIndex + in->currentFrame, flippedHorizontal, flippedVertical );
+	if( in->currentSpeedStep >= in->speed )
+	{
+		in->currentSpeedStep = 0;
+		in->currentFrame++;
+	}
+	in->currentSpeedStep = in->currentSpeedStep + delta;
+
+	if( in->numSprites != 0 )
+	{
+		if( in->currentFrame >= in->numSprites )
+		{
+			in->currentFrame = 0;
+			return true;
+		}
+	}
+	else
+	{
+		if( in->currentFrame >= ( int )GetTileSet( in->tileSetID )->tiles.size() )
+		{
+			in->currentFrame = 0;
+			return true;
+		}
+	}
+	return false;
+}
+bool GraphicsEngine::PlayAnimationDelta( Animation* in, Vector2D pos, char transparentColor, bool flippedHorizontal, bool flippedVertical, int delta )
+{
+	//eventually delta time should be incorporated
+
+	DrawSprite( pos, in->tileSetID, in->firstTileIndex + in->currentFrame, transparentColor, flippedHorizontal, flippedVertical );
+	if( in->currentSpeedStep >= in->speed )
+	{
+		in->currentSpeedStep = 0;
+		in->currentFrame++;
+	}
+	in->currentSpeedStep = in->currentSpeedStep + delta;
 
 	if( in->numSprites != 0 )
 	{

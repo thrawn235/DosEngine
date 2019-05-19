@@ -201,7 +201,7 @@ void GameEngine::DrawAll()
 	vector<GameObject*> drawObjects = objects;
 	drawObjects.reserve(objects.size() );
 
-	for( int drawOrder = 0; drawOrder < 64; drawOrder++ )
+	for( int drawOrder = 0; drawOrder < 16; drawOrder++ )
 	{
 		for( unsigned int i = 0; i < drawObjects.size(); i++ )
 		{
@@ -1410,7 +1410,7 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					else
 					{
 						//printf("create!\n");
-						if(tileSetID != -1)
+						if(tileID != -1)
 						{
 							newObject = new GameObject( this );
 					

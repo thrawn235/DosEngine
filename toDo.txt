@@ -1,0 +1,18 @@
+collision:
+	irratic behavior
+
+animations:
+	stop animation when object is inactive
+
+fade:
+	incorporate delta
+	fade in at the beginning
+
+keys:
+	fix "sticking" keys
+
+camera:
+	stop camera movement at level borders
+
+speed:
+	fix slow vectors
