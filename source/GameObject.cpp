@@ -1487,8 +1487,8 @@ void Banner::Draw()
 		engine->graphics->DrawSprite(pos + Vector2D( 45, -12 ), engine->graphics->GetSprite( ASSET_AN ));
 		engine->graphics->DrawSprite(pos + Vector2D( 15, +30 ), engine->graphics->GetSprite( ASSET_PRESENTS ));
 		engine->graphics->DrawSprite(pos + Vector2D( 35, +45 ), engine->graphics->GetSprite( ASSET_OF_AN ));
-		engine->graphics->DrawSprite(pos + Vector2D( 25, +60 ), engine->graphics->GetSprite( ASSET_ID_BLACK ));
-		engine->graphics->DrawSprite(pos + Vector2D( 25, +105 ), engine->graphics->GetSprite( ASSET_PRODUCTION ));
+		engine->graphics->DrawSprite(pos + Vector2D( 20, +60 ), engine->graphics->GetSprite( ASSET_ID_BLACK ));
+		engine->graphics->DrawSprite(pos + Vector2D( 20, +105 ), engine->graphics->GetSprite( ASSET_PRODUCTION ));
 	}
 }
 
@@ -1807,8 +1807,8 @@ void HelpWindow::Draw()
 	{
 		engine->graphics->DrawWindow( Vector2D( 0, 165 ) + engine->graphics->GetCamPos() , 39, 2, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
 		engine->graphics->DrawWindow( Vector2D( 0, 5 ) + engine->graphics->GetCamPos() , 39, 20, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
-		char str[200];
-		sprintf(str, "Help" );
+		char str[500];
+		sprintf(str, "Help: \n\nControls:\nup/left/right/down: move\nspace: jump\nEnter: enter Level\nF1: help\nF2: stats\nESC: exit" );
 		engine->graphics->DrawText( Vector2D( 8, 13 ) + engine->graphics->GetCamPos(), ASSET_TXT_WHITE, 0, str );
 	}
 }
