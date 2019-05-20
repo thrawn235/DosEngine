@@ -60,6 +60,7 @@
 #define TYPE_EXIT					14
 #define TYPE_FADER					15
 #define TYPE_TREASURE				16
+#define TYPE_ACTOR					17
 //=======================================================
 
 
@@ -84,13 +85,13 @@ protected:
 
 	GameEngine* engine;
 
-	bool 		onFloor;
+	
 	bool		invisible;
 	bool 		enabled;
 
 	unsigned long UID;
 
-	vector<GameObject*> touchingObjects;
+	
 public:
 	GameObject 	( GameEngine* newEngine );
 	~GameObject ();
@@ -104,8 +105,7 @@ public:
 	virtual int 				GetDrawOrder 		();
 	virtual int 				GetWidth 			();
 	virtual int 				GetHeight 			();
-	virtual bool 				IsOnFloor 			();
-	virtual vector<GameObject*> GetTouchingObjects 	();
+	
 	virtual void 				SetTypeID 			( int newTypeID 				);
 	virtual void 				SetPos 				( Vector2D newPos 				);
 	virtual void 				SetDirection 		( Vector2D newDirection 		);
@@ -117,6 +117,10 @@ public:
 	virtual bool				GetInvisible		();
 	virtual unsigned long		GetUID				();
 	virtual void				SetUID				( unsigned long newUID );
+
+			void 				SetInsivible 		( bool newInvisible );
+			void 				Enable 				();
+			void 				Disable 			();
 	//======================================
 
 
@@ -125,17 +129,31 @@ public:
 	virtual void Draw 	();
 	//=====================================
 
+	
 
-	/*AddForce //Gravity
-	AddForce //Movement
-	void AddForce(Vector2D vector); //Wind etc.
-	bool OnFloor;	 //Is On Floor (variable)
-	void Friction(int strength); //friction (if on floor for example)
-	bool Collision(Vector2D* newPos);
-	bool Collision(Vector2D* newPos, int typeID); //collision detection and calculation of ne Position sets onFloor variable
-	void Move(int newPos); //just setting of the new pos
-	vector<GameObject*> GetTouchingObjects();
-	vector<GameObject*> GetTouchingObjects(int typeID);*/
+	
+
+	/*
+	Get Damage
+	Die
+	*/
+};
+
+
+
+
+
+class Actor : public GameObject
+{
+protected:
+	bool 				onFloor;
+	vector<GameObject*> touchingObjects;
+public:
+	Actor( GameEngine* newEngine );
+	~Actor();
+
+	virtual vector<GameObject*> GetTouchingObjects 	();
+	virtual bool 				IsOnFloor 			();
 
 	virtual void 				AddForce 			( Vector2D newForce );	//chang Direction Vector
 	virtual bool 				RayBoxIntersect		( Vector2D origin, Vector2D dir, float *tmin, Vector2D boxPos, int boxWidth, int boxHeight );
@@ -152,24 +170,11 @@ public:
 	virtual float 				RayRight 			( Vector2D origin, float length, vector<GameObject*> testObjects );
 	virtual float 				RayUp 				( Vector2D origin, float length, vector<GameObject*> testObjects );
 	virtual float 				RayLeft 			( Vector2D origin, float length, vector<GameObject*> testObjects );
-
-	void SetInsivible 		( bool newInvisible );
-	void Enable 			();
-	void Disable 			();
-
-	/*
-	Get Damage
-	Die
-	*/
 };
 
 
 
-
-
-
-
-class Player : public GameObject
+class Player : public Actor
 {
 protected:
 	Vector2D movement;
@@ -350,7 +355,7 @@ public:
 
 
 
-class Banner  : public GameObject
+class Banner  : public Actor
 {
 protected:
 	bool showEverything;

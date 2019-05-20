@@ -27,7 +27,6 @@ GameObject::GameObject( GameEngine* newEngine )
 
 	UID = engine->GetUID();
 
-	onFloor 	= false;
 	invisible	= false;
 	enabled		= true;
 }
@@ -66,16 +65,6 @@ int GameObject::GetTileIndex()
 int GameObject::GetDrawOrder()
 {
 	return drawOrder;
-	//
-}
-bool GameObject::IsOnFloor()
-{
-	return onFloor;
-	//
-}
-vector<GameObject*> GameObject::GetTouchingObjects()
-{
-	return touchingObjects;
 	//
 }
 int GameObject::GetWidth()
@@ -202,13 +191,39 @@ void GameObject::Disable()
 	//
 }
 
-void GameObject::AddForce( Vector2D newForce )
+
+
+
+
+
+
+
+//========== Actor =============
+Actor::Actor( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID  = TYPE_ACTOR; //1
+
+	onFloor 	= false;
+}
+Actor::~Actor()
+{
+}
+vector<GameObject*> Actor::GetTouchingObjects()
+{
+	return touchingObjects;
+	//
+}
+bool Actor::IsOnFloor()
+{
+	return onFloor;
+	//
+}
+void Actor::AddForce( Vector2D newForce )
 {
 	direction = direction + newForce;
 	//
 }
-
-bool GameObject::BoxBoxCollision( Vector2D pos1, int width1, int height1, Vector2D pos2, int width2, int height2 )
+bool Actor::BoxBoxCollision( Vector2D pos1, int width1, int height1, Vector2D pos2, int width2, int height2 )
 {
 	if( 	pos1.x < pos2.x + width2 && pos1.x + width1 > pos2.x
 		&&	pos1.y < pos2.y + height2 && pos1.y + height1 > pos2.y )
@@ -218,8 +233,7 @@ bool GameObject::BoxBoxCollision( Vector2D pos1, int width1, int height1, Vector
 	
 	return false;	
 }
-
-vector<GameObject*> GameObject::CollisionDetection()
+vector<GameObject*> Actor::CollisionDetection()
 {
 	vector<GameObject*> objectsInRange = engine->GetObjectsInArea(pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
 	vector<GameObject*> outObjects;
@@ -235,8 +249,7 @@ vector<GameObject*> GameObject::CollisionDetection()
 
 	return outObjects;
 }
-
-bool GameObject::RayBoxIntersect( Vector2D origin, Vector2D dir, float *tout, Vector2D boxPos, int boxWidth, int boxHeight )
+bool Actor::RayBoxIntersect( Vector2D origin, Vector2D dir, float *tout, Vector2D boxPos, int boxWidth, int boxHeight )
 {
 	Vector2D boxTopLeft 	= boxPos;
 	Vector2D boxBottomRight = boxPos + Vector2D( boxWidth, boxHeight );
@@ -299,8 +312,7 @@ bool GameObject::RayBoxIntersect( Vector2D origin, Vector2D dir, float *tout, Ve
  
     return true; 
 }
-
-float GameObject::FindClosestCollision( vector<GameObject*> objects, GameObject* closestObject )
+float Actor::FindClosestCollision( vector<GameObject*> objects, GameObject* closestObject )
 {
 	float tmin = 10000;
 	closestObject = NULL;
@@ -348,8 +360,7 @@ float GameObject::FindClosestCollision( vector<GameObject*> objects, GameObject*
 
 	return tmin;
 }
-
-Vector2D GameObject::VectorProjection( Vector2D posIn, Vector2D dirIn,  int tmin, GameObject* closestObject )
+Vector2D Actor::VectorProjection( Vector2D posIn, Vector2D dirIn,  int tmin, GameObject* closestObject )
 {
 	Vector2D v1 = dirIn * tmin;
 	posIn = posIn + v1;
@@ -367,8 +378,7 @@ Vector2D GameObject::VectorProjection( Vector2D posIn, Vector2D dirIn,  int tmin
 
 	return out;
 }
-
-bool GameObject::FindCollisionPoint( GameObject* testObject, Vector2D testPoint, Vector2D* out )
+bool Actor::FindCollisionPoint( GameObject* testObject, Vector2D testPoint, Vector2D* out )
 {
 	if( 	testPoint.x > testObject->GetPos().x && testPoint.x < testObject->GetPos().x + testObject->GetWidth() 
 		&&	testPoint.y > testObject->GetPos().y && testPoint.y < testObject->GetPos().y + testObject->GetHeight() )
@@ -407,7 +417,7 @@ bool GameObject::FindCollisionPoint( GameObject* testObject, Vector2D testPoint,
 
 	return false;
 }
-void GameObject::SimpleCollisionResolution( vector<GameObject*> colliders )
+void Actor::SimpleCollisionResolution( vector<GameObject*> colliders )
 {
 	Vector2D nextPos = pos + direction;
 
@@ -446,8 +456,7 @@ void GameObject::SimpleCollisionResolution( vector<GameObject*> colliders )
 
 	direction = nextPos - pos;
 }
-
-void GameObject::Collision( )
+void Actor::Collision( )
 {
 	vector<GameObject*> colliders = engine->GetObjectsInArea( pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
 
@@ -517,8 +526,7 @@ void GameObject::Collision( )
 
 	pos = centerPos - centerPosOffset;
 }
-
-float GameObject::RayDown( Vector2D origin, float length, vector<GameObject*> testObjects )
+float Actor::RayDown( Vector2D origin, float length, vector<GameObject*> testObjects )
 {	
 	float minDistance = 9999;
 	float distance = 0;
@@ -545,8 +553,7 @@ float GameObject::RayDown( Vector2D origin, float length, vector<GameObject*> te
 
 	return -1;
 }
-
-float GameObject::RayRight( Vector2D origin, float length, vector<GameObject*> testObjects )
+float Actor::RayRight( Vector2D origin, float length, vector<GameObject*> testObjects )
 {	
 	float minDistance = 9999;
 	float distance = 0;
@@ -573,7 +580,7 @@ float GameObject::RayRight( Vector2D origin, float length, vector<GameObject*> t
 
 	return -1;
 }
-float GameObject::RayUp( Vector2D origin, float length, vector<GameObject*> testObjects )
+float Actor::RayUp( Vector2D origin, float length, vector<GameObject*> testObjects )
 {	
 	float minDistance = 9999;
 	float distance = 0;
@@ -600,8 +607,7 @@ float GameObject::RayUp( Vector2D origin, float length, vector<GameObject*> test
 
 	return -1;
 }
-
-float GameObject::RayLeft( Vector2D origin, float length, vector<GameObject*> testObjects )
+float Actor::RayLeft( Vector2D origin, float length, vector<GameObject*> testObjects )
 {	
 	float minDistance = 9999;
 	float distance = 0;
@@ -628,13 +634,12 @@ float GameObject::RayLeft( Vector2D origin, float length, vector<GameObject*> te
 
 	return -1;
 }
-
-void GameObject::Move()
+void Actor::Move()
 {
 	pos = pos + direction * engine->time->GetDelta();
 	centerPos = pos + centerPosOffset;	
 }
-void GameObject::Friction( float slickness )
+void Actor::Friction( float slickness )
 {
 	if(direction.x != 0)
 	{
@@ -661,7 +666,7 @@ void GameObject::Friction( float slickness )
 
 
 //========== Player =============
-Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
+Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 {
 	typeID  = TYPE_PLAYER; //1
 
@@ -730,7 +735,6 @@ Player::Player( GameEngine* newEngine ) : GameObject( newEngine )
 }
 Player::~Player()
 {
-
 }
 void Player::SetScore( int newScore )
 {
@@ -1107,17 +1111,21 @@ void PlayerTopDown::Update()
 	{
 		movement = movement + Vector2D( 0.0f, -0.5f );
 	}
-	else if( engine->input->KeyDown( KEY_LEFT ) )
+	if( engine->input->KeyDown( KEY_LEFT ) )
 	{
 		movement = movement + Vector2D( -0.5f, 0.0f );	
 	}
-	else if( engine->input->KeyDown( KEY_DOWN ) )
+	if( engine->input->KeyDown( KEY_DOWN ) )
 	{
 		movement = movement + Vector2D( 0.0f, 0.5f );
 	}
-	else if( engine->input->KeyDown( KEY_RIGHT ) )
+	if( engine->input->KeyDown( KEY_RIGHT ) )
 	{
 		movement = movement + Vector2D( 0.5f, 0.0f );
+	}
+	if( !engine->input->AnyKeyDown() )
+	{
+		movement.Zero();
 	}
 
 
@@ -1137,7 +1145,7 @@ void PlayerTopDown::Update()
 
 	Move();
 
-	GameObject::Collision();
+	Actor::Collision();
 
 	
 	engine->graphics->SetCamCenter( centerPos );
@@ -1384,7 +1392,7 @@ void BackGroundAnimation::Draw()
 
 
 //========== Banner =============
-Banner::Banner( GameEngine* newEngine ) : GameObject( newEngine )
+Banner::Banner( GameEngine* newEngine ) : Actor( newEngine )
 {
 	typeID = TYPE_BANNER; //6
 
