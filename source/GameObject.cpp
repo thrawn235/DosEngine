@@ -195,15 +195,14 @@ void GameObject::Disable()
 
 
 
-
-
-
 //========== Actor =============
 Actor::Actor( GameEngine* newEngine ) : GameObject( newEngine )
 {
-	typeID  = TYPE_ACTOR; //1
+	typeID  	= TYPE_ACTOR; //1
 
 	onFloor 	= false;
+	dying 		= false;
+	dead 		= false;
 }
 Actor::~Actor()
 {
@@ -216,6 +215,21 @@ vector<GameObject*> Actor::GetTouchingObjects()
 bool Actor::IsOnFloor()
 {
 	return onFloor;
+	//
+}
+bool Actor::IsDying()
+{
+	return dying;
+	//
+}
+bool Actor::IsDead()
+{
+	return dead;
+	//
+}
+void Actor::Die()
+{
+	dying = true;
 	//
 }
 void Actor::AddForce( Vector2D newForce )
@@ -664,56 +678,65 @@ void Actor::Friction( float slickness )
 
 
 
-
 //========== Player =============
 Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 {
-	typeID  = TYPE_PLAYER; //1
+	typeID  	= TYPE_PLAYER; //1
 
-	width = 16;
-	height = 24;
-	tileIndex = 0;
-	tileSetID = ASSET_KEEN_WALK;
-	drawOrder = 2;
+	width 		= 16;
+	height 		= 24;
+	tileIndex 	= 0;
+	tileSetID 	= ASSET_KEEN_WALK;
+	drawOrder 	= 2;
 
-	levelUID = 0;
+	levelUID 	= 0;
 
-	walkForward.id = 0;
-	walkForward.tileSetID = ASSET_KEEN_WALK;
-	walkForward.firstTileIndex = 1;
-	walkForward.numSprites = 3;
-	walkForward.currentFrame = 0;
-	walkForward.speed = 7;
-	walkForward.currentSpeedStep = 0;
 
-	walkBackward.id = 0;
-	walkBackward.tileSetID = ASSET_KEEN_WALK;
-	walkBackward.firstTileIndex = 5;
-	walkBackward.numSprites = 3;
-	walkBackward.currentFrame = 0;
-	walkBackward.speed = 7;
-	walkBackward.currentSpeedStep = 0;
+	walkForward.id 					= 0;
+	walkForward.tileSetID 			= ASSET_KEEN_WALK;
+	walkForward.firstTileIndex 		= 1;
+	walkForward.numSprites 			= 3;
+	walkForward.currentFrame 		= 0;
+	walkForward.speed 				= 7;
+	walkForward.currentSpeedStep 	= 0;
 
-	jumpLeft.id = 0;
-	jumpLeft.tileSetID = ASSET_KEEN_WALK;
-	jumpLeft.firstTileIndex = 14;
-	jumpLeft.numSprites = 6;
-	jumpLeft.currentFrame = 0;
-	jumpLeft.speed = 7;
-	jumpLeft.currentSpeedStep = 0;
+	walkBackward.id 				= 0;
+	walkBackward.tileSetID 			= ASSET_KEEN_WALK;
+	walkBackward.firstTileIndex 	= 5;
+	walkBackward.numSprites 		= 3;
+	walkBackward.currentFrame 		= 0;
+	walkBackward.speed 				= 7;
+	walkBackward.currentSpeedStep 	= 0;
 
-	jumpRight.id = 0;
-	jumpRight.tileSetID = ASSET_KEEN_WALK;
-	jumpRight.firstTileIndex = 8;
-	jumpRight.numSprites = 6;
-	jumpRight.currentFrame = 0;
-	jumpRight.speed = 7;
-	jumpRight.currentSpeedStep = 0;
+	jumpLeft.id 					= 0;
+	jumpLeft.tileSetID 				= ASSET_KEEN_WALK;
+	jumpLeft.firstTileIndex 		= 14;
+	jumpLeft.numSprites				= 6;
+	jumpLeft.currentFrame 			= 0;
+	jumpLeft.speed 					= 7;
+	jumpLeft.currentSpeedStep 		= 0;
 
-	jumpCharging = false;
-	jumpCharge = 0;
+	jumpRight.id 					= 0;
+	jumpRight.tileSetID 			= ASSET_KEEN_WALK;
+	jumpRight.firstTileIndex 		= 8;
+	jumpRight.numSprites 			= 6;
+	jumpRight.currentFrame 			= 0;
+	jumpRight.speed 				= 7;
+	jumpRight.currentSpeedStep 		= 0;
 
-	spacePressed = false;
+	deathAnimation.id 				= 0;
+	deathAnimation.tileSetID 		= ASSET_KEEN_WALK;
+	deathAnimation.firstTileIndex 	= 22;
+	deathAnimation.numSprites 		= 2;
+	deathAnimation.currentFrame 	= 0;
+	deathAnimation.speed 			= 5;
+	deathAnimation.currentSpeedStep = 0;
+
+
+	jumpCharging 	= false;
+	jumpCharge 		= 0;
+
+	spacePressed 	= false;
 
 	centerPosOffset = Vector2D( width / 2, height / 2 );
 
@@ -729,6 +752,7 @@ Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 	blueKey		= false;
 	redKey		= false;
 	yellowKey	= false;
+
 
 	GameManager* manager = new GameManager( engine );
 	engine->AddObject( manager );
@@ -838,9 +862,8 @@ unsigned long Player::GetLevelUID()
 }
 void Player::Update()
 {
-
 	if( engine->input->KeyDown( KEY_D ) )
-		enabled = false;
+		Die();
 
 	
 	movement = Vector2D( 0.0f, 0.0f );
@@ -873,106 +896,116 @@ void Player::Update()
 		jumpCharging = false;
 	}
 
+	if( !dead && !dying )
+	{
 
-	AddForce( movement );
+		AddForce( movement );
 
-	if( jumpCharging == true)
-	{	
-		jumpCharge++;
-		if( jumpCharge > 100 )
-		{
-			jumpCharge = 100;
+		if( jumpCharging == true)
+		{	
+			jumpCharge++;
+			if( jumpCharge > 100 )
+			{
+				jumpCharge = 100;
+			}
 		}
-	}
-	if( jumpCharging == false && jumpCharge > 0 && onFloor )
-	{
-		jumpCharge = 0;
-		AddForce( Vector2D( 0.0, -7.0 ) );
-	}
-	
-	if( !onFloor )
-	{
-		AddForce( Vector2D( 0, 0.5 ) ); //gravity
-		Friction( 0.90f );
-	}
-	else
-	{
-		Friction( 0.86f );
-	}
+		if( jumpCharging == false && jumpCharge > 0 && onFloor )
+		{
+			jumpCharge = 0;
+			AddForce( Vector2D( 0.0, -7.0 ) );
+		}
+		
+		if( !onFloor )
+		{
+			AddForce( Vector2D( 0, 0.5 ) ); //gravity
+			Friction( 0.90f );
+		}
+		else
+		{
+			Friction( 0.86f );
+		}
 
-	vector<GameObject*> treasures = engine->GetObjectsInArea( pos, width, height, TYPE_TREASURE );
-	for( unsigned int i = 0; i < treasures.size(); i++ )
-	{
-		Treasure* treasure = ( Treasure* )treasures[i];
-		score = score + treasure->GetScore();
+		vector<GameObject*> treasures = engine->GetObjectsInArea( pos, width, height, TYPE_TREASURE );
+		for( unsigned int i = 0; i < treasures.size(); i++ )
+		{
+			Treasure* treasure = ( Treasure* )treasures[i];
+			score = score + treasure->GetScore();
+		}
+
+
+		Move();
+
+		Collision();
+		
+		engine->graphics->SetCamCenter( centerPos );
 	}
-
-
-	Move();
-
-	Collision();
-	
-	engine->graphics->SetCamCenter( centerPos );
 }
 void Player::Draw()
 {
 	/*char str[500];
 	sprintf(str, "movement=%f:%f\ndirection=%f:%f\npos=%f:%f\n", movement.x, movement.y, direction.x, direction.y, pos.x, pos.y );
 	engine->graphics->DrawText( Vector2D( 0, 9 ) + engine->graphics->GetCamPos() , 1, 0, str );*/
-	if( jumpCharging )
+	if( !dead && !dying )
 	{
-		if( direction.x >= 0 )
+		if( jumpCharging )
 		{
-			engine->graphics->PlayAnimationDelta( &jumpRight, pos, 16, engine->time->GetDelta() );
-			if(jumpRight.currentFrame >= 5)
-				jumpRight.currentSpeedStep = 0;
-		}
-		else if( direction.x < 0 )
-		{
-			engine->graphics->PlayAnimationDelta( &jumpLeft, pos, 16, engine->time->GetDelta() );
-			if(jumpLeft.currentFrame >= 5)
-				jumpLeft.currentSpeedStep = 0;
-		}
-	}
-	else
-	{
-		jumpLeft.currentFrame = 0;
-		jumpLeft.currentSpeedStep = 0;
-		jumpRight.currentSpeedStep = 0;
-		jumpRight.currentFrame = 0;
-
-		if( onFloor )
-		{
-			if( direction.x > 0 )
+			if( direction.x >= 0 )
 			{
-				engine->graphics->PlayAnimationDelta( &walkForward, pos, 16, engine->time->GetDelta() );
+				engine->graphics->PlayAnimationDelta( &jumpRight, pos, 16, engine->time->GetDelta() );
+				if(jumpRight.currentFrame >= 5)
+					jumpRight.currentSpeedStep = 0;
 			}
 			else if( direction.x < 0 )
 			{
-				engine->graphics->PlayAnimationDelta( &walkBackward, pos, 16, engine->time->GetDelta() );
-			}
-			else
-			{
-				walkForward.currentFrame = 0;
-				walkForward.currentSpeedStep = 0;
-
-				walkBackward.currentFrame = 0;
-				walkBackward.currentSpeedStep = 0;
-
-				engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
+				engine->graphics->PlayAnimationDelta( &jumpLeft, pos, 16, engine->time->GetDelta() );
+				if(jumpLeft.currentFrame >= 5)
+					jumpLeft.currentSpeedStep = 0;
 			}
 		}
 		else
 		{
-			if( direction.x >= 0 )
+			jumpLeft.currentFrame = 0;
+			jumpLeft.currentSpeedStep = 0;
+			jumpRight.currentSpeedStep = 0;
+			jumpRight.currentFrame = 0;
+
+			if( onFloor )
 			{
-				engine->graphics->DrawSprite( pos, tileSetID, 13, 16 );
+				if( direction.x > 0 )
+				{
+					engine->graphics->PlayAnimationDelta( &walkForward, pos, 16, engine->time->GetDelta() );
+				}
+				else if( direction.x < 0 )
+				{
+					engine->graphics->PlayAnimationDelta( &walkBackward, pos, 16, engine->time->GetDelta() );
+				}
+				else
+				{
+					walkForward.currentFrame = 0;
+					walkForward.currentSpeedStep = 0;
+
+					walkBackward.currentFrame = 0;
+					walkBackward.currentSpeedStep = 0;
+
+					engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
+				}
 			}
-			else if( direction.x < 0 )
+			else
 			{
-				engine->graphics->DrawSprite( pos, tileSetID, 19, 16 );
+				if( direction.x >= 0 )
+				{
+					engine->graphics->DrawSprite( pos, tileSetID, 13, 16 );
+				}
+				else if( direction.x < 0 )
+				{
+					engine->graphics->DrawSprite( pos, tileSetID, 19, 16 );
+				}
 			}
 		}
+	}
+	if( dying )
+	{
+		engine->graphics->PlayAnimationDelta( &deathAnimation, pos, 16, engine->time->GetDelta() );
 	}
 }
 void  Player::Collision()
@@ -1051,11 +1084,6 @@ void  Player::Collision()
 
 	pos = centerPos - centerPosOffset;
 }
-
-
-
-
-
 
 
 
@@ -1180,10 +1208,6 @@ void PlayerTopDown::Draw()
 
 
 
-
-
-
-
 //========== CityOverWorld =============
 CityOverWorld::CityOverWorld( GameEngine* newEngine ) : GameObject( newEngine )
 {
@@ -1235,10 +1259,6 @@ void CityOverWorld::LoadLevel()
 
 
 
-
-
-
-
 //========== Solid =============
 Solid::Solid( GameEngine* newEngine ) : GameObject( newEngine )
 {
@@ -1259,9 +1279,6 @@ void Solid::Draw()
 	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
 	//engine->graphics->DrawRect( pos, width-1, height-1, 1);
 }
-
-
-
 
 
 
@@ -1292,9 +1309,6 @@ void SolidTop::Draw()
 
 
 
-
-
-
 //========== BackGround =============
 BackGround::BackGround( GameEngine* newEngine ) : GameObject( newEngine )
 {
@@ -1318,10 +1332,6 @@ void BackGround::Draw()
 	engine->graphics->DrawPixel( Vector2D( pos.x, pos.y + height-1 ), 15);
 	engine->graphics->DrawPixel( Vector2D( pos.x + width-1, pos.y + height-1 ), 15);
 }
-
-
-
-
 
 
 
@@ -1383,9 +1393,6 @@ void BackGroundAnimation::Draw()
 	engine->graphics->PlayAnimationDelta( &anim, pos, engine->time->GetDelta() );
 	//
 }
-
-
-
 
 
 
@@ -1504,8 +1511,6 @@ void Banner::Draw()
 
 
 
-
-
 //========== MainMenu =============
 MainMenu::MainMenu( GameEngine* newEngine ) : GameObject( newEngine )
 {
@@ -1619,10 +1624,6 @@ void MainMenu::Draw()
 
 
 
-
-
-
-
 //========== Trap =============
 Trap::Trap( GameEngine* newEngine ) : GameObject( newEngine )
 {
@@ -1656,11 +1657,6 @@ void Trap::SetTileIndex( int newTileIndex )
 	tileIndex = newTileIndex;
 	anim.firstTileIndex = newTileIndex;
 }
-
-
-
-
-
 
 
 
@@ -1744,8 +1740,6 @@ void GameManager::Draw()
 
 
 
-
-
 //========== StaticSign =============
 StaticSign::StaticSign( GameEngine* newEngine ) : GameObject( newEngine )
 {
@@ -1770,10 +1764,6 @@ void StaticSign::Draw()
 	engine->graphics->DrawSprite( pos, engine->graphics->GetSprite( spriteID ) );
 	//
 }
-
-
-
-
 
 
 
@@ -1820,9 +1810,6 @@ void HelpWindow::Draw()
 		engine->graphics->DrawText( Vector2D( 8, 13 ) + engine->graphics->GetCamPos(), ASSET_TXT_WHITE, 0, str );
 	}
 }
-
-
-
 
 
 
@@ -1903,6 +1890,7 @@ void Fader::Draw()
 {
 
 }
+
 
 
 

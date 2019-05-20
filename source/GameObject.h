@@ -128,15 +128,6 @@ public:
 	virtual void Update ();
 	virtual void Draw 	();
 	//=====================================
-
-	
-
-	
-
-	/*
-	Get Damage
-	Die
-	*/
 };
 
 
@@ -146,6 +137,9 @@ public:
 class Actor : public GameObject
 {
 protected:
+	bool dying;
+	bool dead;
+
 	bool 				onFloor;
 	vector<GameObject*> touchingObjects;
 public:
@@ -154,6 +148,9 @@ public:
 
 	virtual vector<GameObject*> GetTouchingObjects 	();
 	virtual bool 				IsOnFloor 			();
+	virtual bool 				IsDying 			();
+	virtual bool 				IsDead				();
+	virtual void				Die 				();
 
 	virtual void 				AddForce 			( Vector2D newForce );	//chang Direction Vector
 	virtual bool 				RayBoxIntersect		( Vector2D origin, Vector2D dir, float *tmin, Vector2D boxPos, int boxWidth, int boxHeight );
@@ -174,6 +171,8 @@ public:
 
 
 
+
+
 class Player : public Actor
 {
 protected:
@@ -181,6 +180,7 @@ protected:
 
 	Animation walkForward;
 	Animation walkBackward;
+	Animation deathAnimation;
 
 	Animation jumpLeft, jumpRight;
 	bool jumpCharging;
@@ -238,8 +238,6 @@ public:
 
 
 
-
-
 class PlayerTopDown : public Player
 {
 protected:
@@ -256,8 +254,6 @@ public:
 	virtual void Update ();
 	virtual void Draw 	();
 };
-
-
 
 
 
@@ -282,8 +278,6 @@ public:
 
 
 
-
-
 class Solid  : public GameObject
 {
 protected:
@@ -294,8 +288,6 @@ public:
 	virtual void Update ();
 	virtual void Draw 	();
 };
-
-
 
 
 
@@ -317,7 +309,6 @@ public:
 
 
 
-
 class BackGround  : public GameObject
 {
 protected:
@@ -328,8 +319,6 @@ public:
 	virtual void Update ();
 	virtual void Draw 	();
 };
-
-
 
 
 
@@ -353,8 +342,6 @@ public:
 
 
 
-
-
 class Banner  : public Actor
 {
 protected:
@@ -368,8 +355,6 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 };
-
-
 
 
 
@@ -396,6 +381,7 @@ public:
 
 
 
+
 class Trap : public GameObject
 {
 protected:
@@ -408,7 +394,6 @@ public:
 	virtual void Draw 			();
 	virtual void SetTileIndex	( int newTileIndex );
 };
-
 
 
 
@@ -446,7 +431,6 @@ public:
 
 
 
-
 class StaticSign : public GameObject
 {
 protected:
@@ -459,7 +443,6 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 };
-
 
 
 
@@ -497,6 +480,7 @@ public:
 
 
 
+
 class Fader : public GameObject
 {
 protected:
@@ -509,6 +493,8 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 };
+
+
 
 
 
