@@ -27,6 +27,8 @@ GameObject::GameObject( GameEngine* newEngine )
 
 	UID = engine->GetUID();
 
+	important 	= false;
+
 	invisible	= false;
 	enabled		= true;
 }
@@ -75,6 +77,11 @@ int GameObject::GetWidth()
 int GameObject::GetHeight()
 {
 	return height;
+	//
+}
+bool GameObject::GetImportant()
+{
+	return important;
 	//
 }
 void GameObject::SetTypeID( int newTypeID )
@@ -691,6 +698,8 @@ Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 
 	levelUID 	= 0;
 
+	important 	= true;
+
 
 	walkForward.id 					= 0;
 	walkForward.tileSetID 			= ASSET_KEEN_WALK;
@@ -912,7 +921,7 @@ void Player::Update()
 		if( jumpCharging == false && jumpCharge > 0 && onFloor )
 		{
 			jumpCharge = 0;
-			AddForce( Vector2D( 0.0, -7.0 ) );
+			AddForce( Vector2D( 0.0, -10.0 ) );
 		}
 		
 		if( !onFloor )
@@ -1102,6 +1111,7 @@ PlayerTopDown::PlayerTopDown( GameEngine* newEngine ) : Player( newEngine )
 
 	centerPosOffset = Vector2D( width / 2, height / 2 );
 
+	important = true;
 
 	down.id = 0;
 	down.tileSetID = ASSET_KEEN_TOP;
@@ -1405,6 +1415,8 @@ Banner::Banner( GameEngine* newEngine ) : Actor( newEngine )
 
 	drawOrder = 2;
 
+	important = true;
+
 	AddForce( Vector2D( 0, -0.5 ) ); // set initial velocity upwards
 
 	showEverything = false;
@@ -1531,6 +1543,8 @@ MainMenu::MainMenu( GameEngine* newEngine ) : GameObject( newEngine )
 
 	fadeTimeStamp = 0;
 
+	important = true;
+
 	showSelf = false;
 	invisible = true;
 }
@@ -1645,6 +1659,11 @@ Trap::~Trap()
 }
 void Trap::Update()
 {
+	Player* player = (Player* )engine->GetFirstObjectInArea( pos, width, height, TYPE_PLAYER );
+	if( player != NULL )
+	{
+		player->Die();
+	}
 
 }
 void Trap::Draw()
@@ -1686,6 +1705,8 @@ GameManager::GameManager( GameEngine* newEngine ) : GameObject( newEngine )
 	yellowKey	= false;
 
 	connectedPlayer = NULL;
+
+	important = true;
 }
 GameManager::~GameManager()
 {
@@ -1775,6 +1796,7 @@ HelpWindow::HelpWindow( GameEngine* newEngine ) : GameObject( newEngine )
 	typeID = TYPE_HELP_WINDOW; //12
 	show = false;
 	keyDown = false;
+	important = true;
 }
 HelpWindow::~HelpWindow()
 {
@@ -1864,6 +1886,7 @@ Fader::Fader( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_FADER; //14
 	fadeOut = false;
+	important = true;
 }
 Fader::~Fader()
 {

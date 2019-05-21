@@ -82,7 +82,7 @@ int main()
 	{
 		engine->time->FrameStart();		//init Frametiming
 
-		engine->input->CheckKeys();		//check keyboard
+		//engine->input->CheckKeys();		//check keyboard
 
 
 		//------------------------ input -----------------------------
@@ -107,6 +107,8 @@ int main()
 		//-----------------------------------------------------------
 
 		//engine->graphics->ClearScreen(190);
+
+		engine->FilterObjectsByImportance();
 
 		engine->UpdateAll();
 		engine->DrawAll();	//draw all Objects (that are handled by the GameEngine)

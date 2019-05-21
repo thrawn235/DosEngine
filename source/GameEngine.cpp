@@ -99,6 +99,7 @@ void GameEngine::ClearObjects()
 {
 	//do not destry objects
 	objects.clear();
+	unimportantObjects.clear();
 }
 void GameEngine::PurgeObjects()
 {
@@ -107,6 +108,7 @@ void GameEngine::PurgeObjects()
 }
 void GameEngine::SaveObjectsToBank()
 {
+	RestoreAllUnimportantObjects();
 	saveBank = objects;
 	//
 }
@@ -180,6 +182,48 @@ unsigned long GameEngine::GetUID()
 	lastUID++;
 	return lastUID;
 }
+void GameEngine::FilterObjectsByImportance()
+{
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( objects[i]->GetImportant() != true )
+		{
+			if( objects[i]->GetTypeID() == TYPE_BACK_GROUND || objects[i]->GetTypeID() == TYPE_GAME_OBJECT )
+			{
+				unimportantObjects.push_back( objects[i] );
+				objects.erase( objects.begin() + i );
+			}
+
+			if( 	objects[i]->GetPos().x < (graphics->GetCamPos().x - 100) || objects[i]->GetPos().y < (graphics->GetCamPos().y - 100)
+				||	objects[i]->GetPos().x > (graphics->GetCamPos().x + 100 + graphics->GetScreenWidth() ) || objects[i]->GetPos().y > (graphics->GetCamPos().y + 100 + graphics->GetScreenHeight() ) )
+			{
+				unimportantObjects.push_back( objects[i] );
+				RemoveObject( objects[i] );
+			}
+		}
+	}
+
+	for( unsigned int i = 0; i < unimportantObjects.size(); i++ )
+	{
+		if( unimportantObjects[i]->GetTypeID() != TYPE_BACK_GROUND && unimportantObjects[i]->GetTypeID() != TYPE_GAME_OBJECT )
+		{
+			if( 	unimportantObjects[i]->GetPos().x > (graphics->GetCamPos().x - 100) && unimportantObjects[i]->GetPos().y > (graphics->GetCamPos().y - 100)
+				&&	unimportantObjects[i]->GetPos().x < (graphics->GetCamPos().x + 100 + graphics->GetScreenWidth() ) && unimportantObjects[i]->GetPos().y < (graphics->GetCamPos().y + 100 + graphics->GetScreenHeight() ) )
+			{
+				objects.push_back( unimportantObjects[i] );
+				unimportantObjects.erase( unimportantObjects.begin() + i );
+			}
+		}	
+	}
+}
+void GameEngine::RestoreAllUnimportantObjects()
+{
+	for( unsigned int i = 0; i < unimportantObjects.size(); i++ )
+	{
+		objects.push_back( unimportantObjects[i] );
+	}
+	unimportantObjects.clear();
+}
 //==========================================================
 
 
@@ -199,7 +243,7 @@ void GameEngine::DrawAll()
 	//performance ??
 
 	vector<GameObject*> drawObjects = objects;
-	drawObjects.reserve(objects.size() );
+	drawObjects.insert(drawObjects.end(), unimportantObjects.begin(), unimportantObjects.end() );	//slow!!!!!
 
 	for( int drawOrder = 0; drawOrder < 16; drawOrder++ )
 	{
@@ -1418,7 +1462,7 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					}
 					if( newObject != NULL )
 					{
-						newObject->SetTypeID	( typeID );
+						//newObject->SetTypeID	( typeID );
 						newObject->SetPos		( newPos );
 						newObject->SetDimensions( tileWidth, tileHeight );
 						newObject->SetTileSetID	( tileSetID );
@@ -1765,6 +1809,37 @@ vector<GameObject*> GameEngine::GetObjectsInArea( Vector2D pos, int width, int h
 	}
 	
 	return outObjects;
+}
+GameObject* GameEngine::GetFirstObjectInArea( Vector2D pos, int width, int height)
+{
+	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x + width > objects[i]->GetPos().x && pos.x < objects[i]->GetPos().x + objects[i]->GetWidth()
+			&& 	pos.y + height > objects[i]->GetPos().y && pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() )
+		{
+			return objects[i];
+		}
+	}
+	
+	return NULL;
+}
+GameObject* GameEngine::GetFirstObjectInArea( Vector2D pos, int width, int height, int typeID )
+{
+	vector<GameObject*> outObjects;
+	outObjects.reserve(100);
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( 	pos.x + width > objects[i]->GetPos().x && pos.x < objects[i]->GetPos().x + objects[i]->GetWidth()
+			&& 	pos.y + height > objects[i]->GetPos().y && pos.y < objects[i]->GetPos().y + objects[i]->GetHeight() 
+			&& 	objects[i]->GetTypeID() == typeID )
+		{
+			return objects[i];
+		}
+	}
+	
+	return NULL;
 }
 GameObject* GameEngine::GetFirstObjectAtPos( Vector2D pos )
 {

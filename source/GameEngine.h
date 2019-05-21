@@ -66,6 +66,8 @@ public:
 private:
 	vector<GameObject*> objects;
 
+	vector<GameObject*> unimportantObjects;
+
 	vector<GameObject*> saveBank;	//to save the overworld
 
 public:
@@ -73,29 +75,32 @@ public:
 	~GameEngine();
 
 	//================ Set/Get =====================
-	GraphicsEngine* GetGraphics ();
-	TimeEngine*  	GetTime 	();
-	InputEngine* 	GetInput 	();
+	GraphicsEngine* GetGraphics					();
+	TimeEngine*  	GetTime 					();
+	InputEngine* 	GetInput 					();
 	//=============================================
 
 
 	//=========== Object Management ================
-	void AddObject 			( GameObject* newObject 		);
-	void RemoveObject 		( GameObject* in 				);
-	void RemoveObject 		( unsigned int index 			);
-	void RemoveObjects 		( vector<GameObject*> objects 	);
-	void ClearObjects 		();
-	void PurgeObjects 		();
-	void SaveObjectsToBank 	();
-	void LoadObjectsFromBank();
-	void DisableAll			();
-	void DisableAll			( GameObject* exclude );
-	void DisableAll			( vector<GameObject*> excludes);
-	void EnableAll			();
-	void EnableAll			( GameObject* exclude );
-	void EnableAll			( vector<GameObject*> excludes);
+	void 			AddObject 					( GameObject* newObject 		);
+	void 			RemoveObject 				( GameObject* in 				);
+	void 			RemoveObject 				( unsigned int index 			);
+	void 			RemoveObjects 				( vector<GameObject*> objects 	);
+	void 			ClearObjects 				();
+	void 			PurgeObjects 				();
+	void 			SaveObjectsToBank 			();
+	void 			LoadObjectsFromBank 		();
+	void 			DisableAll					();
+	void 			DisableAll					( GameObject* exclude );
+	void 			DisableAll					( vector<GameObject*> excludes);
+	void 			EnableAll					();
+	void 			EnableAll					( GameObject* exclude );
+	void 			EnableAll					( vector<GameObject*> excludes);
 
-	unsigned long GetUID	();
+	unsigned long 	GetUID						();
+
+	void 			FilterObjectsByImportance 	();
+	void 			RestoreAllUnimportantObjects();
 	//==============================================
 
 
@@ -109,24 +114,24 @@ public:
 	//==============================================
 
 	//================= Level ======================
-	TMXMap 			LoadTMXMap			( const char* filePath								);
-	TMXProperty		GetProperty			( vector<TMXProperty> properties, const char* name	);
-	void 			CreateObjectsFromMap( TMXMap* in 										);
-	void 			CreateObjectsFromMap( TMXMap* in, Vector2D offset 						);
-	int 			GetTypeID			( TMXMap* in, int mapValue, int TMXTileSetIndex 	);
-	int 			GetTMXTileSetIndex	( TMXMap* in, int mapValue 							);
-	int 			GetTileID 			( TMXMap* in, int mapValue, int TMXTileSetIndex		);
-	int 			GetTileSetID 		( TMXMap* in, int TMXTileSetIndex 					);
-	int 			GetFirstGid 		( TMXMap* in, int tileSetID 						);
+	TMXMap 			LoadTMXMap					( const char* filePath								);
+	TMXProperty		GetProperty					( vector<TMXProperty> properties, const char* name	);
+	void 			CreateObjectsFromMap 		( TMXMap* in 										);
+	void 			CreateObjectsFromMap 		( TMXMap* in, Vector2D offset 						);
+	int 			GetTypeID					( TMXMap* in, int mapValue, int TMXTileSetIndex 	);
+	int 			GetTMXTileSetIndex			( TMXMap* in, int mapValue 							);
+	int 			GetTileID 					( TMXMap* in, int mapValue, int TMXTileSetIndex		);
+	int 			GetTileSetID 				( TMXMap* in, int TMXTileSetIndex 					);
+	int 			GetFirstGid 				( TMXMap* in, int tileSetID 						);
 	//==============================================
 
 	//================ Misc =======================
-	void Quit(const char* message);
+	void 			Quit 						(const char* message);
 	//=============================================
 
 
 	//================= Random =====================
-	unsigned char GetRandom();
+	unsigned char 	GetRandom 					();
 	//==============================================
 
 
@@ -135,30 +140,32 @@ public:
 
 
 	//================ FindingObjects ==============
-	vector<GameObject*> GetAllObjects 				();
-	vector<GameObject*> GetAllObjects 				( int typeID 										);
-	GameObject*			GetFirstObject 				( int typeID 										);
-	vector<GameObject*> GetTouchingObjects			( Vector2D testDirection							);
-	vector<GameObject*> GetTouchingObjects			( Vector2D testDirection, int typeID				);
-	vector<GameObject*> GetObjectsAtPos 			( Vector2D pos 										);
-	vector<GameObject*> GetObjectsAtPos 			( Vector2D pos, int typeID 							);
-	vector<GameObject*> GetObjectsInArea 			( Vector2D pos, int width, int height				);
-	vector<GameObject*> GetObjectsInArea 			( Vector2D pos, int width, int height, int typeID 	);
-	GameObject* 		GetFirstObjectAtPos 		( Vector2D pos 										);
-	GameObject* 		GetFirstObjectAtPos 		( Vector2D pos, int typeID 							);
-	vector<GameObject*> GetObjectsInRadius 			( Vector2D pos, int radius 							);
-	vector<GameObject*> GetObjectsInRadius 			( Vector2D pos, int radius, int typeID 				);
-	vector<GameObject*> GetObjectsAlongRay 			( Vector2D origin, Vector2D direction 				);
-	vector<GameObject*> GetObjectsAlongRay 			( Vector2D origin, Vector2D direction, int typeID 	);
-	GameObject* 		GetFirstObjectAlongRay 		( Vector2D origin, Vector2D direction 				);
-	GameObject* 		GetFirstObjectAlongRay 		( Vector2D origin, Vector2D direction, int typeID 	);
-	GameObject* 		GetObjectByUID		 		( unsigned long UID 								);
+	vector<GameObject*> GetAllObjects 			();
+	vector<GameObject*> GetAllObjects 			( int typeID 										);
+	GameObject*			GetFirstObject 			( int typeID 										);
+	vector<GameObject*> GetTouchingObjects		( Vector2D testDirection							);
+	vector<GameObject*> GetTouchingObjects		( Vector2D testDirection, int typeID				);
+	vector<GameObject*> GetObjectsAtPos 		( Vector2D pos 										);
+	vector<GameObject*> GetObjectsAtPos 		( Vector2D pos, int typeID 							);
+	vector<GameObject*> GetObjectsInArea 		( Vector2D pos, int width, int height				);
+	vector<GameObject*> GetObjectsInArea 		( Vector2D pos, int width, int height, int typeID 	);
+	GameObject* 		GetFirstObjectInArea 	( Vector2D pos, int width, int height				);
+	GameObject* 		GetFirstObjectInArea 	( Vector2D pos, int width, int height, int typeID 	);
+	GameObject* 		GetFirstObjectAtPos 	( Vector2D pos 										);
+	GameObject* 		GetFirstObjectAtPos 	( Vector2D pos, int typeID 							);
+	vector<GameObject*> GetObjectsInRadius 		( Vector2D pos, int radius 							);
+	vector<GameObject*> GetObjectsInRadius 		( Vector2D pos, int radius, int typeID 				);
+	vector<GameObject*> GetObjectsAlongRay 		( Vector2D origin, Vector2D direction 				);
+	vector<GameObject*> GetObjectsAlongRay 		( Vector2D origin, Vector2D direction, int typeID 	);
+	GameObject* 		GetFirstObjectAlongRay 	( Vector2D origin, Vector2D direction 				);
+	GameObject* 		GetFirstObjectAlongRay 	( Vector2D origin, Vector2D direction, int typeID 	);
+	GameObject* 		GetObjectByUID		 	( unsigned long UID 								);
 	//==============================================
 
 
 	//============= math trasitions ================
-	float Linear 	();
-	float Clip 		( float in, float min, float max );
+	float Linear 								();
+	float Clip 									( float in, float min, float max );
 	//==============================================
 };
 

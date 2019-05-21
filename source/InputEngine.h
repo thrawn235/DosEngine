@@ -8,8 +8,9 @@
 //	The Class is supposed to handle all input
 //	keyboard, mouse, joystick etc
 //	its just handling keyboard right now
-//	it polls the keoyborad directly each frame, no bios functions or interupts
-//	that has to be changed, since polling is slow and misses multiple key presses 
+//	it installs an ISR that does the keybord handling
+//	for future reference. polling is no good for games
+//	its easy to miss key presses when polling
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -68,21 +69,30 @@
 
 using namespace std;
 
+//================= global Variables ====================
+//see InputEngine.h for keys[] global variable!
+//=======================================================
+
 
 class InputEngine
 {
 protected:
-	bool keys[256];
+	_go32_dpmi_seginfo OldISR, NewISR;
 
 public:
-	InputEngine 			();
-	~InputEngine 			();
+	InputEngine 					();
+	~InputEngine 					();
 
-	void CheckKeys 			();
-	bool KeyDown 			( unsigned char scanCode );
-	bool AnyKeyDown			();
+	//void KeyboardInterruptRoutine	();
+	//void KeyboardInterruptRoutineEnd();
+	void InstallKeyboardInterrupt 	();
+	void RestoreKeyboardInterrupt 	();
 
-	void ClearBiosKeyBuffer ();
+	void CheckKeys 					();
+	bool KeyDown 					( unsigned char scanCode );
+	bool AnyKeyDown					();
+
+	void ClearBiosKeyBuffer 		();
 };
 
 #endif

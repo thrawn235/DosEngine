@@ -85,12 +85,12 @@ protected:
 
 	GameEngine* engine;
 
+	bool 		important;
 	
 	bool		invisible;
 	bool 		enabled;
 
 	unsigned long UID;
-
 	
 public:
 	GameObject 	( GameEngine* newEngine );
@@ -117,6 +117,7 @@ public:
 	virtual bool				GetInvisible		();
 	virtual unsigned long		GetUID				();
 	virtual void				SetUID				( unsigned long newUID );
+	virtual bool				GetImportant 		();
 
 			void 				SetInsivible 		( bool newInvisible );
 			void 				Enable 				();
