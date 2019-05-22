@@ -921,7 +921,7 @@ void Player::Update()
 		if( jumpCharging == false && jumpCharge > 0 && onFloor )
 		{
 			jumpCharge = 0;
-			AddForce( Vector2D( 0.0, -10.0 ) );
+			AddForce( Vector2D( 0.0, -8.0 ) );
 		}
 		
 		if( !onFloor )
@@ -1538,7 +1538,7 @@ MainMenu::MainMenu( GameEngine* newEngine ) : GameObject( newEngine )
 	blueBallAnim.speed = 10;
 	blueBallAnim.currentSpeedStep = 0;
 
-	bool keyDown = false;
+	keyDown = true;
 	menuPos = 1;
 
 	fadeTimeStamp = 0;
@@ -1554,10 +1554,11 @@ MainMenu::~MainMenu()
 }
 void MainMenu::Update()
 {
-	if( engine->input->AnyKeyDown() && ! engine->input->KeyDown( KEY_F1 ) )
+	if( engine->input->AnyKeyDown() && ! engine->input->KeyDown( KEY_F1 ) && showSelf == false )
 	{
 		showSelf = true;
 		invisible = false;
+		keyDown = true;
 	}
 	if( showSelf )
 	{
@@ -1567,26 +1568,25 @@ void MainMenu::Update()
 			keyDown = true;
 			menuPos --;
 		}
-		else if( engine->input->KeyDown( KEY_DOWN ) && !keyDown && menuPos < 8 )
+		if( engine->input->KeyDown( KEY_DOWN ) && !keyDown && menuPos < 8 )
 		{
 			blueBallOffsetPos.y = blueBallOffsetPos.y + 8;	
 			keyDown = true;
 			menuPos++;
 		}
-		else
+		if(menuPos == 1 && engine->input->KeyDown( ENTER ) && !keyDown )
+		{
+			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
+			//palette = engine->graphics->GetPalette();
+		}
+		if(menuPos == 4 && engine->input->KeyDown( ENTER ) && !keyDown )
+		{
+			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
+			//palette = engine->graphics->GetPalette();
+		}
+		if( !engine->input->AnyKeyDown() )
 		{
 			keyDown = false;
-		}
-
-		if(menuPos == 1 && engine->input->KeyDown( ENTER ) )
-		{
-			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
-			//palette = engine->graphics->GetPalette();
-		}
-		if(menuPos == 4 && engine->input->KeyDown( ENTER ) )
-		{
-			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
-			//palette = engine->graphics->GetPalette();
 		}
 
 		if( fadeTimeStamp != 0 )
@@ -1603,6 +1603,10 @@ void MainMenu::Update()
 				TMXMap testMap = engine->LoadTMXMap("./levels/mars.tmx");		//Load Map
 				engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 				//engine->AddObject( manager );
+
+				HelpWindow* helpWindow = new HelpWindow( engine );
+				engine->AddObject( helpWindow );
+
 				Fader* fader = new Fader( engine );
 				engine->AddObject( fader );
 				//engine->graphics->SetPalette( palette, 255 );
@@ -1685,7 +1689,7 @@ void Trap::SetTileIndex( int newTileIndex )
 GameManager::GameManager( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_GAME_MANAGER; //11
-	drawOrder = 3;
+	drawOrder = 9;
 
 	keyDown = false;
 
@@ -1765,6 +1769,7 @@ void GameManager::Draw()
 StaticSign::StaticSign( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_STATIC_SIGN; //12
+	drawOrder = 8;
 	//
 }
 StaticSign::~StaticSign()
@@ -1794,8 +1799,9 @@ void StaticSign::Draw()
 HelpWindow::HelpWindow( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_HELP_WINDOW; //12
+	drawOrder = 10;
 	show = false;
-	keyDown = false;
+	keyDown = true;
 	important = true;
 }
 HelpWindow::~HelpWindow()
@@ -1810,13 +1816,13 @@ void HelpWindow::Update()
 		keyDown = true;
 		engine->EnableAll();
 	}
-	else if( engine->input->KeyDown( KEY_F1 ) && !keyDown )
+	if( engine->input->KeyDown( KEY_F1 ) && !keyDown )
 	{
 		show = true;
 		keyDown = true;
 		engine->DisableAll( this );
 	}
-	else
+	if( !engine->input->AnyKeyDown() )
 	{
 		keyDown = false;
 	}

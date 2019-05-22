@@ -83,8 +83,6 @@ public:
 	InputEngine 					();
 	~InputEngine 					();
 
-	//void KeyboardInterruptRoutine	();
-	//void KeyboardInterruptRoutineEnd();
 	void InstallKeyboardInterrupt 	();
 	void RestoreKeyboardInterrupt 	();
 

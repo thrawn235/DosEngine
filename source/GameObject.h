@@ -370,6 +370,7 @@ protected:
 	int menuPos;
 	int fadeTimeStamp;
 	bool showSelf;
+	bool keyDown2;
 public:
 	MainMenu( GameEngine* newEngine );
 	~MainMenu();

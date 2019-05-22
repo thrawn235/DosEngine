@@ -7,11 +7,61 @@ animations:
 fade:
 	incorporate delta
 
-keys:
-	fix "sticking" keys
-
 camera:
 	stop camera movement at level borders
 
 speed:
-	fix slow vectors
+	rework drawing
+
+object handeling
+	potential problem with imprtant actors, that cann fall through non important solids
+
+GameManagerObject
+	doesnt seem to work
+	troubleshoot!
+
+Engine
+	introduce GameObjects that consist of tilemap
+
+About
+	create about Window and GemeObject
+	Write some Text in there
+	return to menu on anykey
+	
+Help Screen
+	chain through to all levels and screens
+	possibly add it to game  manager
+	scrolling text and pictures.  
+
+Game Manager
+	is not shown in overworld ?
+	check constructor chain
+	show lifes on constructor!
+	on death, delete Game Manager and create new
+	show all stats
+
+Player
+	Death
+		Death animation (fly out of screen)
+		quit level
+		load bank
+		delete game manager
+		remove 1 life
+		create new game manager
+	collision
+		make more robust
+	shoot
+		projectile game object
+	move variables to attributes
+		speed
+		friction
+		groundFriction
+		JumpForce  
+
+Spaceship
+	create Object
+	draw window
+
+2nd Level
+	include different tilesets!
+	especially for traps and treasures
