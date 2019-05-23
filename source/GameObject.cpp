@@ -762,6 +762,8 @@ Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 	redKey		= false;
 	yellowKey	= false;
 
+	dyingTime = 0;
+
 
 	GameManager* manager = new GameManager( engine );
 	engine->AddObject( manager );
@@ -869,24 +871,22 @@ unsigned long Player::GetLevelUID()
 	return levelUID;
 	//
 }
+void Player::Die()
+{
+	if( !dying )
+	{
+		dyingTime = engine->time->GetCurrentTimeInMS();
+		dying = true;
+		AddForce( Vector2D( 0.5,-3 ) );
+	}
+}
 void Player::Update()
 {
-	if( engine->input->KeyDown( KEY_D ) )
-		Die();
 
-	
 	movement = Vector2D( 0.0f, 0.0f );
-	if( engine->input->KeyDown( KEY_UP ) )
-	{
-		movement = movement + Vector2D( 0.0f, -0.4f );
-	}
 	if( engine->input->KeyDown( KEY_LEFT ) )
 	{
 		movement = movement + Vector2D( -0.4f, 0.0f );	
-	}
-	if( engine->input->KeyDown( KEY_DOWN ) )
-	{
-		movement = movement + Vector2D( 0.0f, 0.4f );
 	}
 	if( engine->input->KeyDown( KEY_RIGHT ) )
 	{
@@ -913,15 +913,15 @@ void Player::Update()
 		if( jumpCharging == true)
 		{	
 			jumpCharge++;
-			if( jumpCharge > 100 )
+			if( jumpCharge > 20 )
 			{
-				jumpCharge = 100;
+				jumpCharge = 20;
 			}
 		}
 		if( jumpCharging == false && jumpCharge > 0 && onFloor )
 		{
+			AddForce( Vector2D( 0.0, -jumpCharge/2 ) );
 			jumpCharge = 0;
-			AddForce( Vector2D( 0.0, -8.0 ) );
 		}
 		
 		if( !onFloor )
@@ -940,10 +940,27 @@ void Player::Update()
 			Treasure* treasure = ( Treasure* )treasures[i];
 			score = score + treasure->GetScore();
 		}
+	}
+	if( engine->time->GetCurrentTimeInMS() > dyingTime + 2200 && dying )
+	{
+		engine->graphics->FadeOut();
+	}
+	if( engine->time->GetCurrentTimeInMS() > dyingTime + 5000 && dying )
+	{
+		engine->ClearObjects();
+		engine->LoadObjectsFromBank();
+		lifes--;
+		Player* overWorldPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
+		overWorldPlayer->SetScore( GetScore() );
+		Fader* fader = new Fader( engine );
+		engine->AddObject( fader );
+	}
 
 
-		Move();
+	Move();
 
+	if( !dead && !dying )
+	{
 		Collision();
 		
 		engine->graphics->SetCamCenter( centerPos );
@@ -1255,6 +1272,7 @@ void CityOverWorld::LoadLevel()
 	Player* overWorldPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
 	engine->SaveObjectsToBank();
 	engine->ClearObjects();
+	//engine->graphics->BlackOut();
 	engine->graphics->ClearScreen( 0 );
 	TMXMap testMap = engine->LoadTMXMap( levelPath );		//Load Map
 	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
@@ -1263,6 +1281,8 @@ void CityOverWorld::LoadLevel()
 	inLevelPlayer->SetScore( overWorldPlayer->GetScore() );
 	inLevelPlayer->SetLevelUID( UID );
 	overWorldPlayer->SetLevelUID( UID );
+	//Fader* fader = new Fader( engine );
+	//engine->AddObject( fader );
 }
 
 
@@ -1691,7 +1711,7 @@ GameManager::GameManager( GameEngine* newEngine ) : GameObject( newEngine )
 	typeID = TYPE_GAME_MANAGER; //11
 	drawOrder = 9;
 
-	keyDown = false;
+	keyDown = true;
 
 	showHelp = false;
 	showStats = false;
@@ -1741,7 +1761,7 @@ void GameManager::Update()
 		keyDown = true;
 		engine->EnableAll();
 	}
-	else
+	if( !engine->input->AnyKeyDown() )
 	{
 		keyDown = false;
 	}

@@ -213,6 +213,11 @@ void GameEngine::FilterObjectsByImportance()
 				objects.push_back( unimportantObjects[i] );
 				unimportantObjects.erase( unimportantObjects.begin() + i );
 			}
+		}
+		if( unimportantObjects[i]->GetImportant() )
+		{
+			objects.push_back( unimportantObjects[i] );
+			unimportantObjects.erase( unimportantObjects.begin() + i );
 		}	
 	}
 }

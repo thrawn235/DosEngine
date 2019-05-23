@@ -204,6 +204,8 @@ protected:
 	bool redKey;
 	bool yellowKey;
 	
+	int dyingTime;
+	
 public:
 	Player( GameEngine* newEngine );
 	~Player();
@@ -229,6 +231,8 @@ public:
 	virtual bool 			GetRedKey 		();
 	virtual bool 			GetYelloweKey 	();
 	virtual unsigned long 	GetLevelUID 	();
+
+	virtual void			Die 			();
 
 	virtual void 			Update 			();
 	virtual void 			Draw 			();
