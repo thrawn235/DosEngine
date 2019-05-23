@@ -912,7 +912,7 @@ void Player::Update()
 
 		if( jumpCharging == true)
 		{	
-			jumpCharge++;
+			jumpCharge = jumpCharge + engine->time->GetDelta();
 			if( jumpCharge > 20 )
 			{
 				jumpCharge = 20;
@@ -952,8 +952,14 @@ void Player::Update()
 		lifes--;
 		Player* overWorldPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
 		overWorldPlayer->SetScore( GetScore() );
+		overWorldPlayer->SetLifes( lifes );
 		Fader* fader = new Fader( engine );
 		engine->AddObject( fader );
+		GameManager* manager = ( GameManager* )engine->GetFirstObject( TYPE_GAME_MANAGER );
+		if( manager != NULL )
+		{
+			manager->SetShowLives( true );
+		}
 	}
 
 
@@ -1200,7 +1206,7 @@ void PlayerTopDown::Update()
 
 	Move();
 
-	Actor::Collision();
+	Collision();
 
 	
 	engine->graphics->SetCamCenter( centerPos );
@@ -1229,6 +1235,48 @@ void PlayerTopDown::Draw()
 	{
 		engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 7 );	
 	}
+}
+void  PlayerTopDown::Collision()
+{
+	vector<GameObject*> colliders = engine->GetObjectsInArea( pos + Vector2D(-10, -10) ,30, 40, TYPE_SOLID );
+
+	float downLeft  = RayDown( centerPos + Vector2D( 0, 0 ), ( height / 2 ), colliders );
+
+	if( downLeft != -1 )
+	{
+		centerPos.y = centerPos.y - ( ( height / 2 ) - downLeft );
+		onFloor = true;
+		direction.y = 0;
+	}
+
+
+	float up  = RayUp( centerPos, ( height / 2 ), colliders );
+
+	if( up != -1 )
+	{
+		centerPos.y = centerPos.y + ( ( height / 2 ) + up );
+		direction.y = 0;
+	}
+	
+
+	float right = RayRight( centerPos, ( width / 2 ), colliders );
+	
+	if( right != -1 )
+	{
+		centerPos.x = centerPos.x - ( ( width / 2 ) - right );
+		
+	}
+
+	float left = RayLeft( centerPos, ( width / 2 ), colliders );
+	
+	if( left != -1 )
+	{
+		centerPos.x = centerPos.x + ( ( width / 2 ) + left );
+		
+	}
+	
+
+	pos = centerPos - centerPosOffset;
 }
 
 
@@ -1731,10 +1779,18 @@ GameManager::GameManager( GameEngine* newEngine ) : GameObject( newEngine )
 	connectedPlayer = NULL;
 
 	important = true;
+
+	constructorTimeStamp = 0;
+	showLives = true;
 }
 GameManager::~GameManager()
 {
 
+}
+void GameManager::SetShowLives( bool newShowLives )
+{
+	constructorTimeStamp = engine->time->GetCurrentTimeInMS();
+	showLives = newShowLives;
 }
 void GameManager::Update()
 {
@@ -1765,20 +1821,48 @@ void GameManager::Update()
 	{
 		keyDown = false;
 	}
+
+	if( engine->time->GetCurrentTimeInMS() > constructorTimeStamp + 10000 )
+	{
+		showLives = false;
+	}
 }
 void GameManager::Draw()
 {
-	if( showStats && connectedPlayer != NULL )
+	if( connectedPlayer != NULL )
 	{
-		engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 40, 35 ), 29, 15, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
-
-		char str[200];
-		sprintf(str, "    Score     extra Keen at " );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 48, 43 ), ASSET_TXT_GREY, 0, str );
-
-		sprintf(str, "     %i           %i ", connectedPlayer->GetScore(), connectedPlayer->GetExtraLife() );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 56, 51 ), ASSET_TXT_WHITE, 0, str );
+		if( showStats )
+		{
+			DrawStatsWindow();
+		}
+		if( showLives )
+		{
+			DrawLivesWindow();
+		}
 	}
+}
+void GameManager::DrawLivesWindow()
+{
+	engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 80, 65 ), 16, 6, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+	char str[20];
+	sprintf(str, "     Lives: " );
+	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 88, 73 ), ASSET_TXT_WHITE, 0, str );
+
+	for( unsigned int i = 0; i < connectedPlayer->GetLifes(); i++ )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(90  + ( i*18 ), 85 ), ASSET_KEEN_WALK, 0, 16 );
+	}
+}
+void GameManager::DrawStatsWindow()
+{
+	engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 40, 35 ), 29, 15, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+
+	char str[200];
+	sprintf(str, "    Score     extra Keen at " );
+	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 48, 43 ), ASSET_TXT_GREY, 0, str );
+
+	sprintf(str, "     %i           %i ", connectedPlayer->GetScore(), connectedPlayer->GetExtraLife() );
+	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 56, 51 ), ASSET_TXT_WHITE, 0, str );
 }
 
 

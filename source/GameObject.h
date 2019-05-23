@@ -253,11 +253,13 @@ protected:
 	Animation down;
 	
 public:
-	PlayerTopDown( GameEngine* newEngine );
-	~PlayerTopDown();
+	PlayerTopDown 				( GameEngine* newEngine );
+	~PlayerTopDown 				();
 
-	virtual void Update ();
-	virtual void Draw 	();
+	virtual void Collision 		();
+
+	virtual void Update 		();
+	virtual void Draw 			();
 };
 
 
@@ -269,14 +271,14 @@ class CityOverWorld : public GameObject
 protected:
 	char levelPath[30];
 public:
-	CityOverWorld( GameEngine* newEngine );
+	CityOverWorld 				( GameEngine* newEngine );
 	~CityOverWorld();
 
-	virtual void SetLevelPath( const char* newPath );
+	virtual void SetLevelPath 	( const char* newPath );
 
-	virtual void Update 	();
-	virtual void Draw 		();
-	virtual void LoadLevel 	();
+	virtual void Update 		();
+	virtual void Draw 			();
+	virtual void LoadLevel 		();
 };
 
 
@@ -287,11 +289,11 @@ class Solid  : public GameObject
 {
 protected:
 public:
-	Solid( GameEngine* newEngine );
-	~Solid();
+	Solid 						( GameEngine* newEngine );
+	~Solid 						();
 
-	virtual void Update ();
-	virtual void Draw 	();
+	virtual void Update 		();
+	virtual void Draw 			();
 };
 
 
@@ -302,11 +304,11 @@ class SolidTop : public GameObject
 {
 protected:
 public:
-	SolidTop( GameEngine* newEngine );
-	~SolidTop();
+	SolidTop 					( GameEngine* newEngine );
+	~SolidTop 					();
 
-	virtual void Update ();
-	virtual void Draw 	();
+	virtual void Update 		();
+	virtual void Draw 			();
 };
 
 
@@ -318,11 +320,11 @@ class BackGround  : public GameObject
 {
 protected:
 public:
-	BackGround( GameEngine* newEngine );
-	~BackGround();
+	BackGround 					( GameEngine* newEngine );
+	~BackGround 				();
 
-	virtual void Update ();
-	virtual void Draw 	();
+	virtual void Update 		();
+	virtual void Draw 			();
 };
 
 
@@ -334,8 +336,8 @@ class BackGroundAnimation  : public GameObject
 protected:
 	Animation anim;
 public:
-	BackGroundAnimation( GameEngine* newEngine );
-	~BackGroundAnimation();
+	BackGroundAnimation 		( GameEngine* newEngine );
+	~BackGroundAnimation 		();
 
 	virtual void SetTileIndex	( int newTileIndex 	);
 
@@ -354,8 +356,8 @@ protected:
 	int showEverythingTimeStamp;
 	bool black;
 public:
-	Banner( GameEngine* newEngine );
-	~Banner();
+	Banner 						( GameEngine* newEngine );
+	~Banner 					();
 
 	virtual void Update 		();
 	virtual void Draw 			();
@@ -376,8 +378,8 @@ protected:
 	bool showSelf;
 	bool keyDown2;
 public:
-	MainMenu( GameEngine* newEngine );
-	~MainMenu();
+	MainMenu 					( GameEngine* newEngine );
+	~MainMenu 					();
 
 	virtual void Update 		();
 	virtual void Draw 			();
@@ -393,8 +395,8 @@ class Trap : public GameObject
 protected:
 	Animation anim;
 public:
-	Trap( GameEngine* newEngine );
-	~Trap();
+	Trap 						( GameEngine* newEngine );
+	~Trap 						();
 
 	virtual void Update 		();
 	virtual void Draw 			();
@@ -408,7 +410,7 @@ public:
 class GameManager : public GameObject
 {
 protected:
-	bool showStats, showHelp;
+	bool showStats, showHelp, showLives;
 
 	bool keyDown;
 
@@ -424,10 +426,17 @@ protected:
 	bool redKey;
 	bool yellowKey;
 
+	int constructorTimeStamp;
+
 	Player* connectedPlayer;
 public:
-	GameManager( GameEngine* newEngine );
+	GameManager 				( GameEngine* newEngine );
 	~GameManager();
+
+	virtual void SetShowLives 	( bool newShowLives );
+
+	virtual void DrawStatsWindow();
+	virtual void DrawLivesWindow();
 
 	virtual void Update 		();
 	virtual void Draw 			();
@@ -442,8 +451,8 @@ class StaticSign : public GameObject
 protected:
 	int spriteID;
 public:
-	StaticSign( GameEngine* newEngine );
-	~StaticSign();
+	StaticSign 					( GameEngine* newEngine );
+	~StaticSign 				();
 
 	virtual void SetSpriteID	( int newSpriteID );
 	virtual void Update 		();
@@ -460,8 +469,8 @@ protected:
 	bool show;
 	bool keyDown;
 public:
-	HelpWindow( GameEngine* newEngine );
-	~HelpWindow();
+	HelpWindow 					( GameEngine* newEngine );
+	~HelpWindow 				();
 
 	virtual void Update 		();
 	virtual void Draw 			();
@@ -475,8 +484,8 @@ class Exit : public GameObject
 {
 protected:
 public:
-	Exit( GameEngine* newEngine );
-	~Exit();
+	Exit 						( GameEngine* newEngine );
+	~Exit 						();
 
 	virtual void Update 		();
 	virtual void Draw 			();
@@ -492,9 +501,9 @@ class Fader : public GameObject
 protected:
 	bool fadeOut;
 public:
-	Fader( GameEngine* newEngine );
-	Fader( GameEngine* newEngine, bool newFadeOut );
-	~Fader();
+	Fader 						( GameEngine* newEngine );
+	Fader 						( GameEngine* newEngine, bool newFadeOut );
+	~Fader 						();
 
 	virtual void Update 		();
 	virtual void Draw 			();
@@ -509,12 +518,12 @@ class Treasure : public GameObject
 protected:
 	int score;
 public:
-	Treasure( GameEngine* newEngine );
-	~Treasure();
+	Treasure 					( GameEngine* newEngine );
+	~Treasure 					();
 
-	virtual void SetScore( int newScore);
-	virtual int GetScore();
-	virtual void SetTileIndex( int newTileIndex );
+	virtual void SetScore 		( int newScore);
+	virtual int GetScore 		();
+	virtual void SetTileIndex 	( int newTileIndex );
 
 	virtual void Update 		();
 
