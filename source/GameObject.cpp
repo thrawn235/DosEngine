@@ -1325,9 +1325,12 @@ void CityOverWorld::LoadLevel()
 	TMXMap testMap = engine->LoadTMXMap( levelPath );		//Load Map
 	engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 	Player* inLevelPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER );
-	inLevelPlayer->SetLevelUID( overWorldPlayer->GetLevelUID() );
-	inLevelPlayer->SetScore( overWorldPlayer->GetScore() );
-	inLevelPlayer->SetLevelUID( UID );
+	if( inLevelPlayer != NULL )
+	{
+		inLevelPlayer->SetLevelUID( overWorldPlayer->GetLevelUID() );
+		inLevelPlayer->SetScore( overWorldPlayer->GetScore() );
+		inLevelPlayer->SetLevelUID( UID );
+	}
 	overWorldPlayer->SetLevelUID( UID );
 	//Fader* fader = new Fader( engine );
 	//engine->AddObject( fader );

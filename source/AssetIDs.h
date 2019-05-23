@@ -31,10 +31,10 @@
 #define ASSET_KEEN_WALK 			10
 #define ASSET_KEEN_TOP 				11
 
-#define ASSET_K1_TILES		100
-#define ASSET_K2_TILES		101
-#define ASSET_K3_TILES		102
-#define ASSET_TITLE_TILES	103
+#define ASSET_K1_TILES				100
+#define ASSET_K2_TILES				101
+#define ASSET_K3_TILES				102
+#define ASSET_TITLE_TILES			103
 //---------------------------------------------------------------------
 
 
