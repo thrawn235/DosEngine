@@ -7,18 +7,12 @@ animations:
 fade:
 	incorporate delta
 
-camera:
-	stop camera movement at level borders
 
 speed:
 	rework drawing
 
 object handeling
 	potential problem with imprtant actors, that cann fall through non important solids
-
-GameManagerObject
-	doesnt seem to work
-	troubleshoot!
 
 Engine
 	introduce GameObjects that consist of tilemap
@@ -40,6 +34,8 @@ Game Manager
 
 Player
 	Death
+		diisable player od dying
+			it still interacts with objects like the exit
 		delete game manager
 		create new game manager
 	collision

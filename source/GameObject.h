@@ -237,6 +237,8 @@ public:
 	virtual void 			Update 			();
 	virtual void 			Draw 			();
 	virtual void 			Collision 		();
+
+	virtual void 			MoveCamera		();
 };
 
 

@@ -50,6 +50,27 @@ InputEngine* GameEngine::GetInput()
 	return input;
 	//
 }
+
+int GameEngine::GetLevelBoundaryXMin()
+{
+	return levelBoundaryXMin;
+	//
+}
+int GameEngine::GetLevelBoundaryYMin()
+{
+	return levelBoundaryYMin;
+	//
+}
+int GameEngine::GetLevelBoundaryXMax()
+{
+	return levelBoundaryXMax;
+	//
+}
+int GameEngine::GetLevelBoundaryYMax()
+{
+	return levelBoundaryYMax;
+	//
+}
 //==========================================================
 
 
@@ -115,7 +136,7 @@ void GameEngine::SaveObjectsToBank()
 void GameEngine::LoadObjectsFromBank()
 {
 	objects = saveBank;
-	//
+	FindLevelBoundaries();
 }
 void GameEngine::DisableAll()
 {
@@ -1535,131 +1556,44 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 			}
 		}
 	}
+
+	FindLevelBoundaries();
 }
 void GameEngine::CreateObjectsFromMap( TMXMap* in, Vector2D offset )
 {
-	/*unsigned int width, height;
-	unsigned int tileWidth, tileHeight;
-	vector<TMXTileSet> tileSets;
-	vector<TMXLayer> layers;
-	vector<TMXObjectGroup> objectGroups;*/
-
-	for( unsigned int i = 0; i < in->layers.size(); i++ )
+	//fix by the end...
+}
+void GameEngine::FindLevelBoundaries()
+{
+	int newLevelBoundaryXMin = 99999;
+	int newLevelBoundaryYMin = 99999;
+	int newLevelBoundaryXMax = -99999;
+	int newLevelBoundaryYMax = -99999;
+	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		for( unsigned int y = 0; y < in->layers[i].height; y++ )
+		if( objects[i]->GetPos().x < newLevelBoundaryXMin )
 		{
-			for( unsigned int x = 0; x < in->layers[i].width; x++ )
-			{
-				int mapValue = in->layers[i].data[y * in->layers[i].width + x];
-				//printf( "mapValue = %i\n", mapValue );
-				if( mapValue > 0 )
-				{
-					GameObject* newObject = NULL;
+			newLevelBoundaryXMin = objects[i]->GetPos().x;
+		}
+		if( objects[i]->GetPos().y < newLevelBoundaryYMin )
+		{
+			newLevelBoundaryYMin = objects[i]->GetPos().y;
+		}
 
-					
-					
-					//int tileSetID 	= GetTileSetID( in, mapValue );
-					int tileSetIndexInTMX  	= GetTMXTileSetIndex( in, mapValue );
-					int tileSetID 			= GetTileSetID( in, tileSetIndexInTMX );
-					int typeID 				= GetTypeID( in, mapValue, tileSetIndexInTMX );
-					int tileID 				= GetTileID( in, mapValue, tileSetIndexInTMX );
-					int tileHeight 			= in->tileSets[tileSetIndexInTMX].tileHeight;
-					int tileWidth 			= in->tileSets[tileSetIndexInTMX].tileWidth;
-					
-					Vector2D newPos;
-					newPos.x 	= ( x * tileWidth ) + in->layers[i].offsetX;
-					newPos.y 	= ( y * tileHeight ) + in->layers[i].offsetY;
-					newPos 		= newPos + offset;	//additional offset from paramteer list
-
-					//printf("O %i:%i:%i mapValue=%i tileSetTMX=%i TMXSource=%s tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, mapValue, tileSetIndexInTMX, in->tileSets[tileSetIndexInTMX].source, tileSetID, tileID, typeID, newPos.x, newPos.y);
-					
-
-					if( typeID == TYPE_PLAYER ) //placeholder
-					{
-						//printf("create!\n");
-						newObject = new Player( this );
-
-					}
-					else if( typeID == TYPE_SOLID ) //placeholder
-					{
-						//printf("create!\n");
-						newObject = new Solid( this );
-
-					} else if( typeID == TYPE_SOLID_TOP ) //placeholder
-					{
-						//printf("create!\n");
-						newObject = new SolidTop( this );
-
-					} else if( typeID == TYPE_BACK_GROUND ) //placeholder
-					{
-						//printf("create!\n");
-						newObject = new BackGround( this );
-						
-					}
-					else
-					{
-						//printf("create!\n");
-						if(tileSetID != -1)
-						{
-							newObject = new GameObject( this );
-					
-						}
-					}
-					if( newObject != NULL )
-					{
-						newObject->SetTypeID	( typeID );
-						newObject->SetPos		( newPos );
-						newObject->SetDimensions( tileWidth, tileHeight );
-						newObject->SetTileSetID	( tileSetID );
-						newObject->SetTileIndex	( tileID );
-						newObject->SetDrawOrder	( i );
-
-						AddObject( newObject );
-					}
-					//getch();
-				}
-			}
+		if( objects[i]->GetPos().x + objects[i]->GetWidth() > newLevelBoundaryXMax )
+		{
+			newLevelBoundaryXMax = objects[i]->GetPos().x + objects[i]->GetWidth();
+		}
+		if( objects[i]->GetPos().y + objects[i]->GetHeight() > newLevelBoundaryYMax )
+		{
+			newLevelBoundaryYMax = objects[i]->GetPos().y + objects[i]->GetHeight();
 		}
 	}
 
-	for( unsigned int i = 0; i < in->objectGroups.size(); i++ )
-	{
-		for( unsigned int u = 0; u < in->objectGroups[i].objects.size(); u++ )
-		{
-			TMXObject* object;
-			object = &in->objectGroups[i].objects[u];
-
-			if( object->typeID != -1 )
-			{
-				GameObject* newObject = NULL;
-
-				Vector2D newPos = object->pos;
-				newPos.x 	= newPos.x + in->layers[i].offsetX;
-				newPos.y 	= newPos.y + in->layers[i].offsetY;
-				newPos 		= newPos + offset;	//additional offset from paramteer list
-						
-				if( object->typeID == TYPE_PLAYER ) //placeholder
-				{
-					//printf("create!\n");
-					newObject = new Player( this );
-					newObject->SetDimensions( 16, 24 ); 	//hadcoded
-					newObject->SetTileSetID	( 10 );			//hardcoded
-					newObject->SetTileIndex	( 0 );			//hardcoded
-					newObject->SetDrawOrder	( 2 );			//hardcoded
-
-				}
-
-				if( newObject != NULL )
-				{
-					newObject->SetTypeID	( object->typeID ); 		//get from property
-					newObject->SetPos		( newPos );					//get from pos
-					
-
-					AddObject( newObject );
-				}
-			}
-		}
-	}
+	levelBoundaryXMin = newLevelBoundaryXMin;
+	levelBoundaryYMin = newLevelBoundaryYMin;
+	levelBoundaryXMax = newLevelBoundaryXMax;
+	levelBoundaryYMax = newLevelBoundaryYMax;
 }
 //==========================================================
 

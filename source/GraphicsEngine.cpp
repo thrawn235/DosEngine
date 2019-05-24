@@ -84,6 +84,10 @@ void GraphicsEngine::SetCamCenter( Vector2D newPos )
 	newPos.y = newPos.y - (  screenHeight / 2  );
 	camPos = newPos;
 }
+Vector2D GraphicsEngine::GetCamCenter()
+{
+	return Vector2D( camPos.x + (  screenWidth / 2  ), camPos.y + (  screenHeight / 2  ) );
+}
 void GraphicsEngine::SetCamPos( int newPosX, int newPosY )
 {
 	camPos.x = newPosX;

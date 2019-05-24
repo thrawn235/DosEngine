@@ -63,6 +63,11 @@ public:
 
 	unsigned long 		lastUID;
 
+	int levelBoundaryXMin;
+	int levelBoundaryYMin;
+	int levelBoundaryXMax;
+	int levelBoundaryYMax;
+
 private:
 	vector<GameObject*> objects;
 
@@ -78,6 +83,11 @@ public:
 	GraphicsEngine* GetGraphics					();
 	TimeEngine*  	GetTime 					();
 	InputEngine* 	GetInput 					();
+
+	int 			GetLevelBoundaryXMin 		();
+	int 			GetLevelBoundaryYMin 		();
+	int 			GetLevelBoundaryXMax 		();
+	int 			GetLevelBoundaryYMax 		();
 	//=============================================
 
 
@@ -123,6 +133,7 @@ public:
 	int 			GetTileID 					( TMXMap* in, int mapValue, int TMXTileSetIndex		);
 	int 			GetTileSetID 				( TMXMap* in, int TMXTileSetIndex 					);
 	int 			GetFirstGid 				( TMXMap* in, int tileSetID 						);
+	void 			FindLevelBoundaries			();
 	//==============================================
 
 	//================ Misc =======================

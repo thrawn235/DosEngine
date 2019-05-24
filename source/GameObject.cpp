@@ -767,6 +767,7 @@ Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 
 	GameManager* manager = new GameManager( engine );
 	engine->AddObject( manager );
+
 }
 Player::~Player()
 {
@@ -969,7 +970,7 @@ void Player::Update()
 	{
 		Collision();
 		
-		engine->graphics->SetCamCenter( centerPos );
+		MoveCamera();
 	}
 }
 void Player::Draw()
@@ -1116,6 +1117,48 @@ void  Player::Collision()
 
 	pos = centerPos - centerPosOffset;
 }
+void Player::MoveCamera()
+{
+	Vector2D formerCamCenter = engine->graphics->GetCamCenter();
+
+	if( pos.x < engine->graphics->GetCamCenter().x - 50 )
+	{
+		engine->graphics->SetCamCenter( Vector2D( pos.x + 50 , formerCamCenter.y ) );
+	}
+	if( pos.x > engine->graphics->GetCamCenter().x + 50 )
+	{
+		engine->graphics->SetCamCenter( Vector2D( pos.x - 50 , formerCamCenter.y ) );
+	}
+
+	formerCamCenter = engine->graphics->GetCamCenter();
+
+	if( pos.y < engine->graphics->GetCamCenter().y - 50 )
+	{
+		engine->graphics->SetCamCenter( Vector2D( formerCamCenter.x , pos.y + 50 ) );
+	}
+	if( pos.y > engine->graphics->GetCamCenter().y + 50 )
+	{
+		engine->graphics->SetCamCenter( Vector2D( formerCamCenter.x , pos.y - 50 ) );
+	}
+
+	if( engine->graphics->GetCamPos().x < engine->GetLevelBoundaryXMin() )
+	{
+		engine->graphics->SetCamPos( Vector2D( engine->GetLevelBoundaryXMin(), engine->graphics->GetCamPos().y ) );
+	}
+	if( engine->graphics->GetCamPos().y < engine->GetLevelBoundaryYMin() )
+	{
+		engine->graphics->SetCamPos( Vector2D( engine->graphics->GetCamPos().x , engine->GetLevelBoundaryYMin() ) );
+	}
+
+	if( engine->graphics->GetCamPos().x + engine->graphics->GetScreenWidth() > engine->GetLevelBoundaryXMax() )
+	{
+		engine->graphics->SetCamPos( Vector2D( engine->GetLevelBoundaryXMax() - engine->graphics->GetScreenWidth() , engine->graphics->GetCamPos().y ) );
+	}
+	if( engine->graphics->GetCamPos().y + engine->graphics->GetScreenHeight() > engine->GetLevelBoundaryYMax() )
+	{
+		engine->graphics->SetCamPos( Vector2D( engine->graphics->GetCamPos().x , engine->GetLevelBoundaryYMax() - engine->graphics->GetScreenHeight() ) );
+	}
+}
 
 
 
@@ -1209,7 +1252,7 @@ void PlayerTopDown::Update()
 	Collision();
 
 	
-	engine->graphics->SetCamCenter( centerPos );
+	MoveCamera();
 }
 void PlayerTopDown::Draw()
 {

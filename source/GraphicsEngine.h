@@ -143,6 +143,7 @@ public:
 	Vector2D 	GetCamPos 				();
 	void 		SetCamPos 				( Vector2D newPos );
 	void 		SetCamCenter 			( Vector2D newPos );
+	Vector2D 	GetCamCenter			();
 	void 		SetCamPos 				( int newPosX, int newPosY );
 	
 	//Init
