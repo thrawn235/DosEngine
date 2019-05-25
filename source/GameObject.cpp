@@ -887,7 +887,6 @@ void Player::Die()
 }
 void Player::Update()
 {
-
 	movement = Vector2D( 0.0f, 0.0f );
 	if( engine->input->KeyDown( KEY_LEFT ) )
 	{
@@ -931,7 +930,7 @@ void Player::Update()
 		
 		if( !onFloor )
 		{
-			AddForce( Vector2D( 0, 0.5f ) ); //gravity
+			AddForce( Vector2D( 0, 0.5f ) * engine->time->GetDelta() ); //gravity
 			Friction( 0.90f );
 		}
 		else
@@ -979,9 +978,9 @@ void Player::Update()
 }
 void Player::Draw()
 {
-	char str[500];
+	/*char str[500];
 	sprintf(str, "movement=%f:%f\ndirection=%f:%f\npos=%f:%f\n", movement.x, movement.y, direction.x, direction.y, pos.x, pos.y );
-	engine->graphics->DrawText( Vector2D( 0, 9 ) + engine->graphics->GetCamPos() , 1, 0, str );
+	engine->graphics->DrawText( Vector2D( 0, 9 ) + engine->graphics->GetCamPos() , 1, 0, str );*/
 	if( !dead && !dying )
 	{
 		if( jumpCharging )

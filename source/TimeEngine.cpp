@@ -89,8 +89,13 @@ int TimeEngine::GetFPS()
 //delta
 float TimeEngine::GetDelta()
 {
-	return TicksToMilliSeconds( frameTime ) / 14;
-	//
+	float delta = TicksToMilliSeconds( frameTime ) / 14;
+	if( delta >= 4)
+	{
+		return 4;
+	}
+
+	return delta;
 }
 
 //time stamps:
