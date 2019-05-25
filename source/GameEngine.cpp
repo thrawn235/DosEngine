@@ -79,6 +79,7 @@ void GameEngine::AddObject( GameObject* newObject )
 {
 	if( newObject != NULL )
 	{
+		newObject->OnCreation();
 		objects.push_back( newObject );
 	}
 }
@@ -1477,6 +1478,10 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					{
 						newObject = new Treasure( this );
 					}
+					else if( typeID == TYPE_SHIP_WREK ) //placeholder
+					{
+						newObject = new ShipWrek( this );
+					}
 					else
 					{
 						//printf("create!\n");
@@ -1545,9 +1550,19 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					city->SetLevelPath( GetProperty( object->properties, "levelPath" ).stringValue );
 				}
 
+				if( object->typeID == TYPE_CITY_OVERWORLD1X1 ) //placeholder
+				{
+					//printf("create!\n");
+					newObject = new CityOverWorld1x1( this );
+					CityOverWorld1x1* city;
+					city = ( CityOverWorld1x1* )newObject;
+
+					city->SetLevelPath( GetProperty( object->properties, "levelPath" ).stringValue );
+				}
+
 				if( newObject != NULL )
 				{
-					newObject->SetTypeID	( object->typeID ); 		//get from property
+					//newObject->SetTypeID	( object->typeID ); 		//get from property
 					newObject->SetPos		( newPos );					//get from pos
 					
 

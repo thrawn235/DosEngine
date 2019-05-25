@@ -197,6 +197,10 @@ void GameObject::Disable()
 	enabled = false;
 	//
 }
+void GameObject::OnCreation()
+{
+
+}
 
 
 
@@ -694,7 +698,7 @@ Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 	height 		= 24;
 	tileIndex 	= 0;
 	tileSetID 	= ASSET_KEEN_WALK;
-	drawOrder 	= 2;
+	drawOrder 	= 1;
 
 	levelUID 	= 0;
 
@@ -927,7 +931,7 @@ void Player::Update()
 		
 		if( !onFloor )
 		{
-			AddForce( Vector2D( 0, 0.5 ) ); //gravity
+			AddForce( Vector2D( 0, 0.5f ) ); //gravity
 			Friction( 0.90f );
 		}
 		else
@@ -975,9 +979,9 @@ void Player::Update()
 }
 void Player::Draw()
 {
-	/*char str[500];
+	char str[500];
 	sprintf(str, "movement=%f:%f\ndirection=%f:%f\npos=%f:%f\n", movement.x, movement.y, direction.x, direction.y, pos.x, pos.y );
-	engine->graphics->DrawText( Vector2D( 0, 9 ) + engine->graphics->GetCamPos() , 1, 0, str );*/
+	engine->graphics->DrawText( Vector2D( 0, 9 ) + engine->graphics->GetCamPos() , 1, 0, str );
 	if( !dead && !dying )
 	{
 		if( jumpCharging )
@@ -1159,6 +1163,11 @@ void Player::MoveCamera()
 		engine->graphics->SetCamPos( Vector2D( engine->graphics->GetCamPos().x , engine->GetLevelBoundaryYMax() - engine->graphics->GetScreenHeight() ) );
 	}
 }
+void Player::OnCreation()
+{
+	engine->graphics->SetCamCenter( pos );
+	//
+}
 
 
 
@@ -1240,6 +1249,12 @@ void PlayerTopDown::Update()
 	{
 		CityOverWorld* city = (CityOverWorld*)citiesInRange[0];
 		city->LoadLevel();
+	}
+
+	ShipWrek* shipWrek = ( ShipWrek* )engine->GetFirstObjectAtPos( centerPos, TYPE_SHIP_WREK );
+	if( engine->input->KeyDown( ENTER ) && shipWrek != NULL )
+	{
+		shipWrek->SetWindowVisible( true );
 	}
 
 
@@ -1372,11 +1387,40 @@ void CityOverWorld::LoadLevel()
 	{
 		inLevelPlayer->SetLevelUID( overWorldPlayer->GetLevelUID() );
 		inLevelPlayer->SetScore( overWorldPlayer->GetScore() );
+		inLevelPlayer->SetLifes( overWorldPlayer->GetLifes() );
 		inLevelPlayer->SetLevelUID( UID );
 	}
 	overWorldPlayer->SetLevelUID( UID );
 	//Fader* fader = new Fader( engine );
 	//engine->AddObject( fader );
+}
+
+
+
+
+
+//========== CityOverWorld1x1 =============
+CityOverWorld1x1::CityOverWorld1x1( GameEngine* newEngine ) : CityOverWorld( newEngine )
+{
+	typeID  = TYPE_CITY_OVERWORLD; //1
+
+	width = 16;
+	height = 16;
+	tileIndex = 0;					//has to be set
+	tileSetID = ASSET_K1_TILES;
+	drawOrder = 1;
+}
+CityOverWorld1x1::~CityOverWorld1x1()
+{
+
+}
+void CityOverWorld1x1::Update()
+{
+
+}
+void CityOverWorld1x1::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, 63 );
 }
 
 
@@ -2107,5 +2151,99 @@ void Treasure::SetTileIndex( int newTileIndex )
 	if( tileIndex == 202 )
 	{
 		score = 100;
+	}
+}
+
+
+
+
+
+//========== ShipWrek =============
+ShipWrek::ShipWrek( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_SHIP_WREK; //18
+
+	windowVisible		= false;
+	keyDown 			= true;
+	windowAnimationX	= 0;
+	windowAnimationY	= 0;
+
+	windowSizeX 		= 21;
+	windowSizeY 		= 10;
+
+	drawOrder = 1;
+
+	anim.id = 0;
+	anim.tileSetID = ASSET_K1_TILES;
+	anim.firstTileIndex = 83;
+	anim.numSprites = 4;
+	anim.currentFrame = 0;
+	anim.speed = 12;
+	anim.currentSpeedStep = 0;
+}
+ShipWrek::~ShipWrek()
+{
+
+}
+void ShipWrek::SetWindowVisible( bool newWindowVisible )
+{
+	windowVisible = newWindowVisible;
+	drawOrder = 9;
+	engine->DisableAll( this );
+}
+void ShipWrek::Update()
+{
+	if( !keyDown && engine->input->AnyKeyDown() && windowVisible )
+	{
+		keyDown = true;
+		drawOrder = 1;
+		windowVisible = false;
+		engine->EnableAll();
+	}
+	if( !engine->input->AnyKeyDown() )
+	{
+		keyDown = false;
+	}
+}
+void ShipWrek::Draw()
+{
+	engine->graphics->PlayAnimationDelta( &anim, pos, engine->time->GetDelta() );
+
+	if( windowVisible )
+	{
+		DrawWindow();
+
+		if( windowAnimationX < windowSizeX )
+		{
+			windowAnimationX++;
+		}
+		if( windowAnimationY < windowSizeY )
+		{
+			windowAnimationY++;
+		}
+	}
+	else
+	{
+		windowAnimationY = 0;
+		windowAnimationX = 0;
+	}
+}
+void ShipWrek::DrawWindow()
+{
+	engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 80, 65 ), windowAnimationX, windowAnimationY, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+	
+	if( windowAnimationX == windowSizeX && windowAnimationY == windowSizeY )
+	{
+		char str[50];
+		sprintf(str, "Your Ship is missing\nthese Parts: " );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 88, 73 ), ASSET_TXT_WHITE, 0, str );
+
+		sprintf(str, "Go get them\npress a key!: " );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 88, 125 ), ASSET_TXT_WHITE, 0, str );
+
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 321, 16 );
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+20, 100 ), ASSET_K1_TILES, 322, 16 );
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+40, 100 ), ASSET_K1_TILES, 323, 16 );
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+60, 100 ), ASSET_K1_TILES, 324, 16 );
 	}
 }

@@ -61,6 +61,8 @@
 #define TYPE_FADER					15
 #define TYPE_TREASURE				16
 #define TYPE_ACTOR					17
+#define TYPE_SHIP_WREK				18
+#define TYPE_CITY_OVERWORLD1X1		19
 //=======================================================
 
 
@@ -122,6 +124,7 @@ public:
 			void 				SetInsivible 		( bool newInvisible );
 			void 				Enable 				();
 			void 				Disable 			();
+	virtual void 				OnCreation			();
 	//======================================
 
 
@@ -183,28 +186,28 @@ protected:
 	Animation walkBackward;
 	Animation deathAnimation;
 
-	Animation jumpLeft, jumpRight;
-	bool jumpCharging;
-	int jumpCharge;
+	Animation 	jumpLeft, jumpRight;
+	bool 		jumpCharging;
+	int 		jumpCharge;
 
-	bool spacePressed;
+	bool 		spacePressed;
 
 	unsigned long levelUID;
 
 
-	int score;
-	int extraLife;
-	int lifes;
-	int ammo;
+	int  	score;
+	int 	extraLife;
+	int 	lifes;
+	int 	ammo;
 
-	bool pogo;
-	bool shipBattery;
+	bool 	pogo;
+	bool 	shipBattery;
 
-	bool blueKey;
-	bool redKey;
-	bool yellowKey;
+	bool 	blueKey;
+	bool 	redKey;
+	bool 	yellowKey;
 	
-	int dyingTime;
+	int 	dyingTime;
 	
 public:
 	Player( GameEngine* newEngine );
@@ -239,6 +242,7 @@ public:
 	virtual void 			Collision 		();
 
 	virtual void 			MoveCamera		();
+	virtual void			OnCreation		();
 };
 
 
@@ -281,6 +285,22 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 	virtual void LoadLevel 		();
+};
+
+
+
+
+
+class CityOverWorld1x1 : public CityOverWorld
+{
+protected:
+	char levelPath[30];
+public:
+	CityOverWorld1x1 				( GameEngine* newEngine );
+	~CityOverWorld1x1();
+
+	virtual void Update 		();
+	virtual void Draw 			();
 };
 
 
@@ -520,15 +540,40 @@ class Treasure : public GameObject
 protected:
 	int score;
 public:
-	Treasure 					( GameEngine* newEngine );
-	~Treasure 					();
+	Treasure 						( GameEngine* newEngine );
+	~Treasure 						();
 
-	virtual void SetScore 		( int newScore);
-	virtual int GetScore 		();
-	virtual void SetTileIndex 	( int newTileIndex );
+	virtual void 	SetScore 		( int newScore);
+	virtual int 	GetScore 		();
+	virtual void 	SetTileIndex 	( int newTileIndex );
 
-	virtual void Update 		();
+	virtual void	 Update 		();
 
 };
 
+
+
+
+
+class ShipWrek : public GameObject
+{
+protected:
+	Animation 	anim;
+	bool 		windowVisible;
+	bool 		keyDown;
+	int 		windowAnimationX;
+	int 		windowAnimationY;
+	int 		windowSizeX;
+	int 		windowSizeY;
+public:
+	ShipWrek 						( GameEngine* newEngine );
+	~ShipWrek 						();
+
+	virtual void SetWindowVisible 	( bool newWindowVisible );
+
+	virtual void Update 			();
+	virtual void Draw 				();
+
+	virtual void DrawWindow 		();
+};
 #endif

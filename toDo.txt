@@ -7,7 +7,6 @@ animations:
 fade:
 	incorporate delta
 
-
 speed:
 	rework drawing
 
@@ -28,9 +27,11 @@ Help Screen
 	scrolling text and pictures.  
 
 Game Manager
-	show lifes on constructor!
 	on death, delete Game Manager and create new
 	show all stats
+
+Movement vectors wrong
+	they depend on gem game speed ?
 
 Player
 	Death
@@ -38,6 +39,7 @@ Player
 			it still interacts with objects like the exit
 		delete game manager
 		create new game manager
+		game crashes on -1 lifes
 	collision
 		make more robust
 	shoot
@@ -48,9 +50,13 @@ Player
 		groundFriction
 		JumpForce  
 
+overWorldCity
+	too much is hardcoded especially tileSetID and tileIndex
+
 Spaceship
-	create Object
-	draw window
+	actually take object possesion into account
+	grow window from center
+	(incorporate delta in window grow)
 
 2nd Level
 	include different tilesets!
