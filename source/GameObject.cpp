@@ -1837,6 +1837,11 @@ void Trap::SetTileIndex( int newTileIndex )
 	tileIndex = newTileIndex;
 	anim.firstTileIndex = newTileIndex;
 }
+void Trap::SetTileSetID( int newTileSetID )
+{
+	tileSetID = newTileSetID;
+	anim.tileSetID = newTileSetID;
+}
 
 
 

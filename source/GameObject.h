@@ -423,6 +423,7 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 	virtual void SetTileIndex	( int newTileIndex );
+	virtual void SetTileSetID	( int newTileSetID );
 };
 
 

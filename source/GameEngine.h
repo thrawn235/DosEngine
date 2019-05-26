@@ -71,6 +71,8 @@ public:
 private:
 	vector<GameObject*> objects;
 
+	vector<GameObject*> drawObjects;
+
 	vector<GameObject*> unimportantObjects;
 
 	vector<GameObject*> saveBank;	//to save the overworld

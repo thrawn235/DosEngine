@@ -77,6 +77,9 @@ int main()
 
 
 	//========================== Main Loop ======================================
+	int filterTimeStamp, updateTimeStamp, drawTimeStamp;
+	int filterTime, updateTime, drawTime;
+
 	bool running = true;
 	while(running)
 	{
@@ -108,15 +111,22 @@ int main()
 
 		//engine->graphics->ClearScreen(190);
 
+		filterTimeStamp = engine->time->GetCurrentTimeInMS();
 		engine->FilterObjectsByImportance();
+		filterTime = engine->time->GetCurrentTimeInMS() - filterTimeStamp;
 
+		updateTimeStamp = engine->time->GetCurrentTimeInMS();
 		engine->UpdateAll();
+		updateTime = engine->time->GetCurrentTimeInMS() - updateTimeStamp;
+
+		drawTimeStamp = engine->time->GetCurrentTimeInMS();
 		engine->DrawAll();	//draw all Objects (that are handled by the GameEngine)
+		drawTime = engine->time->GetCurrentTimeInMS() - drawTimeStamp;
 
 
 		//----------------- print Framerate -----------------------
-		char str[20];
-		sprintf(str, "%d(%d)%f", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()), engine->time->GetDelta() );
+		char str[50];
+		sprintf(str, "%d(%d)%f\nfilter=%d, update=%d, draw=%d", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()), engine->time->GetDelta(), filterTime, updateTime, drawTime );
 		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , ASSET_TXT_WHITE, 0, str );
 		//--------------------------------------------------------
 

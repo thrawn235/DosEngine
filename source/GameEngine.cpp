@@ -206,40 +206,60 @@ unsigned long GameEngine::GetUID()
 }
 void GameEngine::FilterObjectsByImportance()
 {
+	drawObjects.clear();
+
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		if( objects[i]->GetImportant() != true )
+		if( objects[i]->GetTypeID() == TYPE_BACK_GROUND || objects[i]->GetTypeID() == TYPE_GAME_OBJECT )
 		{
-			if( objects[i]->GetTypeID() == TYPE_BACK_GROUND || objects[i]->GetTypeID() == TYPE_GAME_OBJECT )
-			{
-				unimportantObjects.push_back( objects[i] );
-				objects.erase( objects.begin() + i );
-			}
-
+			unimportantObjects.push_back( objects[i] );
+			RemoveObject( objects[i] );
+			i--;
+		}
+		else if( objects[i]->GetImportant() != true )
+		{
 			if( 	objects[i]->GetPos().x < (graphics->GetCamPos().x - 100) || objects[i]->GetPos().y < (graphics->GetCamPos().y - 100)
 				||	objects[i]->GetPos().x > (graphics->GetCamPos().x + 100 + graphics->GetScreenWidth() ) || objects[i]->GetPos().y > (graphics->GetCamPos().y + 100 + graphics->GetScreenHeight() ) )
 			{
 				unimportantObjects.push_back( objects[i] );
 				RemoveObject( objects[i] );
+				i--;
 			}
+			else
+			{
+				drawObjects.push_back( objects[i] );
+			}
+		}
+		else
+		{
+			drawObjects.push_back( objects[i] );
 		}
 	}
 
 	for( unsigned int i = 0; i < unimportantObjects.size(); i++ )
 	{
-		if( unimportantObjects[i]->GetTypeID() != TYPE_BACK_GROUND && unimportantObjects[i]->GetTypeID() != TYPE_GAME_OBJECT )
+		
+		if( 	unimportantObjects[i]->GetPos().x > (graphics->GetCamPos().x - 100) && unimportantObjects[i]->GetPos().y > (graphics->GetCamPos().y - 100)
+			&&	unimportantObjects[i]->GetPos().x < (graphics->GetCamPos().x + 100 + graphics->GetScreenWidth() ) && unimportantObjects[i]->GetPos().y < (graphics->GetCamPos().y + 100 + graphics->GetScreenHeight() ) )
 		{
-			if( 	unimportantObjects[i]->GetPos().x > (graphics->GetCamPos().x - 100) && unimportantObjects[i]->GetPos().y > (graphics->GetCamPos().y - 100)
-				&&	unimportantObjects[i]->GetPos().x < (graphics->GetCamPos().x + 100 + graphics->GetScreenWidth() ) && unimportantObjects[i]->GetPos().y < (graphics->GetCamPos().y + 100 + graphics->GetScreenHeight() ) )
-			{
+			if( unimportantObjects[i]->GetTypeID() != TYPE_BACK_GROUND && unimportantObjects[i]->GetTypeID() != TYPE_GAME_OBJECT )
+		{
 				objects.push_back( unimportantObjects[i] );
+				drawObjects.push_back( unimportantObjects[i] );
 				unimportantObjects.erase( unimportantObjects.begin() + i );
+				i--;
+			}
+			else
+			{
+				drawObjects.push_back( unimportantObjects[i] );
 			}
 		}
-		if( unimportantObjects[i]->GetImportant() )
+		else if( unimportantObjects[i]->GetImportant() )
 		{
 			objects.push_back( unimportantObjects[i] );
+			drawObjects.push_back( unimportantObjects[i] );
 			unimportantObjects.erase( unimportantObjects.begin() + i );
+			i--;
 		}	
 	}
 }
@@ -267,12 +287,7 @@ void GameEngine::UpdateAll()
 }
 void GameEngine::DrawAll()
 {
-	//performance ??
-
-	vector<GameObject*> drawObjects = objects;
-	drawObjects.insert(drawObjects.end(), unimportantObjects.begin(), unimportantObjects.end() );	//slow!!!!!
-
-	for( int drawOrder = 0; drawOrder < 16; drawOrder++ )
+	for( int drawOrder = 0; drawOrder < 10; drawOrder++ )
 	{
 		for( unsigned int i = 0; i < drawObjects.size(); i++ )
 		{
