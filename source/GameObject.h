@@ -63,6 +63,7 @@
 #define TYPE_ACTOR					17
 #define TYPE_SHIP_WREK				18
 #define TYPE_CITY_OVERWORLD1X1		19
+#define TYPE_BATTERY				20
 //=======================================================
 
 
@@ -548,8 +549,27 @@ public:
 	virtual int 	GetScore 		();
 	virtual void 	SetTileIndex 	( int newTileIndex );
 
-	virtual void	 Update 		();
+	virtual void	Update 			();
+	virtual void 	Activate		( Player* in );
+};
 
+
+
+
+
+class Battery : public Treasure
+{
+protected:
+	int score;
+
+	Animation anim;
+public:
+	Battery 						( GameEngine* newEngine );
+	~Battery 						();
+
+	virtual void	Update 			();
+	virtual void 	Activate		( Player* in );
+	virtual void 	Draw 			();
 };
 
 
@@ -566,11 +586,12 @@ protected:
 	int 		windowAnimationY;
 	int 		windowSizeX;
 	int 		windowSizeY;
+	Player*		connectedPlayer;
 public:
 	ShipWrek 						( GameEngine* newEngine );
 	~ShipWrek 						();
 
-	virtual void SetWindowVisible 	( bool newWindowVisible );
+	virtual void Activate 		 	( Player* in );
 
 	virtual void Update 			();
 	virtual void Draw 				();

@@ -917,9 +917,9 @@ void Player::Update()
 		if( jumpCharging == true)
 		{	
 			jumpCharge = jumpCharge + engine->time->GetDelta();
-			if( jumpCharge > 20 )
+			if( jumpCharge > 25 )
 			{
-				jumpCharge = 20;
+				jumpCharge = 25;
 			}
 		}
 		if( jumpCharging == false && jumpCharge > 0 && onFloor )
@@ -942,7 +942,7 @@ void Player::Update()
 		for( unsigned int i = 0; i < treasures.size(); i++ )
 		{
 			Treasure* treasure = ( Treasure* )treasures[i];
-			score = score + treasure->GetScore();
+			treasure->Activate( this );
 		}
 	}
 	if( engine->time->GetCurrentTimeInMS() > dyingTime + 2200 && dying )
@@ -955,7 +955,7 @@ void Player::Update()
 		engine->LoadObjectsFromBank();
 		lifes--;
 		Player* overWorldPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
-		overWorldPlayer->SetScore( GetScore() );
+		//overWorldPlayer->SetScore( GetScore() );
 		overWorldPlayer->SetLifes( lifes );
 		Fader* fader = new Fader( engine );
 		engine->AddObject( fader );
@@ -1083,21 +1083,33 @@ void  Player::Collision()
 	}
 	
 
-	float right = RayRight( centerPos, 5, colliders );
+	float right = RayRight( centerPos + Vector2D( 0, -6 ), 5, colliders );
+	float right2 = RayRight( centerPos + Vector2D( 0, 6 ), 5, colliders );
 	
 	if( right != -1 )
 	{
 		centerPos.x = centerPos.x - ( 5 - right );
 		direction.x = 0;
 	}
+	else if( right2 != -1 )
+	{
+		centerPos.x = centerPos.x - ( 5 - right );
+		direction.x = 0;
+	}
 
-	float left = RayLeft( centerPos, 5, colliders );
+	float left = RayLeft( centerPos + Vector2D( 0, -6 ), 5, colliders );
+	float left2 = RayLeft( centerPos + Vector2D( 0, 6 ), 5, colliders );
 	
 	if( left != -1 )
 	{
 		centerPos.x = centerPos.x + ( 5 + left );
 		direction.x = 0;
 	}
+	else if ( left2 != -1 )
+	{
+		centerPos.x = centerPos.x + ( 5 + left );
+		direction.x = 0;
+	}	
 	
 
 
@@ -1253,7 +1265,7 @@ void PlayerTopDown::Update()
 	ShipWrek* shipWrek = ( ShipWrek* )engine->GetFirstObjectAtPos( centerPos, TYPE_SHIP_WREK );
 	if( engine->input->KeyDown( ENTER ) && shipWrek != NULL )
 	{
-		shipWrek->SetWindowVisible( true );
+		shipWrek->Activate( this );
 	}
 
 
@@ -1420,6 +1432,7 @@ void CityOverWorld1x1::Update()
 void CityOverWorld1x1::Draw()
 {
 	engine->graphics->DrawSprite( pos, tileSetID, 63 );
+	//
 }
 
 
@@ -2045,6 +2058,7 @@ void HelpWindow::Draw()
 Exit::Exit( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_EXIT; //14
+	//
 }
 Exit::~Exit()
 {
@@ -2075,6 +2089,7 @@ void Exit::BackToOverworld()
 	engine->LoadObjectsFromBank();
 	Player* overWorldPlayer = ( Player* )engine->GetFirstObject( TYPE_PLAYER_TOP_DOWN );
 	overWorldPlayer->SetScore( inLevelPlayer->GetScore() );
+	overWorldPlayer->SetShipBattery( inLevelPlayer->GetShipBattery() );
 	//destroy city
 	GameObject* city = engine->GetObjectByUID( inLevelPlayer->GetLevelUID() );
 	engine->RemoveObject( city );
@@ -2157,6 +2172,46 @@ void Treasure::SetTileIndex( int newTileIndex )
 		score = 100;
 	}
 }
+void Treasure::Activate( Player* in )
+{
+	in->SetScore( in->GetScore() + score );
+	engine->RemoveObject( this );
+}
+
+
+
+
+
+//========== Battery =============
+Battery::Battery( GameEngine* newEngine ) : Treasure( newEngine )
+{
+	typeID = TYPE_TREASURE; //14
+
+	anim.id = 0;
+	anim.tileSetID = ASSET_K1_TILES;
+	anim.firstTileIndex = 237;
+	anim.numSprites = 4;
+	anim.currentFrame = 0;
+	anim.speed = 10;
+	anim.currentSpeedStep = 0;
+}
+Battery::~Battery()
+{
+
+}
+void Battery::Update()
+{
+	
+}
+void Battery::Draw()
+{
+	engine->graphics->PlayAnimationDelta( &anim, pos, engine->time->GetDelta() );
+}
+void Battery::Activate( Player* in )
+{
+	in->SetShipBattery( true );
+	engine->RemoveObject( this );
+}
 
 
 
@@ -2184,15 +2239,21 @@ ShipWrek::ShipWrek( GameEngine* newEngine ) : GameObject( newEngine )
 	anim.currentFrame = 0;
 	anim.speed = 12;
 	anim.currentSpeedStep = 0;
+
+	connectedPlayer = NULL;
 }
 ShipWrek::~ShipWrek()
 {
 
 }
-void ShipWrek::SetWindowVisible( bool newWindowVisible )
+void ShipWrek::Activate( Player* in )
 {
-	windowVisible = newWindowVisible;
+	windowVisible = true;
 	drawOrder = 9;
+	if( in != NULL)
+	{
+		connectedPlayer = in;
+	}
 	engine->DisableAll( this );
 }
 void ShipWrek::Update()
@@ -2245,9 +2306,15 @@ void ShipWrek::DrawWindow()
 		sprintf(str, "Go get them\npress a key!: " );
 		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 88, 125 ), ASSET_TXT_WHITE, 0, str );
 
-		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 321, 16 );
-		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+20, 100 ), ASSET_K1_TILES, 322, 16 );
-		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+40, 100 ), ASSET_K1_TILES, 323, 16 );
-		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+60, 100 ), ASSET_K1_TILES, 324, 16 );
+		if( connectedPlayer != NULL )
+		{
+			if( connectedPlayer -> GetShipBattery() )
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 321, 16 );
+			}
+			engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+20, 100 ), ASSET_K1_TILES, 322, 16 );
+			engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+40, 100 ), ASSET_K1_TILES, 323, 16 );
+			engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+60, 100 ), ASSET_K1_TILES, 324, 16 );
+		}
 	}
 }

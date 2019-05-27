@@ -1,5 +1,6 @@
 collision:
 	irratic behavior
+	2 horizontal rays
 
 animations:
 	stop animation when object is inactive
@@ -8,7 +9,7 @@ fade:
 	incorporate delta
 
 speed:
-	rework drawing
+	rework filtering
 
 object handeling
 	potential problem with imprtant actors, that cann fall through non important solids
@@ -54,7 +55,3 @@ Spaceship
 	actually take object possesion into account
 	grow window from center
 	(incorporate delta in window grow)
-
-2nd Level
-	include different tilesets!
-	especially for traps and treasures

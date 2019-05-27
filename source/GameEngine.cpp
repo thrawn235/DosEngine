@@ -1493,6 +1493,10 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					{
 						newObject = new Treasure( this );
 					}
+					else if( typeID == TYPE_BATTERY ) //placeholder
+					{
+						newObject = new Battery( this );
+					}
 					else if( typeID == TYPE_SHIP_WREK ) //placeholder
 					{
 						newObject = new ShipWrek( this );
