@@ -40,6 +40,7 @@ Player
 		game crashes on -1 lifes
 	collision
 		make more robust
+		player shouldt be able to walk out of camera bounds
 	shoot
 		projectile game object
 	move variables to attributes
@@ -48,10 +49,6 @@ Player
 		groundFriction
 		JumpForce  
 
-overWorldCity
-	too much is hardcoded especially tileSetID and tileIndex
-
 Spaceship
-	actually take object possesion into account
 	grow window from center
 	(incorporate delta in window grow)

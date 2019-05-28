@@ -189,7 +189,7 @@ protected:
 
 	Animation 	jumpLeft, jumpRight;
 	bool 		jumpCharging;
-	int 		jumpCharge;
+	float		jumpCharge;
 
 	bool 		spacePressed;
 
@@ -580,6 +580,7 @@ class ShipWrek : public GameObject
 {
 protected:
 	Animation 	anim;
+	Animation 	blueBallAnim;
 	bool 		windowVisible;
 	bool 		keyDown;
 	int 		windowAnimationX;

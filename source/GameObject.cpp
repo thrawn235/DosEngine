@@ -916,10 +916,10 @@ void Player::Update()
 
 		if( jumpCharging == true)
 		{	
-			jumpCharge = jumpCharge + engine->time->GetDelta();
-			if( jumpCharge > 25 )
+			jumpCharge = jumpCharge + engine->time->GetDelta() / 2;
+			if( jumpCharge > 23 )
 			{
-				jumpCharge = 25;
+				jumpCharge = 23;
 			}
 		}
 		if( jumpCharging == false && jumpCharge > 0 && onFloor )
@@ -2240,6 +2240,14 @@ ShipWrek::ShipWrek( GameEngine* newEngine ) : GameObject( newEngine )
 	anim.speed = 12;
 	anim.currentSpeedStep = 0;
 
+	blueBallAnim.id = 0;
+	blueBallAnim.tileSetID = ASSET_8_PIXEL_BORDER_TILES;
+	blueBallAnim.firstTileIndex = 9;
+	blueBallAnim.numSprites = 6;
+	blueBallAnim.currentFrame = 0;
+	blueBallAnim.speed = 10;
+	blueBallAnim.currentSpeedStep = 0;
+
 	connectedPlayer = NULL;
 }
 ShipWrek::~ShipWrek()
@@ -2308,13 +2316,40 @@ void ShipWrek::DrawWindow()
 
 		if( connectedPlayer != NULL )
 		{
+			if( false )
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 448, 16 );	//jouystick
+			}
+			else
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 321, 16 );	//jouystick
+			}
 			if( connectedPlayer -> GetShipBattery() )
 			{
-				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 321, 16 );
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 449, 16 );	//jouystick
 			}
-			engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+20, 100 ), ASSET_K1_TILES, 322, 16 );
-			engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+40, 100 ), ASSET_K1_TILES, 323, 16 );
-			engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+60, 100 ), ASSET_K1_TILES, 324, 16 );
+			else
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+20, 100 ), ASSET_K1_TILES, 322, 16 );	//battery
+			}
+			if( false )
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 450, 16 );	//jouystick
+			}
+			else
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+40, 100 ), ASSET_K1_TILES, 323, 16 );	//vacuumCleaner
+			}
+			if( false )
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 451, 16 );	//jouystick
+			}
+			else
+			{
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+60, 100 ), ASSET_K1_TILES, 324, 16 );	//boose
+			}
 		}
+
+		engine->graphics->PlayAnimation( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 190, 133 ) );
 	}
 }

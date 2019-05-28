@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="5">
+<map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="6">
  <tileset firstgid="1" name="k1tiles" tilewidth="16" tileheight="16" tilecount="611" columns="13">
   <properties>
    <property name="tileSetID" type="int" value="100"/>
@@ -276,10 +276,18 @@
    </properties>
    <point/>
   </object>
-  <object id="4" name="City 1" x="224.375" y="416.125">
+  <object id="4" name="City 1" x="224" y="416">
    <properties>
     <property name="levelPath" value="./levels/k1e1m3.tmx"/>
     <property name="tileIndex" type="int" value="313"/>
+    <property name="typeID" type="int" value="9"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="5" name="City 1" x="432" y="432">
+   <properties>
+    <property name="levelPath" value="./levels/k1e1m4.tmx"/>
+    <property name="tileIndex" type="int" value="54"/>
     <property name="typeID" type="int" value="9"/>
    </properties>
    <point/>
