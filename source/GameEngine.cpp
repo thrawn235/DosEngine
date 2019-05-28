@@ -1567,6 +1567,7 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					city = ( CityOverWorld* )newObject;
 
 					city->SetLevelPath( GetProperty( object->properties, "levelPath" ).stringValue );
+					city->SetTileIndex( GetProperty( object->properties, "tileIndex" ).intValue );
 				}
 
 				if( object->typeID == TYPE_CITY_OVERWORLD1X1 ) //placeholder
@@ -1577,6 +1578,7 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					city = ( CityOverWorld1x1* )newObject;
 
 					city->SetLevelPath( GetProperty( object->properties, "levelPath" ).stringValue );
+					city->SetTileIndex( GetProperty( object->properties, "tileIndex" ).intValue );
 				}
 
 				if( newObject != NULL )

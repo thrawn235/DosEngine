@@ -1379,10 +1379,10 @@ void CityOverWorld::Update()
 }
 void CityOverWorld::Draw()
 {
-	engine->graphics->DrawSprite( pos, tileSetID, 54 );
-	engine->graphics->DrawSprite( pos + Vector2D( 16, 0 ), tileSetID, 55 );
-	engine->graphics->DrawSprite( pos + Vector2D( 0, 16 ), tileSetID, 67 );
-	engine->graphics->DrawSprite( pos + Vector2D( 16, 16 ), tileSetID, 68 );
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	engine->graphics->DrawSprite( pos + Vector2D( 16, 0 ), tileSetID, tileIndex + 1 );
+	engine->graphics->DrawSprite( pos + Vector2D( 0, 16 ), tileSetID, tileIndex + 13 );
+	engine->graphics->DrawSprite( pos + Vector2D( 16, 16 ), tileSetID, tileIndex + 14 );
 }
 void CityOverWorld::LoadLevel()
 {
@@ -1431,7 +1431,7 @@ void CityOverWorld1x1::Update()
 }
 void CityOverWorld1x1::Draw()
 {
-	engine->graphics->DrawSprite( pos, tileSetID, 63 );
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
 	//
 }
 
