@@ -27,6 +27,8 @@
 #define ASSET_8_PIXEL_BORDER_TILES 	8
 #define ASSET_PRESS_F1_HELP			9
 #define ASSET_TXT_GREY				51
+#define ASSET_ID_BANNER				52
+#define ASSET_8PX_TILES				53
 
 #define ASSET_KEEN_WALK 			10
 #define ASSET_KEEN_TOP 				11

@@ -336,6 +336,14 @@ void GameEngine::LoadAssets()
 	graphics->AddTileSet(border);
 	graphics->FreeSprite(sprite);
 
+	bmp = graphics->LoadBMP("./gfx/8pxtiles.bmp");
+	sprite = graphics->BMPToSprite(&bmp, 6);
+	graphics->FreeBMP(&bmp);
+
+	TileSet* px8tiles = graphics->ExtractTileSet( ASSET_8PX_TILES, sprite, Vector2D( 0,0 ), 8, 8, 16, 16 );	//tileSetId = 1
+	graphics->AddTileSet(px8tiles);
+	graphics->FreeSprite(sprite);
+
 
 	bmp = graphics->LoadBMP("./gfx/apogee.bmp");
 	sprite = graphics->BMPToSprite(&bmp, ASSET_APOGEE);
@@ -375,6 +383,12 @@ void GameEngine::LoadAssets()
 
 	bmp = graphics->LoadBMP("./gfx/f1help.bmp");
 	sprite = graphics->BMPToSprite(&bmp, ASSET_PRESS_F1_HELP);
+	graphics->AddSprite( sprite );
+	graphics->FreeBMP(&bmp);
+
+
+	bmp = graphics->LoadBMP("./gfx/idbanner.bmp");
+	sprite = graphics->BMPToSprite(&bmp, ASSET_ID_BANNER);
 	graphics->AddSprite( sprite );
 	graphics->FreeBMP(&bmp);
 
@@ -1632,6 +1646,95 @@ void GameEngine::FindLevelBoundaries()
 	levelBoundaryYMax = newLevelBoundaryYMax;
 }
 //==========================================================
+
+//=============== RawTileMap ===================
+RawTileMap GameEngine::LoadRawTileMap( const char* filePath )
+{
+	TMXMap tempTMX = LoadTMXMap( filePath );
+	RawTileMap temp = ConvertTMXMapToRaw( &tempTMX );
+	return temp;
+}
+RawTileMap GameEngine::ConvertTMXMapToRaw( TMXMap* in )
+{
+	RawTileMap raw;
+	raw.height 				= in->layers[0].height;
+	raw.width 				= in->layers[0].width;
+
+	raw.tileSetID 			= in->tileSets[0].tileSetID;
+
+	raw.tileHeight 			= in->tileSets[0].tileHeight;
+	raw.tileWidth 			= in->tileSets[0].tileWidth;
+
+	for( unsigned int y = 0; y < in->layers[0].height; y++ )
+	{
+		for( unsigned int x = 0; x < in->layers[0].width; x++ )
+		{
+			int mapValue = in->layers[0].data[y * in->layers[0].width + x];
+			
+			raw.tiles.push_back( mapValue - 1 ); //1 is the firt GID therefore -1
+		}
+	}
+
+	return raw;
+}
+void GameEngine::DrawRawTileMap( Vector2D pos, RawTileMap* in )
+{
+	for( unsigned int y = 0; y < in->height; y++ )
+	{
+		for( unsigned int x = 0; x < in->width; x++ )
+		{
+			graphics->DrawSprite( pos + Vector2D( x * in->tileWidth, y * in->tileHeight ), in->tileSetID, in->tiles[ y * in->width + x ] );
+		}
+	}
+}
+RawTileMap GameEngine::CropRawTileMap( RawTileMap* in, int startX, int startY, int width, int height )
+{
+	RawTileMap raw;
+
+	//---------- some input chekcing -------------
+	if( startX > in->width )
+	{
+		startX = in->width;
+	}
+	if( startX < 0 )
+	{
+		startX = 0;
+	}
+	if( startY > in->height )
+	{
+		startY = in->height;
+	}
+	if( startY < 0 )
+	{
+		startY = 0;
+	}
+	if( startX + width > in->width )
+	{
+		width = in->width - startX;
+	}
+	if( startY + height > in->height )
+	{
+		height = in->height - startY;
+	}
+	//--------------------------------------------
+
+	raw.width  		= width;
+	raw.height 		= height;
+	raw.tileSetID 	= in->tileSetID;
+	raw.tileHeight 	= in->tileHeight;
+	raw.tileWidth 	= in->tileWidth; 
+
+	for( unsigned int y = 0; y < height; y++ )
+	{
+		for( unsigned int x = 0; x < width; x++ )
+		{
+			raw.tiles.push_back( in->tiles[( y + startY ) * in->width + ( x + startX )] );
+		}
+	}
+	return raw;
+}
+//==============================================
+
 
 //================ Misc =======================
 void GameEngine::Quit(const char* message)

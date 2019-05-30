@@ -48,7 +48,12 @@ Player
 		friction
 		groundFriction
 		JumpForce  
+	move
+		accomodate delta in friction
 
 Spaceship
 	grow window from center
 	(incorporate delta in window grow)
+
+help
+	help is not showing

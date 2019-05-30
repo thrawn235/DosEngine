@@ -48,6 +48,15 @@ using namespace std;
 class GameObject;
 //======================================================
 
+struct RawTileMap
+{
+	int ID;
+	int tileSetID;
+	int width, height;
+	int tileWidth, tileHeight;
+	vector<int> tiles;
+};
+
 
 class GameEngine
 {
@@ -136,6 +145,13 @@ public:
 	int 			GetTileSetID 				( TMXMap* in, int TMXTileSetIndex 					);
 	int 			GetFirstGid 				( TMXMap* in, int tileSetID 						);
 	void 			FindLevelBoundaries			();
+	//==============================================
+
+	//=============== RawTileMap ===================
+	RawTileMap		LoadRawTileMap 				( const char* filePath );
+	RawTileMap 		ConvertTMXMapToRaw 			( TMXMap* in );
+	void 			DrawRawTileMap 				( Vector2D pos, RawTileMap* in );
+	RawTileMap 		CropRawTileMap 				( RawTileMap* in, int startX, int startY, int width, int height );
 	//==============================================
 
 	//================ Misc =======================

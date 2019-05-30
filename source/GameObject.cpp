@@ -1754,6 +1754,11 @@ void MainMenu::Update()
 			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
 			//palette = engine->graphics->GetPalette();
 		}
+		if(menuPos == 3 && engine->input->KeyDown( ENTER ) && !keyDown )
+		{
+			fadeTimeStamp = engine->time->GetCurrentTimeInMS();
+			//palette = engine->graphics->GetPalette();
+		}
 		if( !engine->input->AnyKeyDown() )
 		{
 			keyDown = false;
@@ -1790,7 +1795,21 @@ void MainMenu::Update()
 				engine->CreateObjectsFromMap( &testMap2 );			//crrate Objects
 				Fader* fader = new Fader( engine );
 				engine->AddObject( fader );
-				//engine->graphics->SetPalette( palette, 255 );
+				AboutScreen* aboutScreen = new AboutScreen( engine );
+				engine->AddObject( aboutScreen );
+			}
+			if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 2000 && menuPos == 3)
+			{
+				//delete everything
+				engine->ClearObjects();
+				engine->graphics->ClearScreen( 0 );
+				TMXMap storybg = engine->LoadTMXMap("./levels/storybg.tmx");		//Load Map
+				engine->CreateObjectsFromMap( &storybg );			//crrate Objects
+				Fader* fader = new Fader( engine );
+				engine->AddObject( fader );
+				
+				StoryScreen* storyScreen = new StoryScreen( engine );
+				engine->AddObject( storyScreen );
 			}
 		}
 	}
@@ -2010,14 +2029,19 @@ void StaticSign::Draw()
 HelpWindow::HelpWindow( GameEngine* newEngine ) : GameObject( newEngine )
 {
 	typeID = TYPE_HELP_WINDOW; //12
-	drawOrder = 10;
+	drawOrder = 8;
 	show = false;
 	keyDown = true;
 	important = true;
+
+	firstLine = 0;
+
+	helpText = new RawTileMap;
+	*helpText = engine->LoadRawTileMap( "./levels/helptxt.tmx" );
 }
 HelpWindow::~HelpWindow()
 {
-
+	delete helpText;
 }
 void HelpWindow::Update()
 {
@@ -2033,6 +2057,22 @@ void HelpWindow::Update()
 		keyDown = true;
 		engine->DisableAll( this );
 	}
+	if( engine->input->KeyDown( KEY_UP ) && show )
+	{
+		firstLine --;
+		if( firstLine < 0 )
+		{
+			firstLine = 0;
+		}
+	}
+	if( engine->input->KeyDown( KEY_DOWN ) && show )
+	{
+		firstLine ++;
+		if( firstLine > helpText->height - 20 )
+		{
+			firstLine = helpText->height + 20;
+		}
+	}
 	if( !engine->input->AnyKeyDown() )
 	{
 		keyDown = false;
@@ -2044,9 +2084,11 @@ void HelpWindow::Draw()
 	{
 		engine->graphics->DrawWindow( Vector2D( 0, 165 ) + engine->graphics->GetCamPos() , 39, 2, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
 		engine->graphics->DrawWindow( Vector2D( 0, 5 ) + engine->graphics->GetCamPos() , 39, 20, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
-		char str[500];
-		sprintf(str, "Help: \n\nControls:\nup/left/right/down: move\nspace: jump\nEnter: enter Level\nF1: help\nF2: stats\nESC: exit" );
-		engine->graphics->DrawText( Vector2D( 8, 13 ) + engine->graphics->GetCamPos(), ASSET_TXT_WHITE, 0, str );
+		char str[50];
+		sprintf(str, "     F1 To Exit : Up/Down to Read     " );
+		engine->graphics->DrawText( Vector2D( 8, 165+8 ) + engine->graphics->GetCamPos(), ASSET_TXT_GREY, 0, str );
+		RawTileMap temp = engine->CropRawTileMap( helpText, 0,firstLine, 36, 18 );
+		engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 8, 13 ), &temp );
 	}
 }
 
@@ -2206,6 +2248,7 @@ void Battery::Update()
 void Battery::Draw()
 {
 	engine->graphics->PlayAnimationDelta( &anim, pos, engine->time->GetDelta() );
+	//
 }
 void Battery::Activate( Player* in )
 {
@@ -2249,10 +2292,14 @@ ShipWrek::ShipWrek( GameEngine* newEngine ) : GameObject( newEngine )
 	blueBallAnim.currentSpeedStep = 0;
 
 	connectedPlayer = NULL;
+
+	rawShip = new RawTileMap;
+	*rawShip = engine->LoadRawTileMap( "./levels/rawShip.tmx" );
 }
 ShipWrek::~ShipWrek()
 {
-
+	delete rawShip;
+	//
 }
 void ShipWrek::Activate( Player* in )
 {
@@ -2348,8 +2395,188 @@ void ShipWrek::DrawWindow()
 			{
 				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+60, 100 ), ASSET_K1_TILES, 324, 16 );	//boose
 			}
-		}
 
+
+		}
+		
 		engine->graphics->PlayAnimation( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 190, 133 ) );
 	}
+}
+
+
+
+
+//========== AboutScreen =============
+AboutScreen::AboutScreen( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_ABOUT_SCREEN; //18
+
+	drawOrder = 5;
+
+	aboutText = new RawTileMap;
+	*aboutText = engine->LoadRawTileMap( "./levels/rawabout.tmx" );
+
+	keyDown = true;
+
+	fadeTimeStamp = 0;
+}
+AboutScreen::~AboutScreen()
+{
+	delete aboutText;
+	//
+}
+
+void AboutScreen::Update()
+{
+	if( engine->input->AnyKeyDown() && !keyDown && fadeTimeStamp == 0 )
+	{
+		keyDown = true;
+		fadeTimeStamp = engine->time->GetCurrentTimeInMS();
+	}
+	if( !engine->input->AnyKeyDown() )
+	{
+		keyDown = false;
+	}
+
+	if( fadeTimeStamp > 0 )
+	{
+		engine->graphics->FadeOut();
+
+		if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 3500 )
+		{
+			//delete everything
+			engine->ClearObjects();
+			engine->graphics->ClearScreen( 0 );
+			TMXMap testMap = engine->LoadTMXMap("./levels/menubg.tmx");		//Load Map
+			engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+
+			GameObject* menu;
+			menu = new MainMenu( engine );
+			menu->SetPos 		( Vector2D( 80, 50 ) );
+			menu->SetDrawOrder 	( 2 );
+			engine->AddObject(menu);
+
+			StaticSign* helpSign;
+			helpSign = new StaticSign( engine );
+			helpSign->SetPos( Vector2D( 95, 180 ) );
+			helpSign->SetSpriteID( ASSET_PRESS_F1_HELP );
+			engine->AddObject( helpSign );
+
+			HelpWindow* helpWindow;
+			helpWindow = new HelpWindow( engine );
+			engine->AddObject( helpWindow );
+
+			Fader* fader = new Fader( engine );
+			engine->AddObject( fader );
+		}
+	}
+}
+void AboutScreen::Draw()
+{
+	engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 16, 58 ), aboutText );
+	engine->graphics->DrawSprite(pos + Vector2D( 100, 20 ), engine->graphics->GetSprite( ASSET_ID_BANNER ));
+}
+
+
+
+
+
+//========== StoryScreen =============
+StoryScreen::StoryScreen( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID = TYPE_STORY_SCREEN; //18
+
+	drawOrder = 5;
+
+	storyText = new RawTileMap;
+	*storyText = engine->LoadRawTileMap( "./levels/storyraw.tmx" );
+
+	keyDown = true;
+
+	fadeTimeStamp = 0;
+	firstLine = 0;
+}
+StoryScreen::~StoryScreen()
+{
+	delete storyText;
+	//
+}
+
+void StoryScreen::Update()
+{
+	if( engine->input->KeyDown( KEY_F1 ) && !keyDown )
+	{
+		keyDown = true;
+		fadeTimeStamp = engine->time->GetCurrentTimeInMS();
+	}
+	if( engine->input->KeyDown( KEY_F1 ) && !keyDown )
+	{
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_UP ) )
+	{
+		firstLine --;
+		if( firstLine < 0 )
+		{
+			firstLine = 0;
+		}
+	}
+	if( engine->input->KeyDown( KEY_DOWN ) )
+	{
+		firstLine ++;
+		if( firstLine > storyText->height - 20 )
+		{
+			firstLine = storyText->height + 20;
+		}
+	}
+	if( !engine->input->AnyKeyDown() )
+	{
+		keyDown = false;
+	}
+
+	if( fadeTimeStamp > 0 )
+	{
+		engine->graphics->FadeOut();
+
+		if( engine->time->GetCurrentTimeInMS() > fadeTimeStamp + 3500 )
+		{
+			//delete everything
+			engine->ClearObjects();
+			engine->graphics->ClearScreen( 0 );
+			TMXMap testMap = engine->LoadTMXMap("./levels/menubg.tmx");		//Load Map
+			engine->CreateObjectsFromMap( &testMap );			//crrate Objects
+
+			GameObject* menu;
+			menu = new MainMenu( engine );
+			menu->SetPos 		( Vector2D( 80, 50 ) );
+			menu->SetDrawOrder 	( 2 );
+			engine->AddObject(menu);
+
+			StaticSign* helpSign;
+			helpSign = new StaticSign( engine );
+			helpSign->SetPos( Vector2D( 95, 180 ) );
+			helpSign->SetSpriteID( ASSET_PRESS_F1_HELP );
+			engine->AddObject( helpSign );
+
+			HelpWindow* helpWindow;
+			helpWindow = new HelpWindow( engine );
+			engine->AddObject( helpWindow );
+
+			Fader* fader = new Fader( engine );
+			engine->AddObject( fader );
+		}
+	}
+}
+void StoryScreen::Draw()
+{
+	engine->graphics->DrawWindow( Vector2D( 0, 125 ) + engine->graphics->GetCamPos() , 39, 2, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+	engine->graphics->DrawWindow( Vector2D( 0, 5 ) + engine->graphics->GetCamPos() , 39, 15, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+	
+	char str[50];
+		sprintf(str, "     F1 To Exit : Up/Down to Read     " );
+		engine->graphics->DrawText( Vector2D( 8, 125+8 ) + engine->graphics->GetCamPos(), ASSET_TXT_GREY, 0, str );
+
+	RawTileMap temp = engine->CropRawTileMap( storyText, 0,firstLine, 38, 14 );
+	engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 8, 13 ), &temp );
+
 }

@@ -64,6 +64,8 @@
 #define TYPE_SHIP_WREK				18
 #define TYPE_CITY_OVERWORLD1X1		19
 #define TYPE_BATTERY				20
+#define TYPE_ABOUT_SCREEN			21
+#define TYPE_STORY_SCREEN			22
 //=======================================================
 
 
@@ -72,6 +74,7 @@ using namespace std;
 
 //============== forward declarations ==================
 class GameEngine;
+class RawTileMap;
 //======================================================
 
 
@@ -492,6 +495,8 @@ class HelpWindow : public GameObject
 protected:
 	bool show;
 	bool keyDown;
+	RawTileMap*  helpText;
+	int firstLine;
 public:
 	HelpWindow 					( GameEngine* newEngine );
 	~HelpWindow 				();
@@ -588,6 +593,8 @@ protected:
 	int 		windowSizeX;
 	int 		windowSizeY;
 	Player*		connectedPlayer;
+
+	RawTileMap*  rawShip;
 public:
 	ShipWrek 						( GameEngine* newEngine );
 	~ShipWrek 						();
@@ -599,4 +606,41 @@ public:
 
 	virtual void DrawWindow 		();
 };
+
+
+
+
+
+class AboutScreen : public GameObject
+{
+protected:
+	RawTileMap*  aboutText;
+	bool keyDown;
+	int fadeTimeStamp;
+public:
+	AboutScreen 					( GameEngine* newEngine );
+	~AboutScreen 					();
+
+	virtual void Update 			();
+	virtual void Draw 				();
+};
+
+
+
+
+class StoryScreen : public GameObject
+{
+protected:
+	RawTileMap*  storyText;
+	bool keyDown;
+	int fadeTimeStamp;
+	int firstLine;
+public:
+	StoryScreen 					( GameEngine* newEngine );
+	~StoryScreen 					();
+
+	virtual void Update 			();
+	virtual void Draw 				();
+};
+
 #endif

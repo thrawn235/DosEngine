@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="7" height="3" tilewidth="16" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="1">
+ <tileset firstgid="1" name="k1tiles" tilewidth="16" tileheight="16" tilecount="611" columns="13">
+  <properties>
+   <property name="tileSetID" type="int" value="100"/>
+  </properties>
+  <image source="../gfx/k1tiles.bmp" width="208" height="752"/>
+ </tileset>
+ <layer id="2" name="Tile Layer 1" width="7" height="3">
+  <data encoding="csv">
+352,353,354,355,356,357,358,
+365,366,367,368,369,370,371,
+378,379,380,381,382,383,384
+</data>
+ </layer>
+</map>
