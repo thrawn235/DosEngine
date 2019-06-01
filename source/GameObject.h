@@ -66,6 +66,8 @@
 #define TYPE_BATTERY				20
 #define TYPE_ABOUT_SCREEN			21
 #define TYPE_STORY_SCREEN			22
+#define TYPE_DOOR					23
+#define TYPE_KEY					24
 //=======================================================
 
 
@@ -95,6 +97,7 @@ protected:
 	
 	bool		invisible;
 	bool 		enabled;
+	bool 		persistent;
 
 	unsigned long UID;
 	
@@ -124,8 +127,10 @@ public:
 	virtual unsigned long		GetUID				();
 	virtual void				SetUID				( unsigned long newUID );
 	virtual bool				GetImportant 		();
+	virtual bool 				GetPersistent 		();
 
 			void 				SetInsivible 		( bool newInvisible );
+			void 				SetPersistent 		( bool newPersistent );
 			void 				Enable 				();
 			void 				Disable 			();
 	virtual void 				OnCreation			();
@@ -210,6 +215,7 @@ protected:
 	bool 	blueKey;
 	bool 	redKey;
 	bool 	yellowKey;
+	bool 	greenKey;
 	
 	int 	dyingTime;
 	
@@ -225,7 +231,8 @@ public:
 	virtual void 			SetShipBattery 	( bool newShipBattery );
 	virtual void 			SetBlueKey 		( bool newBlueKey );
 	virtual void 			SetRedKey 		( bool newRedKey );
-	virtual void 			SetYelloweKey 	( bool newYellowKey );
+	virtual void 			SetYellowKey 	( bool newYellowKey );
+	virtual void 			SetGreenKey 	( bool newGreenKey );
 	virtual void 			SetLevelUID 	( unsigned long newLevelUID );
 
 	virtual int 			GetScore 		();
@@ -236,7 +243,8 @@ public:
 	virtual bool 			GetShipBattery 	();
 	virtual bool 			GetBlueKey 		();
 	virtual bool 			GetRedKey 		();
-	virtual bool 			GetYelloweKey 	();
+	virtual bool 			GetYellowKey 	();
+	virtual bool 			GetGreenKey 	();
 	virtual unsigned long 	GetLevelUID 	();
 
 	virtual void			Die 			();
@@ -456,6 +464,8 @@ protected:
 	int constructorTimeStamp;
 
 	Player* connectedPlayer;
+
+	RawTileMap*  windowBg;
 public:
 	GameManager 				( GameEngine* newEngine );
 	~GameManager();
@@ -641,6 +651,54 @@ public:
 
 	virtual void Update 			();
 	virtual void Draw 				();
+};
+
+
+
+
+
+class Door : public GameObject
+{
+protected:
+	bool isYellow;
+	bool isRed;
+	bool isGreen;
+	bool isBlue;
+
+	bool isClosed;
+
+	bool opening;
+	int posOffset;
+	int subOffset;
+public:
+	Door 							( GameEngine* newEngine );
+	~Door 							();
+
+	virtual void 	SetTileIndex 	( int newTileIndex );
+
+	virtual void Update 			();
+	virtual void Draw 				();
+};
+
+
+
+
+class Key : public Treasure
+{
+protected:
+	bool isYellow;
+	bool isRed;
+	bool isGreen;
+	bool isBlue;
+public:
+	Key 							( GameEngine* newEngine );
+	~Key 							();
+
+	virtual void SetTileIndex 		( int newTileIndex );
+
+	virtual void Update 			();
+	virtual void Draw 				();
+	virtual void Activate			( Player* in );
 };
 
 #endif

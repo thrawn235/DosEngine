@@ -31,6 +31,7 @@ GameObject::GameObject( GameEngine* newEngine )
 
 	invisible	= false;
 	enabled		= true;
+	persistent 	= false;
 }
 GameObject::~GameObject()
 {
@@ -155,6 +156,11 @@ bool GameObject::GetInvisible()
 	return invisible;
 	//
 }
+bool GameObject::GetPersistent()
+{
+	return persistent;
+	//
+}
 void GameObject::SetUID( unsigned long newUID )
 {
 	UID = newUID;
@@ -185,6 +191,11 @@ void GameObject::Draw()
 void GameObject::SetInsivible( bool newInvisible )
 {
 	invisible = newInvisible;
+	//
+}
+void GameObject::SetPersistent( bool newPersistent )
+{
+	persistent = newPersistent;
 	//
 }
 void GameObject::Enable()
@@ -765,6 +776,7 @@ Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 	blueKey		= false;
 	redKey		= false;
 	yellowKey	= false;
+	greenKey 	= false;
 
 	dyingTime = 0;
 
@@ -816,9 +828,14 @@ void Player::SetRedKey( bool newRedKey )
 	redKey = newRedKey;
 	//
 }
-void Player::SetYelloweKey( bool newYellowKey )
+void Player::SetYellowKey( bool newYellowKey )
 {
 	yellowKey = newYellowKey;
+	//
+}
+void Player::SetGreenKey( bool newGreenKey )
+{
+	greenKey = newGreenKey;
 	//
 }
 void Player::SetLevelUID( unsigned long newLevelUID )
@@ -866,9 +883,14 @@ bool Player::GetRedKey()
 	return redKey;
 	//
 }
-bool Player::GetYelloweKey()
+bool Player::GetYellowKey()
 {
 	return yellowKey;
+	//
+}
+bool Player::GetGreenKey()
+{
+	return greenKey;
 	//
 }
 unsigned long Player::GetLevelUID()
@@ -1779,8 +1801,8 @@ void MainMenu::Update()
 				engine->CreateObjectsFromMap( &testMap );			//crrate Objects
 				//engine->AddObject( manager );
 
-				HelpWindow* helpWindow = new HelpWindow( engine );
-				engine->AddObject( helpWindow );
+				//HelpWindow* helpWindow = new HelpWindow( engine );
+				//engine->AddObject( helpWindow );
 
 				Fader* fader = new Fader( engine );
 				engine->AddObject( fader );
@@ -1890,24 +1912,15 @@ GameManager::GameManager( GameEngine* newEngine ) : GameObject( newEngine )
 	showHelp = false;
 	showStats = false;
 
-	score 		= 0;
-	extraLife 	= 20000;
-	lifes		= 4;
-	ammo 		= 0;
-
-	pogo 		= false;
-	shipBattery = false;
-
-	blueKey		= false;
-	redKey		= false;
-	yellowKey	= false;
-
 	connectedPlayer = NULL;
 
 	important = true;
 
 	constructorTimeStamp = 0;
 	showLives = true;
+
+	windowBg = new RawTileMap;
+	*windowBg = engine->LoadRawTileMap( "./levels/stats.tmx" );
 }
 GameManager::~GameManager()
 {
@@ -1981,14 +1994,74 @@ void GameManager::DrawLivesWindow()
 }
 void GameManager::DrawStatsWindow()
 {
-	engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 40, 35 ), 29, 15, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
+	engine->graphics->DrawWindow( engine->graphics->GetCamPos() + Vector2D( 40, 35 ), 29, 14, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
 
-	char str[200];
-	sprintf(str, "    Score     extra Keen at " );
-	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 48, 43 ), ASSET_TXT_GREY, 0, str );
+	engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 40+8, 35+8 ), windowBg);
 
-	sprintf(str, "     %i           %i ", connectedPlayer->GetScore(), connectedPlayer->GetExtraLife() );
-	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 56, 51 ), ASSET_TXT_WHITE, 0, str );
+	char str[20];
+	sprintf(str, "%i", connectedPlayer->GetScore() );
+	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 40+8*7, 35+16 ), ASSET_TXT_WHITE, 0, str );
+	sprintf(str, "%i", connectedPlayer->GetExtraLife() );
+	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 56+8*18, 35+16 ), ASSET_TXT_WHITE, 0, str );
+	sprintf(str, "%i", connectedPlayer->GetAmmo() );
+	engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 56+8*3, 35+8*12 ), ASSET_TXT_WHITE, 0, str );
+
+	for( unsigned int i = 0; i < connectedPlayer->GetLifes(); i++ )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(40+16  + ( i*16 ), 35+8*4 ), ASSET_KEEN_WALK, 0, 16 );
+	}
+
+	engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 56+8*2, 35+8*8 ), ASSET_K1_TILES, 414 );
+
+	if( false )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*17, 30+8*5 ), ASSET_K1_TILES, 448, 16 );	//jouystick
+	}
+	else
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*17, 30+8*5 ), ASSET_K1_TILES, 321, 16 );	//jouystick
+	}
+	if( connectedPlayer->GetShipBattery() )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*20, 30+8*5 ), ASSET_K1_TILES, 449, 16 );	//jouystick
+	}
+	else
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*20, 30+8*5 ), ASSET_K1_TILES, 322, 16 );	//battery
+	}
+	if( false )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*23, 30+8*5 ), ASSET_K1_TILES, 450, 16 );	//jouystick
+	}
+	else
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*23, 30+8*5 ), ASSET_K1_TILES, 323, 16 );	//vacuumCleaner
+	}
+	if( false )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*26, 30+8*5 ), ASSET_K1_TILES, 451, 16 );	//jouystick
+	}
+	else
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*26, 30+8*5 ), ASSET_K1_TILES, 324, 16 );	//boose
+	}
+
+	if( connectedPlayer->GetYellowKey() )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*20, 40+8*8 ), ASSET_K1_TILES, 424, 16 );
+	}
+	if( connectedPlayer->GetRedKey() )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*22, 40+8*8 ), ASSET_K1_TILES, 425, 16 );
+	}
+	if( connectedPlayer->GetGreenKey() )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*20, 40+8*10 ), ASSET_K1_TILES, 426, 16 );
+	}
+	if( connectedPlayer->GetBlueKey() )
+	{
+		engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D( 40+8*22, 40+8*10 ), ASSET_K1_TILES, 427, 16 );
+	}
 }
 
 
@@ -2033,6 +2106,7 @@ HelpWindow::HelpWindow( GameEngine* newEngine ) : GameObject( newEngine )
 	show = false;
 	keyDown = true;
 	important = true;
+	persistent = true;
 
 	firstLine = 0;
 
@@ -2042,6 +2116,7 @@ HelpWindow::HelpWindow( GameEngine* newEngine ) : GameObject( newEngine )
 HelpWindow::~HelpWindow()
 {
 	delete helpText;
+	//
 }
 void HelpWindow::Update()
 {
@@ -2087,7 +2162,7 @@ void HelpWindow::Draw()
 		char str[50];
 		sprintf(str, "     F1 To Exit : Up/Down to Read     " );
 		engine->graphics->DrawText( Vector2D( 8, 165+8 ) + engine->graphics->GetCamPos(), ASSET_TXT_GREY, 0, str );
-		RawTileMap temp = engine->CropRawTileMap( helpText, 0,firstLine, 36, 18 );
+		RawTileMap temp = engine->CropRawTileMap( helpText, 0,firstLine, 36, 19 );
 		engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 8, 13 ), &temp );
 	}
 }
@@ -2148,6 +2223,7 @@ Fader::Fader( GameEngine* newEngine ) : GameObject( newEngine )
 	typeID = TYPE_FADER; //14
 	fadeOut = false;
 	important = true;
+	persistent = true;
 }
 Fader::~Fader()
 {
@@ -2462,9 +2538,9 @@ void AboutScreen::Update()
 			helpSign->SetSpriteID( ASSET_PRESS_F1_HELP );
 			engine->AddObject( helpSign );
 
-			HelpWindow* helpWindow;
-			helpWindow = new HelpWindow( engine );
-			engine->AddObject( helpWindow );
+			//HelpWindow* helpWindow;
+			//helpWindow = new HelpWindow( engine );
+			//engine->AddObject( helpWindow );
 
 			Fader* fader = new Fader( engine );
 			engine->AddObject( fader );
@@ -2558,9 +2634,9 @@ void StoryScreen::Update()
 			helpSign->SetSpriteID( ASSET_PRESS_F1_HELP );
 			engine->AddObject( helpSign );
 
-			HelpWindow* helpWindow;
-			helpWindow = new HelpWindow( engine );
-			engine->AddObject( helpWindow );
+			//HelpWindow* helpWindow;
+			//helpWindow = new HelpWindow( engine );
+			//engine->AddObject( helpWindow );
 
 			Fader* fader = new Fader( engine );
 			engine->AddObject( fader );
@@ -2579,4 +2655,201 @@ void StoryScreen::Draw()
 	RawTileMap temp = engine->CropRawTileMap( storyText, 0,firstLine, 38, 14 );
 	engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 8, 13 ), &temp );
 
+}
+
+
+
+
+
+//========== Door =============
+Door::Door( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID 		= TYPE_DOOR; 
+
+	isYellow 	= false;
+	isRed 		= false;
+	isGreen 	= false;
+	isBlue 		= false;
+
+	isClosed 	= true;
+
+	height 		= 32;
+
+	opening		= false;
+	posOffset 	= 0;
+	subOffset 	= 0;
+}
+Door::~Door()
+{
+
+}
+
+
+void Door::SetTileIndex( int newTileIndex )
+{
+	tileIndex = newTileIndex;
+
+	if( tileIndex == 173 )
+	{
+		isYellow = true;
+	}
+	if( tileIndex == 195 )
+	{
+		isRed = true;
+	}
+	if( tileIndex == 197 )
+	{
+		isGreen = true;
+	}
+	if( tileIndex == 199)
+	{
+		isBlue = true;
+	}
+}
+
+void Door::Update()
+{
+	Player* player = ( Player* )engine->GetFirstObjectInArea( pos - Vector2D(5,5), 16+10, 32+5, TYPE_PLAYER );
+	if( player != NULL )
+	{
+		if( isYellow )
+		{
+			if( player->GetYellowKey() )
+			{
+				isClosed = false;
+				opening = true;
+				drawOrder = 1;
+			}
+		}
+		if( isRed )
+		{
+			if( player->GetRedKey() )
+			{
+				isClosed = false;
+				opening = true;
+				drawOrder = 1;
+			}
+		}
+		if( isGreen )
+		{
+			if( player->GetGreenKey() )
+			{
+				isClosed = false;
+				opening = true;
+				drawOrder = 1;
+			}
+		}
+		if( isBlue )
+		{
+			if( player->GetBlueKey() )
+			{
+				isClosed = false;
+				opening = true;
+				drawOrder = 1;
+			}
+		}
+	}
+
+	if( isClosed )
+	{
+		typeID = TYPE_SOLID;
+	}
+	else
+	{
+		typeID = TYPE_DOOR;
+	}
+
+	if( opening )
+	{
+		subOffset = subOffset + engine->time->GetDelta();
+		if( subOffset > 5 )
+		{
+			posOffset++;
+			subOffset = 0;	
+		}
+		if( posOffset >= 32 )
+		{
+			engine->RemoveObject( this );
+		}
+	}
+}
+void Door::Draw()
+{
+	engine->graphics->DrawSprite( pos + Vector2D( 0,  posOffset ), tileSetID, tileIndex );
+	if( posOffset < 16 )
+	{
+		engine->graphics->DrawSprite( pos + Vector2D( 0, 16 + posOffset ), tileSetID, tileIndex+1 );
+	}
+}
+
+
+
+
+
+//========== Key =============
+Key::Key( GameEngine* newEngine ) : Treasure( newEngine )
+{
+	typeID 		= TYPE_TREASURE; 
+
+	isYellow 	= false;
+	isRed 		= false;
+	isGreen 	= false;
+	isBlue 		= false;
+}
+Key::~Key()
+{
+
+}
+
+
+void Key::SetTileIndex( int newTileIndex )
+{
+	tileIndex = newTileIndex;
+
+	if( tileIndex == 190 )
+	{
+		isYellow = true;
+	}
+	if( tileIndex == 191 )
+	{
+		isRed = true;
+	}
+	if( tileIndex == 192 )
+	{
+		isGreen = true;
+	}
+	if( tileIndex == 193)
+	{
+		isBlue = true;
+	}
+}
+
+void Key::Update()
+{
+
+}
+void Key::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+}
+void Key::Activate( Player* in )
+{
+	if( isYellow )
+	{
+		in->SetYellowKey( true );
+	}
+	if( isRed )
+	{
+		in->SetRedKey( true );
+	}
+	if( isGreen )
+	{
+		in->SetGreenKey( true );
+	}
+	if( isBlue )
+	{
+		in->SetBlueKey( true );
+	}
+
+	engine->RemoveObject( this );
 }

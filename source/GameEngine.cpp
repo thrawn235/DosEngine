@@ -24,6 +24,7 @@ GameEngine::GameEngine()
 	graphics 	= new GraphicsEngine;
 	time 		= new TimeEngine;
 	input 		= new InputEngine;
+	sound 		= new SoundEngine;
 
 	lastUID     = 0;
 }
@@ -120,8 +121,30 @@ void GameEngine::RemoveObjects( vector<GameObject*> inObjects )
 void GameEngine::ClearObjects()
 {
 	//do not destry objects
+
+	//save persistent objects
+	vector<GameObject*> persistentObjects;
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
+		if( objects[i]->GetPersistent() )
+		{
+			persistentObjects.push_back( objects[i] );
+		}
+	}
+	for( unsigned int i = 0; i < unimportantObjects.size(); i++ )
+	{
+		if( unimportantObjects[i]->GetPersistent() )
+		{
+			persistentObjects.push_back( unimportantObjects[i] );
+		}
+	}
 	objects.clear();
 	unimportantObjects.clear();
+
+	for( unsigned int i = 0; i < persistentObjects.size(); i++ )
+	{
+		AddObject( persistentObjects[i] );
+	}
 }
 void GameEngine::PurgeObjects()
 {
@@ -1514,6 +1537,14 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					else if( typeID == TYPE_SHIP_WREK ) //placeholder
 					{
 						newObject = new ShipWrek( this );
+					}
+					else if( typeID == TYPE_DOOR ) //placeholder
+					{
+						newObject = new Door( this );
+					}
+					else if( typeID == TYPE_KEY ) //placeholder
+					{
+						newObject = new Key( this );
 					}
 					else
 					{
