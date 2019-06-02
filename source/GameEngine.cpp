@@ -30,9 +30,10 @@ GameEngine::GameEngine()
 }
 GameEngine::~GameEngine()
 {
-	//nothing to do yet
-	//later add Destroy methods
-	//
+	delete sound;
+	delete input;
+	delete time;
+	delete graphics;
 }
 
 //====================== Set/Get ===========================

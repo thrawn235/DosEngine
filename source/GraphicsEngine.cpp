@@ -48,6 +48,7 @@ GraphicsEngine::GraphicsEngine()
 }
 GraphicsEngine::~GraphicsEngine()
 {
+	BackToTextMode();
 	Destroy();
 	//__djgpp_nearptr_disable(); better call that in engine proper
 }

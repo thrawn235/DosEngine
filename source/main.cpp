@@ -26,22 +26,6 @@
 using namespace std;
 
 
-/* 
-Bugs:
-1. DrawAll and UpdateAll loops are too slow
-	vector push_back() and erase() suck and are slow!
-2. Program Segfaults at exit. specifically freeing tiles in FreeTilesets()
-3. Player Movement wtf is going on ?
-4. VESA Modes dont work at all
-
-ToDo:
-1. VESA
-2. Asset Management
-3. Test all functions
-4. Meaningful error cheks for stuff that can feasibly go wrong
-*/
-
-
 int main()
 {
 	//======================= Init ===============================
@@ -91,22 +75,6 @@ int main()
 		//------------------------ input -----------------------------
 		if(engine->input->KeyDown(ESC))
 			running = false;
-		/*if(engine->input->KeyDown(KEY_W))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y -2));
-		if(engine->input->KeyDown(KEY_A))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x -2, engine->graphics->GetCamPos().y));
-		if(engine->input->KeyDown(KEY_S))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x, engine->graphics->GetCamPos().y +2));
-		if(engine->input->KeyDown(KEY_D))
-			engine->graphics->SetCamPos(Vector2D(engine->graphics->GetCamPos().x +2, engine->graphics->GetCamPos().y));*/
-		//if(engine->input->KeyDown(SPACE))
-		//	engine->graphics->ChangePaletteBrightness(-1);
-		//if(engine->input->KeyDown(LCTRL))
-		//	engine->graphics->ChangePaletteBrightness(+1);
-		/*if(engine->input->KeyDown(KEY_W))
-			engine->DisableAll();
-		if(engine->input->KeyDown(KEY_A))
-			engine->EnableAll();*/
 		//-----------------------------------------------------------
 
 		//engine->graphics->ClearScreen(190);
@@ -138,8 +106,7 @@ int main()
 
 
 	//======================= cleanup and shutdown =========================
-	engine->graphics->BackToTextMode();
-	engine->graphics->Destroy();
+	delete engine;
 	//======================================================================
 
 	return 0;

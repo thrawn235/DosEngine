@@ -5,11 +5,11 @@
 //	by Sebastian Gurlin
 //
 //	Description:
-//	The Class is not much more then a wrapper around time.h
 //	It does three things.
 //	calculates frametimes for an FPS counter
 //	it calculates the Delta factor for movement correction
 //	Game Objects can ask it for timestamps ( cooldowns etc )
+//	consider that the sound engine uses the same interrupt!
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 

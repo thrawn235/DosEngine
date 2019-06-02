@@ -39,7 +39,7 @@ TimeEngine::TimeEngine()
 	frameEnd  	= 0;
 	frameTime 	= 0;
 
-	interruptFrequency = 140;
+	interruptFrequency = 2000;
 	globalInterruptFrequency = interruptFrequency;
 	ticksPerSecond = interruptFrequency;
 	globalTicksPerSecond = ticksPerSecond;

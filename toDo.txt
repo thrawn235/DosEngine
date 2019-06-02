@@ -2,6 +2,9 @@ collision:
 	irratic behavior
 	2 horizontal rays
 
+graphics:
+	fix vesa mode
+
 animations:
 	stop animation when object is inactive
 

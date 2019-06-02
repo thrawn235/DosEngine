@@ -6,6 +6,7 @@
 //
 //	Description:
 //	The Sound Engine is meant to play PC speaker sounds, using an interrupt
+//	The interrupt frequency is set in the timeEngine!
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,13 +36,13 @@ using namespace std;
 class SoundEngine
 {
 protected:
-
+	_go32_dpmi_seginfo OldISR, NewISR;
 public:
 	SoundEngine 				();
 	~SoundEngine 				();
 
-	void InstallTimerInterrupt 	();
-	void RestoreTimerInterrupt 	();
+	void InstallSoundInterrupt 	();
+	void RestoreSoundInterrupt 	();
 
 	void PlaySound 				();
 };
