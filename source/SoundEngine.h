@@ -35,8 +35,7 @@ using namespace std;
 class SoundEngine
 {
 protected:
-	_go32_dpmi_seginfo OldISR, NewISR;
-	
+
 public:
 	SoundEngine 				();
 	~SoundEngine 				();

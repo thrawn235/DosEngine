@@ -23,7 +23,12 @@
 #include <vector>
 
 //djgpp includes:
-#include <time.h>
+//#include <time.h>
+#include <sys/nearptr.h>
+#include <sys/farptr.h>
+#include <dpmi.h>
+#include <go32.h>
+#include <pc.h>
 
 //own includes:
 
@@ -34,23 +39,31 @@ using namespace std;
 struct TimeStamp
 {
 	int 		id;
-	uclock_t 	timeStamp;
+	unsigned long long 	timeStamp;
 };
 
 
 class TimeEngine
 {
 protected:
-	uclock_t 				frameStart;
-	uclock_t 				frameEnd;
-	uclock_t 				frameTime;
+	unsigned long long			frameStart;
+	unsigned long long			frameEnd;
+	unsigned long long			frameTime;
 
 	vector<TimeStamp> 		timeStamps;
 	int 					highestTimeStampID;
 
+	int 	interruptFrequency;
+	float 	ticksPerSecond;
+
+	_go32_dpmi_seginfo OldISR, NewISR;
+
 public:
 	TimeEngine 					();
 	~TimeEngine 				();
+
+	void InstallTimerInterrupt 	();
+	void RestoreTimerInterrupt 	();
 
 	//FrameTiming
 	void FrameStart 			();
@@ -63,8 +76,8 @@ public:
 	int GetCurrentTimeInMS		();
 
 	//Conversion
-	int TicksToMilliSeconds 	( uclock_t ticksIn );
-	int TicksToSeconds 			( uclock_t ticksIn );
+	int TicksToMilliSeconds 	( unsigned long long ticksIn );
+	int TicksToSeconds 			( unsigned long long ticksIn );
 	int GetFPS 					();
 
 	//delta
@@ -73,8 +86,8 @@ public:
 	//time stamps:
 	int AddTimeStamp 			();
 	void RemoveTimeStamp 		( int id );
-	uclock_t GetTimeStamp 		( int id );
-	uclock_t GetTimeSinceStamp 	( int id );
+	unsigned long long GetTimeStamp 		( int id );
+	unsigned long long GetTimeSinceStamp 	( int id );
 	void ClearTimeStamps 		();
 };
 

@@ -1401,6 +1401,11 @@ TMXMap GameEngine::LoadTMXMap( const char* filePath )
 }
 TMXProperty GameEngine::GetProperty( vector<TMXProperty> properties, const char* name )
 {
+	TMXProperty dummy;
+	dummy.intValue = 0;
+	strcpy(dummy.stringValue, "");
+	dummy.boolValue = false;
+
 	for( int i = 0; i < properties.size(); i ++ )
 	{
 		if( strcmp( properties[i].name, name ) == 0 )
@@ -1408,6 +1413,8 @@ TMXProperty GameEngine::GetProperty( vector<TMXProperty> properties, const char*
 			return properties[i];
 		}
 	}
+
+	return dummy;
 }
 int GameEngine::GetFirstGid( TMXMap* in, int tileSetID )
 {
@@ -1477,7 +1484,6 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					GameObject* newObject = NULL;
 
 					
-					
 					//int tileSetID 	= GetTileSetID( in, mapValue );
 					int tileSetIndexInTMX  	= GetTMXTileSetIndex( in, mapValue );
 					int tileSetID 			= GetTileSetID( in, tileSetIndexInTMX );
@@ -1492,57 +1498,52 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					//newPos 		= newPos + offset;	//additional offset from paramteer list
 
 					//printf("O %i:%i:%i mapValue=%i tileSetTMX=%i TMXSource=%s tileSetID=%i tileID=%i typeID=%i pos=%f:%f\n", i, y, x, mapValue, tileSetIndexInTMX, in->tileSets[tileSetIndexInTMX].source, tileSetID, tileID, typeID, newPos.x, newPos.y);
-					
 
-					if( typeID == TYPE_PLAYER ) //placeholder
+					if( typeID == TYPE_PLAYER )
 					{
 						newObject = new Player( this );
 					}
-					else if( typeID == TYPE_SOLID ) //placeholder
+					else if( typeID == TYPE_SOLID )
 					{
 						newObject = new Solid( this );
-
 					}
-					else if( typeID == TYPE_SOLID_TOP ) //placeholder
+					else if( typeID == TYPE_SOLID_TOP )
 					{
 						newObject = new SolidTop( this );
-
 					}
-					else if( typeID == TYPE_BACK_GROUND ) //placeholder
+					else if( typeID == TYPE_BACK_GROUND ) 
 					{
 						newObject = new BackGround( this );
-						
 					}
-					else if( typeID == TYPE_BACK_GROUND_ANIMATION ) //placeholder
+					else if( typeID == TYPE_BACK_GROUND_ANIMATION ) 
 					{
 						newObject = new BackGroundAnimation( this );
-						
 					}
-					else if( typeID == TYPE_TRAP ) //placeholder
+					else if( typeID == TYPE_TRAP ) 
 					{
 						newObject = new Trap( this );
 					}
-					else if( typeID == TYPE_EXIT ) //placeholder
+					else if( typeID == TYPE_EXIT ) 
 					{
 						newObject = new Exit( this );
 					}
-					else if( typeID == TYPE_TREASURE ) //placeholder
+					else if( typeID == TYPE_TREASURE ) 
 					{
 						newObject = new Treasure( this );
 					}
-					else if( typeID == TYPE_BATTERY ) //placeholder
+					else if( typeID == TYPE_BATTERY ) 
 					{
 						newObject = new Battery( this );
 					}
-					else if( typeID == TYPE_SHIP_WREK ) //placeholder
+					else if( typeID == TYPE_SHIP_WREK ) 
 					{
 						newObject = new ShipWrek( this );
 					}
-					else if( typeID == TYPE_DOOR ) //placeholder
+					else if( typeID == TYPE_DOOR ) 
 					{
 						newObject = new Door( this );
 					}
-					else if( typeID == TYPE_KEY ) //placeholder
+					else if( typeID == TYPE_KEY ) 
 					{
 						newObject = new Key( this );
 					}

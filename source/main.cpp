@@ -103,10 +103,10 @@ int main()
 		//	engine->graphics->ChangePaletteBrightness(-1);
 		//if(engine->input->KeyDown(LCTRL))
 		//	engine->graphics->ChangePaletteBrightness(+1);
-		if(engine->input->KeyDown(KEY_W))
+		/*if(engine->input->KeyDown(KEY_W))
 			engine->DisableAll();
 		if(engine->input->KeyDown(KEY_A))
-			engine->EnableAll();
+			engine->EnableAll();*/
 		//-----------------------------------------------------------
 
 		//engine->graphics->ClearScreen(190);

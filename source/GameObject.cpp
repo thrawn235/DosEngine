@@ -2223,7 +2223,7 @@ Fader::Fader( GameEngine* newEngine ) : GameObject( newEngine )
 	typeID = TYPE_FADER; //14
 	fadeOut = false;
 	important = true;
-	persistent = true;
+	persistent = false;
 }
 Fader::~Fader()
 {
@@ -2831,6 +2831,7 @@ void Key::Update()
 void Key::Draw()
 {
 	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+	//
 }
 void Key::Activate( Player* in )
 {
