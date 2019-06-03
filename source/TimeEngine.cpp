@@ -39,7 +39,7 @@ TimeEngine::TimeEngine()
 	frameEnd  	= 0;
 	frameTime 	= 0;
 
-	interruptFrequency = 2000;
+	interruptFrequency = 140;
 	globalInterruptFrequency = interruptFrequency;
 	ticksPerSecond = interruptFrequency;
 	globalTicksPerSecond = ticksPerSecond;
@@ -79,6 +79,16 @@ void TimeEngine::RestoreTimerInterrupt()
 {
 	_go32_dpmi_set_protected_mode_interrupt_vector( 0x08, &OldISR );
 	//
+}
+
+//Set/Get
+int TimeEngine::GetInterruptFrequency()
+{
+	return interruptFrequency;
+}
+int TimeEngine::GetTicksPerSecond()
+{
+	return ticksPerSecond;
 }
 
 //FrameTiming

@@ -65,6 +65,10 @@ public:
 	void InstallTimerInterrupt 	();
 	void RestoreTimerInterrupt 	();
 
+	//Get
+	int GetInterruptFrequency 	();
+	int GetTicksPerSecond 		();
+
 	//FrameTiming
 	void FrameStart 			();
 	void FrameEnd 				();

@@ -24,7 +24,7 @@ GameEngine::GameEngine()
 	graphics 	= new GraphicsEngine;
 	time 		= new TimeEngine;
 	input 		= new InputEngine;
-	sound 		= new SoundEngine;
+	sound 		= new SoundEngine( time );
 
 	lastUID     = 0;
 }

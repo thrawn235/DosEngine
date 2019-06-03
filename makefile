@@ -21,7 +21,7 @@ SUBDIR = ./source/
 
 
 #============================ compile all objects ===================================
-$(SUBDIR)SoundEngine.o: $(SUBDIR)SoundEngine.h $(SUBDIR)SoundEngine.cpp
+$(SUBDIR)SoundEngine.o: $(SUBDIR)SoundEngine.h $(SUBDIR)SoundEngine.cpp $(SUBDIR)TimeEngine.o
 	$(CC) -c $(SUBDIR)SoundEngine.cpp -o $(SUBDIR)SoundEngine.o $(CXXFLAGS)
 
 $(SUBDIR)InputEngine.o: $(SUBDIR)InputEngine.h $(SUBDIR)Vector2D.h $(SUBDIR)InputEngine.cpp
