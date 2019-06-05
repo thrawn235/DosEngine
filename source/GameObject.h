@@ -68,6 +68,8 @@
 #define TYPE_STORY_SCREEN			22
 #define TYPE_DOOR					23
 #define TYPE_KEY					24
+#define TYPE_ACTIVATABLE 			25
+#define TYPE_SYNTH_STATION 			26
 //=======================================================
 
 
@@ -283,8 +285,22 @@ public:
 
 
 
+class Activatable : public GameObject
+{
+protected:
+public:
+	Activatable 				( GameEngine* newEngine );
+	~Activatable 				();
 
-class CityOverWorld : public GameObject
+	virtual void Update 		();
+	virtual void Draw 			();
+	virtual void Activate 		( Player* in );
+};
+
+
+
+
+class CityOverWorld : public Activatable
 {
 protected:
 	char levelPath[30];
@@ -297,6 +313,7 @@ public:
 	virtual void Update 		();
 	virtual void Draw 			();
 	virtual void LoadLevel 		();
+	virtual void Activate 		( Player* in );
 };
 
 
@@ -591,7 +608,7 @@ public:
 
 
 
-class ShipWrek : public GameObject
+class ShipWrek : public Activatable
 {
 protected:
 	Animation 	anim;
@@ -695,6 +712,42 @@ public:
 	~Key 							();
 
 	virtual void SetTileIndex 		( int newTileIndex );
+
+	virtual void Update 			();
+	virtual void Draw 				();
+	virtual void Activate			( Player* in );
+};
+
+
+
+
+class SynthStation : public Activatable
+{
+protected:
+	bool 		windowVisible;
+	bool 		keyDown;
+
+	unsigned char carrierAttack;
+	unsigned char carrierDecay;
+	unsigned char carrierSustain;
+	unsigned char carrierRelease;
+	unsigned char carrierLevel;
+	unsigned char modulatorAttack;
+	unsigned char modulatorDecay;
+	unsigned char modulatorSustain;
+	unsigned char modulatorRelease;
+	unsigned char modulatorLevel;
+	unsigned char octave;
+	unsigned char channel;
+
+	Animation 	blueBallAnim;
+
+	int selector;
+
+	RawTileMap*  rawSynth;
+public:
+	SynthStation 					( GameEngine* newEngine );
+	~SynthStation 					();
 
 	virtual void Update 			();
 	virtual void Draw 				();

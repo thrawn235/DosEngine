@@ -5,6 +5,9 @@
 //	by Sebastian Gurlin
 //
 //	Description:
+//
+//	relies on time Engine!
+//
 //	The Sound Engine is meant to play PC speaker sounds, using an interrupt
 //	The interrupt frequency is set in the timeEngine!
 //
@@ -31,6 +34,9 @@
 
 //=======================================================
 
+#define OPL3AddressPort 	0x388
+#define OPL3DataPort 		0x389
+
 using namespace std;
 
 
@@ -47,6 +53,11 @@ public:
 
 	void InstallSoundInterrupt 	();
 	void RestoreSoundInterrupt 	();
+
+	void PlayNote 				( int channel, int newFrequency, char octave );
+	void NoteOff 				( int channel );
+	void SetLevel 				( int channel, bool op, unsigned char newLevel );
+	void SetADSREnvelope 		( int channel, bool op, char attack, char decay, char sustain, char release );
 
 	void PlaySound 				( bool newRepeat );
 

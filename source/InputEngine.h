@@ -36,6 +36,16 @@
 
 //==================== defines ==========================
 #define ESC 		0x01
+#define KEY_1 		0x02
+#define KEY_2 		0x03
+#define KEY_3 		0x04
+#define KEY_4 		0x05
+#define KEY_5 		0x06
+#define KEY_6 		0x07
+#define KEY_7 		0x08
+#define KEY_8 		0x09
+#define KEY_9 		0x0A
+#define KEY_0 		0x0B
 #define SPACE 		0x39
 #define ENTER 		0x1C
 #define LCTRL 		0x1D

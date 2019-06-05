@@ -1548,6 +1548,10 @@ void GameEngine::CreateObjectsFromMap( TMXMap* in )
 					{
 						newObject = new Key( this );
 					}
+					else if( typeID == TYPE_SYNTH_STATION ) 
+					{
+						newObject = new SynthStation( this );
+					}
 					else
 					{
 						//printf("create!\n");

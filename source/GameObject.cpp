@@ -1277,18 +1277,18 @@ void PlayerTopDown::Update()
 
 	Vector2D centerPos = pos + Vector2D( width / 2, height / 2 );
 
-	vector<GameObject*> citiesInRange = engine->GetObjectsAtPos( centerPos, TYPE_CITY_OVERWORLD );
-	if( engine->input->KeyDown( ENTER ) && citiesInRange.size() > 0 )
+	vector<GameObject*> activatables = engine->GetObjectsAtPos( centerPos, TYPE_ACTIVATABLE );
+	if( engine->input->KeyDown( ENTER ) && activatables.size() > 0 )
 	{
-		CityOverWorld* city = (CityOverWorld*)citiesInRange[0];
-		city->LoadLevel();
+		Activatable* activatable = (Activatable*)activatables[0];
+		activatable->Activate( this );
 	}
 
-	ShipWrek* shipWrek = ( ShipWrek* )engine->GetFirstObjectAtPos( centerPos, TYPE_SHIP_WREK );
+	/*ShipWrek* shipWrek = ( ShipWrek* )engine->GetFirstObjectAtPos( centerPos, TYPE_SHIP_WREK );
 	if( engine->input->KeyDown( ENTER ) && shipWrek != NULL )
 	{
 		shipWrek->Activate( this );
-	}
+	}*/
 
 
 	AddForce( movement );
@@ -1373,11 +1373,37 @@ void  PlayerTopDown::Collision()
 
 
 
+//========== Activatable =============
+Activatable::Activatable( GameEngine* newEngine ) : GameObject( newEngine )
+{
+	typeID  = TYPE_ACTIVATABLE; //1
+}
+Activatable::~Activatable()
+{
+
+}
+
+void Activatable::Update()
+{
+
+}
+void Activatable::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+}
+void Activatable::Activate( Player* in )
+{
+
+}
+
+
+
+
 
 //========== CityOverWorld =============
-CityOverWorld::CityOverWorld( GameEngine* newEngine ) : GameObject( newEngine )
+CityOverWorld::CityOverWorld( GameEngine* newEngine ) : Activatable( newEngine )
 {
-	typeID  = TYPE_CITY_OVERWORLD; //1
+	typeID  = TYPE_ACTIVATABLE; //1
 
 	width = 32;
 	height = 32;
@@ -1426,6 +1452,10 @@ void CityOverWorld::LoadLevel()
 	overWorldPlayer->SetLevelUID( UID );
 	//Fader* fader = new Fader( engine );
 	//engine->AddObject( fader );
+}
+void CityOverWorld::Activate( Player* in )
+{
+	LoadLevel();
 }
 
 
@@ -2337,9 +2367,9 @@ void Battery::Activate( Player* in )
 
 
 //========== ShipWrek =============
-ShipWrek::ShipWrek( GameEngine* newEngine ) : GameObject( newEngine )
+ShipWrek::ShipWrek( GameEngine* newEngine ) : Activatable( newEngine )
 {
-	typeID = TYPE_SHIP_WREK; //18
+	typeID = TYPE_ACTIVATABLE; //18
 
 	windowVisible		= false;
 	keyDown 			= true;
@@ -2649,8 +2679,8 @@ void StoryScreen::Draw()
 	engine->graphics->DrawWindow( Vector2D( 0, 5 ) + engine->graphics->GetCamPos() , 39, 15, ASSET_8_PIXEL_BORDER_TILES, 1, 3, 6, 8, 2, 4, 31 );
 	
 	char str[50];
-		sprintf(str, "     F1 To Exit : Up/Down to Read     " );
-		engine->graphics->DrawText( Vector2D( 8, 125+8 ) + engine->graphics->GetCamPos(), ASSET_TXT_GREY, 0, str );
+	sprintf(str, "     F1 To Exit : Up/Down to Read     " );
+	engine->graphics->DrawText( Vector2D( 8, 125+8 ) + engine->graphics->GetCamPos(), ASSET_TXT_GREY, 0, str );
 
 	RawTileMap temp = engine->CropRawTileMap( storyText, 0,firstLine, 38, 14 );
 	engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 8, 13 ), &temp );
@@ -2853,4 +2883,396 @@ void Key::Activate( Player* in )
 	}
 
 	engine->RemoveObject( this );
+}
+
+
+
+
+//========== SynthStation =============
+SynthStation::SynthStation( GameEngine* newEngine ) : Activatable( newEngine )
+{
+	typeID = TYPE_ACTIVATABLE; //18
+
+	drawOrder = 1;
+
+	windowVisible		= false;
+	keyDown 			= true;
+
+	carrierAttack 		= 0;
+	carrierDecay 		= 0;
+	carrierSustain 		= 0;
+	carrierRelease 		= 0;
+	carrierLevel 		= 0;
+	modulatorAttack 	= 0;
+	modulatorDecay 		= 0;
+	modulatorSustain 	= 0;
+	modulatorRelease	= 0;
+	modulatorLevel 		= 0;
+	channel 			= 0;
+	octave 				= 0;
+
+	selector 			= 0;
+
+	blueBallAnim.id = 0;
+	blueBallAnim.tileSetID = ASSET_8_PIXEL_BORDER_TILES;
+	blueBallAnim.firstTileIndex = 9;
+	blueBallAnim.numSprites = 6;
+	blueBallAnim.currentFrame = 0;
+	blueBallAnim.speed = 10;
+	blueBallAnim.currentSpeedStep = 0;
+
+	rawSynth = new RawTileMap;
+	*rawSynth = engine->LoadRawTileMap( "./levels/synth.tmx" );
+}
+SynthStation::~SynthStation()
+{
+	//
+}
+void SynthStation::Activate( Player* in )
+{
+	windowVisible = true;
+	drawOrder = 9;
+
+	engine->DisableAll( this );
+}
+void SynthStation::Update()
+{
+	if( !keyDown && engine->input->KeyDown( KEY_F3 ) && windowVisible )
+	{
+		keyDown = true;
+		drawOrder = 1;
+		windowVisible = false;
+		engine->EnableAll();
+	}
+	if( !keyDown && engine->input->KeyDown( TAB ) && windowVisible )
+	{
+		keyDown = true;
+		selector++;
+		if( selector >= 12 )
+		{
+			selector = 0;
+		}
+	}
+	if( selector == 0 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( channel < 9 )
+		{
+			channel++;
+		}
+	}
+	if( selector == 0 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( channel > 0 )
+		{
+			channel--;
+		}
+	}
+	if( selector == 1 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierAttack < 16 )
+		{
+			carrierAttack++;
+		}
+	}
+	if( selector == 1 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierAttack > 0 )
+		{
+			carrierAttack--;
+		}
+	}
+	if( selector == 2 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierDecay < 16 )
+		{
+			carrierDecay++;
+		}
+	}
+	if( selector == 2 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierDecay > 0 )
+		{
+			carrierDecay--;
+		}
+	}
+	if( selector == 3 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierSustain < 16 )
+		{
+			carrierSustain++;
+		}
+	}
+	if( selector == 3 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierSustain > 0 )
+		{
+			carrierSustain--;
+		}
+	}
+	if( selector == 4 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierRelease < 16 )
+		{
+			carrierRelease++;
+		}
+	}
+	if( selector == 4 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierRelease > 0 )
+		{
+			carrierRelease--;
+		}
+	}
+	if( selector == 5 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierLevel < 16 )
+		{
+			carrierLevel++;
+		}
+	}
+	if( selector == 5 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierLevel > 0 )
+		{
+			carrierLevel--;
+		}
+	}
+	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorAttack < 16 )
+		{
+			modulatorAttack++;
+		}
+	}
+	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorAttack > 0 )
+		{
+			modulatorAttack--;
+		}
+	}
+	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorDecay < 16 )
+		{
+			modulatorDecay++;
+		}
+	}
+	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorDecay > 0 )
+		{
+			modulatorDecay--;
+		}
+	}
+	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorSustain < 16 )
+		{
+			modulatorSustain++;
+		}
+	}
+	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorSustain > 0 )
+		{
+			modulatorSustain--;
+		}
+	}
+	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorRelease < 16 )
+		{
+			modulatorRelease++;
+		}
+	}
+	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorRelease > 0 )
+		{
+			modulatorRelease--;
+		}
+	}
+	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorLevel < 16 )
+		{
+			modulatorLevel++;
+		}
+	}
+	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorLevel > 0 )
+		{
+			modulatorLevel--;
+		}
+	}
+	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( octave < 12 )
+		{
+			octave++;
+		}
+	}
+	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( octave > 0 )
+		{
+			octave--;
+		}
+	}
+	if( !engine->input->AnyKeyDown() )
+	{
+		keyDown = false;
+	}
+	if( !engine->input->AnyKeyDown() && !keyDown && windowVisible )
+	{
+		engine->sound->SetADSREnvelope( channel, 0, carrierAttack, carrierDecay, carrierSustain, carrierRelease );
+		engine->sound->SetLevel( channel, 0, carrierLevel );
+		engine->sound->SetADSREnvelope( channel, 1, modulatorAttack, modulatorDecay, modulatorSustain, modulatorRelease );
+		engine->sound->SetLevel( channel, 1, modulatorLevel );
+	}
+	if( !keyDown && engine->input->KeyDown( KEY_1 ) && windowVisible && !keyDown )
+	{
+		keyDown = true;
+		engine->sound->PlayNote( channel, 293, octave ); //c#
+	}
+	if( !keyDown && engine->input->KeyDown( KEY_2 ) && windowVisible && !keyDown )
+	{
+		keyDown = true;
+		engine->sound->PlayNote( channel, 329, octave ); //c#
+	}
+	if( !keyDown && engine->input->KeyDown( KEY_3 ) && windowVisible && !keyDown )
+	{
+		keyDown = true;
+		engine->sound->PlayNote( channel, 349, octave ); //c#
+	}
+	if( !keyDown && engine->input->KeyDown( KEY_4 ) && windowVisible && !keyDown )
+	{
+		keyDown = true;
+		engine->sound->PlayNote( channel, 392, octave ); //c#
+	}
+	if( !keyDown && engine->input->KeyDown( KEY_5 ) && windowVisible && !keyDown )
+	{
+		keyDown = true;
+		engine->sound->PlayNote( channel, 440, octave ); //c#
+	}
+	if( !keyDown && engine->input->KeyDown( KEY_6 ) && windowVisible && !keyDown )
+	{
+		keyDown = true;
+		engine->sound->PlayNote( channel, 493, octave ); //c#
+	}
+	if( !keyDown && engine->input->KeyDown( KEY_7 ) && windowVisible && !keyDown )
+	{
+		keyDown = true;
+		engine->sound->PlayNote( channel, 523, octave ); //c#
+	}
+}
+void SynthStation::Draw()
+{
+	engine->graphics->DrawSprite( pos, tileSetID, tileIndex );
+
+	if( windowVisible )
+	{
+		engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 20, 20 ), rawSynth );
+	
+		if( selector == 0 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*9, 8*1 ), engine->time->GetDelta() );
+		}
+		if( selector == 1 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*4 ), engine->time->GetDelta() );
+		}
+		if( selector == 2 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*5 ), engine->time->GetDelta() );
+		}
+		if( selector == 3 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*6 ), engine->time->GetDelta() );
+		}
+		if( selector == 4 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*7 ), engine->time->GetDelta() );
+		}
+		if( selector == 5 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*9 ), engine->time->GetDelta() );
+		}
+		if( selector == 6 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*4 ), engine->time->GetDelta() );
+		}
+		if( selector == 7 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*5 ), engine->time->GetDelta() );
+		}
+		if( selector == 8 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*6 ), engine->time->GetDelta() );
+		}
+		if( selector == 9 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*7 ), engine->time->GetDelta() );
+		}
+		if( selector == 10 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*9 ), engine->time->GetDelta() );
+		}
+		if( selector == 11 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*9, 8*12 ), engine->time->GetDelta() );
+		}
+
+		char str[10];
+		sprintf(str, "%i", channel );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*10, 8*1 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierAttack );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*4 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierDecay );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*5 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierSustain );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*6 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierRelease );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*7 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierLevel );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*9 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorAttack );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*4 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorDecay );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*5 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorSustain );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*6 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorRelease );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*7 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorLevel );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*9 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", octave );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*10, 8*12 ), ASSET_TXT_WHITE, 0, str );
+	}
 }

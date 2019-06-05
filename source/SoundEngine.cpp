@@ -17,8 +17,6 @@
 
 
 //============= global Variables for the Interrupt Service Routine ========
-//int stream[256] = {4650, 4202, 8996, 4700, 2479, 8703, 10794, 14977, 3091, 3671, 10937, 263, 7399, 1373, 12195, 12689, 12679, 11059, 13154, 1141, 13988, 1636, 9353, 265, 9581, 3023, 11906, 14738, 3656, 9023, 13409, 7518, 2062, 14048, 5803, 11876, 14868, 7458, 3687, 4906, 8083, 7547, 9989, 14650, 11862, 6140, 9803, 6982, 13474, 383, 294, 4056, 13734, 2929, 12273, 12019, 10286, 4060, 8532, 6862, 11328, 532, 9995, 10975, 1419, 5143, 9378, 856, 7993, 259, 1621, 14447, 4197, 4070, 8635, 8238, 7923, 2424, 2245, 5755, 5033, 4839, 8155, 14407, 9762, 10976, 14612, 9677, 371, 12627, 12547, 2120, 3564, 7000, 11818, 7437, 14081, 12365, 907, 9039, 10922, 4558, 7059, 8364, 6550, 3875, 7838, 13243, 10598, 13678, 899, 1510, 4153, 14812, 4727, 12507, 7931, 2185, 10572, 3980, 8933, 5263, 7652, 11242, 13408, 12097, 4281, 9858, 4093, 3546, 7721, 5471, 14084, 11710, 9198, 1506, 5768, 13981, 1553, 11209, 9952, 5787, 13012, 10635, 136, 5786, 11005, 4715, 4269, 12215, 7484, 2455, 2916, 12908, 7093, 5625, 6843, 1765, 3630, 11564, 14671, 10952, 10447, 13378, 14881, 7361, 11738, 8482, 2605, 1428, 4310, 3956, 2825, 7324, 2628, 5604, 2157, 14337, 7488, 5070, 14826, 2050, 9967, 2207, 6901, 10163, 4424, 12770, 3996, 14240, 5078, 7146, 3638, 11322, 8923, 7851, 6797, 14630, 8269, 9903, 6125, 641, 9382, 9689, 13956, 14158, 12383, 10655, 3794, 5183, 12026, 3815, 13841, 3174, 1642, 7315, 12907, 11384, 4933, 2148, 13260, 12265, 14517, 1296, 5709, 1651, 12569, 7824, 10289, 9331, 6435, 4949, 4518, 1385, 6475, 13030, 4205, 3079, 14085, 12307, 9138, 10619, 11731, 8116, 9978, 13258, 5392, 4317, 14495, 14787, 13261, 3003, 9115, 8221, 11590, 6227};
-//int stream[256] = { 500,-1,0,-1,100,16,100,16,500,700,1000,1500};
 int* stream;
 int streamLength = 255;
 int streamPos = 0;
@@ -105,6 +103,53 @@ void SoundEngine::RestoreSoundInterrupt()
 	//
 }
 
+void SoundEngine::SetADSREnvelope( int channel, bool op, char attack, char decay, char sustain, char release )
+{
+	outportb( OPL3AddressPort, 0x60 + channel + 3*op );
+	
+	attack = (attack << 4) & 0xF0;
+	attack = attack + (decay & 0x0F);
+	outportb( OPL3DataPort, attack );
+
+	outportb( OPL3AddressPort, 0x80 + channel + 3*op);
+	
+	decay = (decay << 4) & 0xF0;
+	decay = decay + (sustain & 0x0F);
+	outportb( OPL3DataPort, sustain );
+}
+
+void SoundEngine::SetLevel( int channel, bool op, unsigned char newLevel )
+{
+	outportb( OPL3AddressPort, 0x40 + channel + 3*op );
+	outportb( OPL3DataPort, newLevel );
+}
+
+void SoundEngine::NoteOff( int channel )
+{
+	outportb( OPL3AddressPort, 0xB0 + channel );
+	outportb( OPL3DataPort, 0 );
+}
+
+void SoundEngine::PlayNote( int channel, int newFrequency, char octave )
+{
+	NoteOff( channel );
+
+	outportb( OPL3AddressPort, 0xA0 + channel );
+	outportb( OPL3DataPort, newFrequency & 0xFF );
+
+	outportb( OPL3AddressPort, 0xB0 + channel );
+
+	char out = 0;
+	out = ( newFrequency >> 8 ) & 0b00000011;
+	octave = octave << 2;
+	octave = octave & 0b00011100;
+	out = out | 0b00100000;
+	out = out | octave;
+
+	outportb( OPL3DataPort, out );
+}
+
+
 
 SoundEngine::SoundEngine( TimeEngine* newTime )
 {
@@ -112,12 +157,32 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	time = newTime;
 	timerInterruptFrequency = time->GetInterruptFrequency();
 	InstallSoundInterrupt();
+	SoundOff();
+
+	//soun blaster test:
+	outportb( OPL3AddressPort, 0x20 );
+	outportb( OPL3DataPort, 16 );
+
+	SetLevel( 0,0, 0x00 );
+
+	SetADSREnvelope( 0, 0, 5,5,5,5 );
+
+	outportb( OPL3AddressPort, 0x23 );
+	outportb( OPL3DataPort, 0x01 );
+
+	SetLevel( 0, 1, 0 );
+
+	SetADSREnvelope( 0, 1, 5,5,5,5 );
+
+	PlayNote( 0, 1000, 2 );
 }
 SoundEngine::~SoundEngine()
 {
 	RestoreSoundInterrupt();
 
 	outportb( 0x61, 0); //turn speaker off
+
+	NoteOff( 0 );
 }
 
 
