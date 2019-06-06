@@ -724,23 +724,36 @@ public:
 class SynthStation : public Activatable
 {
 protected:
-	bool 		windowVisible;
-	bool 		keyDown;
+	bool 			windowVisible;
+	bool 			keyDown;
 
-	unsigned char carrierAttack;
-	unsigned char carrierDecay;
-	unsigned char carrierSustain;
-	unsigned char carrierRelease;
-	unsigned char carrierLevel;
-	unsigned char modulatorAttack;
-	unsigned char modulatorDecay;
-	unsigned char modulatorSustain;
-	unsigned char modulatorRelease;
-	unsigned char modulatorLevel;
-	unsigned char octave;
-	unsigned char channel;
+	unsigned char 	carrierAttack;
+	unsigned char 	carrierDecay;
+	unsigned char 	carrierSustain;
+	unsigned char 	carrierRelease;
+	unsigned char 	carrierLevel;
+	unsigned char 	modulatorAttack;
+	unsigned char 	modulatorDecay;
+	unsigned char 	modulatorSustain;
+	unsigned char 	modulatorRelease;
+	unsigned char 	modulatorLevel;
+	unsigned char 	octave;
+	unsigned char 	channel;
+	bool 		  	carrierAmplitudeMod;
+	bool 			carrierHold;
+	bool 			carrierVibrato;
+	unsigned char	carrierHarmonics;
+	bool 		  	modulatorAmplitudeMod;
+	bool 			modulatorHold;
+	bool 			modulatorVibrato;
+	unsigned char	modulatorHarmonics;
 
-	Animation 	blueBallAnim;
+	bool usedChannels[9];
+	int  channelMap[256];
+
+	Vector2D 		windowPos;
+
+	Animation 		blueBallAnim;
 
 	int selector;
 

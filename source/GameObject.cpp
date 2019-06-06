@@ -2898,20 +2898,37 @@ SynthStation::SynthStation( GameEngine* newEngine ) : Activatable( newEngine )
 	windowVisible		= false;
 	keyDown 			= true;
 
-	carrierAttack 		= 0;
-	carrierDecay 		= 0;
-	carrierSustain 		= 0;
-	carrierRelease 		= 0;
+	carrierAttack 		= 5;
+	carrierDecay 		= 5;
+	carrierSustain 		= 5;
+	carrierRelease 		= 5;
 	carrierLevel 		= 0;
-	modulatorAttack 	= 0;
-	modulatorDecay 		= 0;
-	modulatorSustain 	= 0;
-	modulatorRelease	= 0;
+	modulatorAttack 	= 5;
+	modulatorDecay 		= 5;
+	modulatorSustain 	= 5;
+	modulatorRelease	= 5;
 	modulatorLevel 		= 0;
 	channel 			= 0;
-	octave 				= 0;
+	octave 				= 4;
+
+	carrierAmplitudeMod = 0;
+	carrierHold 		= 0;
+	carrierVibrato 		= 0;
+	carrierHarmonics 	= 0;
+	modulatorAmplitudeMod = 0;
+	modulatorHold 		= 0;
+	modulatorVibrato 	= 0;
+	modulatorHarmonics 	= 0;
 
 	selector 			= 0;
+
+	windowPos.x 		= 20;
+	windowPos.y 		= 10;
+
+	for( int i = 0; i < 9; i++ )
+	{
+		usedChannels[i] = false;
+	}
 
 	blueBallAnim.id = 0;
 	blueBallAnim.tileSetID = ASSET_8_PIXEL_BORDER_TILES;
@@ -2948,7 +2965,7 @@ void SynthStation::Update()
 	{
 		keyDown = true;
 		selector++;
-		if( selector >= 12 )
+		if( selector >= 20 )
 		{
 			selector = 0;
 		}
@@ -2956,7 +2973,7 @@ void SynthStation::Update()
 	if( selector == 0 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
-		if( channel < 9 )
+		if( channel < 17 )
 		{
 			channel++;
 		}
@@ -3033,7 +3050,54 @@ void SynthStation::Update()
 			carrierRelease--;
 		}
 	}
+	
 	if( selector == 5 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		carrierAmplitudeMod = !carrierAmplitudeMod;
+	}
+	if( selector == 5 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		carrierAmplitudeMod = !carrierAmplitudeMod;
+	}
+	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		carrierVibrato = ! carrierVibrato;
+	}
+	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		carrierVibrato = ! carrierVibrato;
+	}
+	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		carrierHold = !carrierHold;
+	}
+	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		carrierHold = !carrierHold;
+	}
+	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierHarmonics < 16 )
+		{
+			carrierHarmonics++;
+		}
+	}
+	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( carrierHarmonics > 0 )
+		{
+			carrierHarmonics--;
+		}
+	}
+
+	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
 		if( carrierLevel < 16 )
@@ -3041,7 +3105,7 @@ void SynthStation::Update()
 			carrierLevel++;
 		}
 	}
-	if( selector == 5 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
 	{
 		keyDown = true;
 		if( carrierLevel > 0 )
@@ -3049,7 +3113,9 @@ void SynthStation::Update()
 			carrierLevel--;
 		}
 	}
-	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+
+
+	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorAttack < 16 )
@@ -3057,7 +3123,7 @@ void SynthStation::Update()
 			modulatorAttack++;
 		}
 	}
-	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorAttack > 0 )
@@ -3065,7 +3131,7 @@ void SynthStation::Update()
 			modulatorAttack--;
 		}
 	}
-	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorDecay < 16 )
@@ -3073,7 +3139,7 @@ void SynthStation::Update()
 			modulatorDecay++;
 		}
 	}
-	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorDecay > 0 )
@@ -3081,7 +3147,7 @@ void SynthStation::Update()
 			modulatorDecay--;
 		}
 	}
-	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	if( selector == 12 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorSustain < 16 )
@@ -3089,7 +3155,7 @@ void SynthStation::Update()
 			modulatorSustain++;
 		}
 	}
-	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	if( selector == 12 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorSustain > 0 )
@@ -3097,7 +3163,7 @@ void SynthStation::Update()
 			modulatorSustain--;
 		}
 	}
-	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	if( selector == 13 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorRelease < 16 )
@@ -3105,7 +3171,7 @@ void SynthStation::Update()
 			modulatorRelease++;
 		}
 	}
-	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	if( selector == 13 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorRelease > 0 )
@@ -3113,7 +3179,54 @@ void SynthStation::Update()
 			modulatorRelease--;
 		}
 	}
-	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	
+	if( selector == 14 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		modulatorAmplitudeMod = !modulatorAmplitudeMod;
+	}
+	if( selector == 14 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		modulatorAmplitudeMod = !modulatorAmplitudeMod;
+	}
+	if( selector == 15 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		modulatorVibrato = ! modulatorVibrato;
+	}
+	if( selector == 15 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		modulatorVibrato = ! modulatorVibrato;
+	}
+	if( selector == 16 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		modulatorHold = !modulatorHold;
+	}
+	if( selector == 16 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		modulatorHold = !modulatorHold;
+	}
+	if( selector == 17 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorHarmonics < 16 )
+		{
+			modulatorHarmonics++;
+		}
+	}
+	if( selector == 17 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	{
+		keyDown = true;
+		if( modulatorHarmonics > 0 )
+		{
+			modulatorHarmonics--;
+		}
+	}
+
+	if( selector == 18 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorLevel < 16 )
@@ -3121,7 +3234,7 @@ void SynthStation::Update()
 			modulatorLevel++;
 		}
 	}
-	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	if( selector == 18 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
 	{
 		keyDown = true;
 		if( modulatorLevel > 0 )
@@ -3129,7 +3242,13 @@ void SynthStation::Update()
 			modulatorLevel--;
 		}
 	}
-	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
+
+
+	
+
+
+
+	if( selector == 19 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
 		if( octave < 12 )
@@ -3137,7 +3256,7 @@ void SynthStation::Update()
 			octave++;
 		}
 	}
-	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
+	if( selector == 19 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
 	{
 		keyDown = true;
 		if( octave > 0 )
@@ -3153,8 +3272,10 @@ void SynthStation::Update()
 	{
 		engine->sound->SetADSREnvelope( channel, 0, carrierAttack, carrierDecay, carrierSustain, carrierRelease );
 		engine->sound->SetLevel( channel, 0, carrierLevel );
+		engine->sound->SetSoundCharacteristic( channel, 0, carrierAmplitudeMod, carrierVibrato, carrierHold, carrierHarmonics);
 		engine->sound->SetADSREnvelope( channel, 1, modulatorAttack, modulatorDecay, modulatorSustain, modulatorRelease );
 		engine->sound->SetLevel( channel, 1, modulatorLevel );
+		engine->sound->SetSoundCharacteristic( channel, 1, modulatorAmplitudeMod, modulatorVibrato, modulatorHold, modulatorHarmonics);
 	}
 	if( !keyDown && engine->input->KeyDown( KEY_1 ) && windowVisible && !keyDown )
 	{
@@ -3198,81 +3319,137 @@ void SynthStation::Draw()
 
 	if( windowVisible )
 	{
-		engine->DrawRawTileMap( engine->graphics->GetCamPos() + Vector2D( 20, 20 ), rawSynth );
+		engine->DrawRawTileMap( engine->graphics->GetCamPos() + windowPos, rawSynth );
 	
 		if( selector == 0 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*9, 8*1 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*9, 8*1 ), engine->time->GetDelta() );
 		}
 		if( selector == 1 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*4 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*4 ), engine->time->GetDelta() );
 		}
 		if( selector == 2 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*5 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*5 ), engine->time->GetDelta() );
 		}
 		if( selector == 3 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*6 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*6 ), engine->time->GetDelta() );
 		}
 		if( selector == 4 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*7 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*7 ), engine->time->GetDelta() );
 		}
 		if( selector == 5 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*12, 8*9 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*9 ), engine->time->GetDelta() );
 		}
 		if( selector == 6 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*4 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*10 ), engine->time->GetDelta() );
 		}
 		if( selector == 7 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*5 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*11 ), engine->time->GetDelta() );
 		}
 		if( selector == 8 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*6 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*12 ), engine->time->GetDelta() );
 		}
 		if( selector == 9 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*7 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*12, 8*14 ), engine->time->GetDelta() );
 		}
 		if( selector == 10 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*28, 8*9 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*4 ), engine->time->GetDelta() );
 		}
 		if( selector == 11 )
 		{
-			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*9, 8*12 ), engine->time->GetDelta() );
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*5 ), engine->time->GetDelta() );
+		}
+		if( selector == 12 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*6 ), engine->time->GetDelta() );
+		}
+		if( selector == 13 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*7 ), engine->time->GetDelta() );
+		}
+		if( selector == 14 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*9 ), engine->time->GetDelta() );
+		}
+		if( selector == 15 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*10 ), engine->time->GetDelta() );
+		}
+		if( selector == 16 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*11 ), engine->time->GetDelta() );
+		}
+		if( selector == 17 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*12 ), engine->time->GetDelta() );
+		}
+		if( selector == 18 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*28, 8*14 ), engine->time->GetDelta() );
+		}
+		if( selector == 19 )
+		{
+			engine->graphics->PlayAnimationDelta( &blueBallAnim, engine->graphics->GetCamPos() + windowPos + Vector2D( 8*9, 8*16 ), engine->time->GetDelta() );
 		}
 
 		char str[10];
 		sprintf(str, "%i", channel );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*10, 8*1 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*10, 8*1 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", carrierAttack );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*4 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*4 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", carrierDecay );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*5 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*5 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", carrierSustain );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*6 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*6 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", carrierRelease );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*7 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*7 ), ASSET_TXT_WHITE, 0, str );
+
+		sprintf(str, "%i", carrierAmplitudeMod );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*9 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierVibrato );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*10 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierHold );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*11 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", carrierHarmonics );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*12 ), ASSET_TXT_WHITE, 0, str );
+		
 		sprintf(str, "%i", carrierLevel );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*13, 8*9 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*14 ), ASSET_TXT_WHITE, 0, str );
+
+
 		sprintf(str, "%i", modulatorAttack );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*4 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*4 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", modulatorDecay );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*5 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*5 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", modulatorSustain );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*6 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*6 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", modulatorRelease );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*7 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*7 ), ASSET_TXT_WHITE, 0, str );
+		
+		sprintf(str, "%i", modulatorAmplitudeMod );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*9 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorVibrato );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*10 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorHold );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*11 ), ASSET_TXT_WHITE, 0, str );
+		sprintf(str, "%i", modulatorHarmonics );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*12 ), ASSET_TXT_WHITE, 0, str );
+
 		sprintf(str, "%i", modulatorLevel );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*29, 8*9 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*29, 8*14 ), ASSET_TXT_WHITE, 0, str );
+
+
 		sprintf(str, "%i", octave );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + Vector2D( 20, 20 ) + Vector2D( 8*10, 8*12 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*10, 8*16 ), ASSET_TXT_WHITE, 0, str );
 	}
 }
