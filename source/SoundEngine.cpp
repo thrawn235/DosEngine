@@ -362,7 +362,7 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	//SoundBlasterInstrument inst = CreateNewInstrument( "test", 0,0, 0,0, 0x55, 0x66, 0x44, 0x55, 0,0 ,0);
 	//SaveInstrumentToFile(&inst, "testinst.sbi");
 
-	LoadMIDIFile( "./music/equinoxe.mid" );
+	LoadMIDIFile( "./audio/music/equinoxe.mid" );
 }
 SoundEngine::~SoundEngine()
 {
