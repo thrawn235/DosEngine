@@ -61,6 +61,42 @@ struct SoundBlasterInstrument
 	char 	reserved[4];
 };
 
+struct MIDIEvent
+{
+	long int 		deltaTime;
+	unsigned char 	command;
+	unsigned char 	metaCommand;
+	unsigned char 	channel;
+	vector<char> 	data;
+};
+
+struct MIDITrackHeader
+{
+	char 			signature[4];
+	long int 	 	lengthOfTrack;
+};
+
+struct MIDITrack
+{
+	MIDITrackHeader 	trackHeader;
+	vector<MIDIEvent> 	events;
+};
+
+struct MIDIHeader
+{
+	char 			signature[4];
+	long int 	 	headerSize;
+	unsigned short 	fileFormat;
+	unsigned short 	numberOfTracks;
+	unsigned short 	ticksPerQuerterNote;
+};
+
+struct MIDISong
+{
+	MIDIHeader 	header;
+	vector<MIDITrack> tracks;
+};
+
 class SoundEngine
 {
 protected:
@@ -84,6 +120,7 @@ public:
 	void SetADSREnvelope 						( int channel, bool op, char attack, char decay, char sustain, char release );
 	void SetSoundCharacteristic 				( int channel, bool op, bool amplitudeModulation, bool vibrato, bool sustain, char harmonics );
 	void ResetSoundBlaster						();
+	
 	void ApplyInstrument 						(SoundBlasterInstrument* in, char channel );
 	SoundBlasterInstrument CreateNewInstrument 	(const char* name);
 	SoundBlasterInstrument CreateNewInstrument 	(const char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
@@ -94,6 +131,13 @@ public:
 														char feedback);
 	void SaveInstrumentToFile 					( SoundBlasterInstrument* in, const char* filePath );
 	SoundBlasterInstrument LoadInstrumentFromFile( const char* filePath );
+
+	void AddInstrument 							( SoundBlasterInstrument* in );
+	SoundBlasterInstrument* GetInstrument 		( int index );
+	void DeleteInstrument 						( int index );
+	void ReplaceInstrument 						( SoundBlasterInstrument* in, int index );
+
+	MIDISong* LoadMIDIFile 						( const char* filePath );
 
 	void PlaySound 								( bool newRepeat );
 

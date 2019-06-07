@@ -275,7 +275,7 @@ SoundBlasterInstrument SoundEngine::LoadInstrumentFromFile( const char* filePath
 	{
 		SoundBlasterInstrument in;
 		fread(&in, sizeof(SoundBlasterInstrument), 1, file );
-		if( in.signature[0] == 'S' && in.signature[0] == 'B' &&  in.signature[0] == 'I' )
+		if( in.signature[0] == 'S' && in.signature[1] == 'B' &&  in.signature[2] == 'I' )
 		{
 			return in;
 		}
@@ -284,6 +284,24 @@ SoundBlasterInstrument SoundEngine::LoadInstrumentFromFile( const char* filePath
 			printf( "couldnt find signature" );
 		}
 	}
+	fclose (file);
+}
+
+void SoundEngine::AddInstrument( SoundBlasterInstrument* in )
+{
+	instruments.push_back(*in);
+}
+SoundBlasterInstrument* SoundEngine::GetInstrument( int index )
+{
+	return &instruments[index];
+}
+void SoundEngine::DeleteInstrument( int index )
+{
+	instruments.erase(instruments.begin() + index );
+}
+void SoundEngine::ReplaceInstrument( SoundBlasterInstrument* in, int index )
+{
+	instruments[index] = *in;
 }
 
 SoundEngine::SoundEngine( TimeEngine* newTime )
@@ -343,6 +361,8 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 
 	//SoundBlasterInstrument inst = CreateNewInstrument( "test", 0,0, 0,0, 0x55, 0x66, 0x44, 0x55, 0,0 ,0);
 	//SaveInstrumentToFile(&inst, "testinst.sbi");
+
+	LoadMIDIFile( "./music/equinoxe.mid" );
 }
 SoundEngine::~SoundEngine()
 {
@@ -372,3 +392,268 @@ void SoundEngine::SoundOff()
 	soundOn = false;
 	outportb( 0x61, 0); //turn speaker off
 }
+
+MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
+{
+	bool debug = false;
+
+	MIDISong* song = NULL;
+
+	FILE *file = fopen( filePath, "rb" );
+	if( file == NULL )
+	{
+		printf( "Error Loading File!\n"  );
+		return NULL;
+	}
+	else
+	{
+		if( debug )
+		{
+			printf("file opened...\n");
+			getch();
+		}
+		song = new MIDISong;
+
+		//read MIDI Header:
+		fread(&song->header, 14, 1, file );
+		if( song->header.signature[0] == 'M' && song->header.signature[1] == 'T' &&  song->header.signature[2] == 'h' &&  song->header.signature[3] == 'd')
+		{
+			//swap endians...
+			song->header.headerSize = __builtin_bswap32( song->header.headerSize );
+			song->header.fileFormat = __builtin_bswap16( song->header.fileFormat );
+			song->header.numberOfTracks = __builtin_bswap16( song->header.numberOfTracks );
+			song->header.ticksPerQuerterNote = __builtin_bswap16( song->header.ticksPerQuerterNote );
+
+			if( debug )
+			{
+				printf("%c%c%c%c\n", song->header.signature[0], song->header.signature[1], song->header.signature[2], song->header.signature[3]);
+				printf("MIDI Header signatur correct \n");
+				printf("header size = %li \n", song->header.headerSize );
+				printf("file format = %hi \n", song->header.fileFormat );
+				printf("found %hi tracks\n", song->header.numberOfTracks );
+				printf("ticks per QNote = %hi \n", song->header.ticksPerQuerterNote );				
+				getch();
+			}
+
+
+			for( int trackNum = 1; trackNum < song->header.numberOfTracks; trackNum++ )
+			{
+				MIDITrack newTrack;
+				//read track header:
+				fread(&newTrack.trackHeader, 8, 1, file );
+
+				
+				//swap endianess...
+				newTrack.trackHeader.lengthOfTrack = __builtin_bswap32( newTrack.trackHeader.lengthOfTrack );
+
+				if( debug )
+				{
+					printf("	%c%c%c%c\n", newTrack.trackHeader.signature[0], newTrack.trackHeader.signature[1], newTrack.trackHeader.signature[2], newTrack.trackHeader.signature[3]);
+					printf("	Track: %i \n", trackNum );
+					printf("	lengthOfTrack = %li \n", newTrack.trackHeader.lengthOfTrack );			
+					getch();
+				}
+
+				bool trackDone = false;
+				while( !trackDone )
+				{
+					//read events:
+					MIDIEvent newEvent;
+
+					//read delta time:
+					unsigned char timeByte = 0;
+					fread( &timeByte, 1, 1, file );
+					if( debug )
+					{
+						printf("		timeByte: %hhx \n", timeByte );
+					}
+					while( timeByte & 0b10000000 )
+					{
+						fread( &timeByte, 1, 1, file );
+						timeByte = timeByte | 0b01111111;
+						newEvent.deltaTime << 7;
+						newEvent.deltaTime = newEvent.deltaTime & 0b1000000;
+						newEvent.deltaTime = newEvent.deltaTime + timeByte;
+						if( debug )
+						{
+							printf("			timeByte: %hhx \n", timeByte );
+						}
+					}
+					newEvent.deltaTime = newEvent.deltaTime & 0b1000000;
+					newEvent.deltaTime = newEvent.deltaTime + timeByte; 
+
+					if( debug )
+					{
+						printf("		newEvent.deltaTime: %i \n", newEvent.deltaTime );
+						//getch();
+					}
+
+					//read Type of Event:
+					unsigned char typeByte = 0;
+					fread( &typeByte, 1, 1, file );
+
+					if( debug )
+					{
+						printf("		typeByte: %hhx \n", typeByte );
+						//getch();
+					}
+					
+					if( typeByte & 0b1000000 != 0 )
+					{
+						if( typeByte == 0xFF )
+						{
+							newEvent.command = typeByte;
+
+							unsigned char metaByte = 0;
+							fread( &metaByte, 1, 1, file );
+							newEvent.metaCommand = metaByte;
+							if( debug )
+							{
+								printf("			metaByte: %hhx \n", metaByte );
+							}
+							unsigned char lengthByte = 0;
+							fread( &lengthByte, 1, 1, file );
+							if( debug )
+							{
+								printf("			lengthByte: %hhx \n", lengthByte );
+							}
+
+							newEvent.data.reserve( lengthByte );
+							for( int i = 0; i < lengthByte; i++ )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( debug )
+							{
+								printf("				");
+								for( int i = 0; i < lengthByte; i++ )
+								{
+									printf("%02hhx ", newEvent.data[i]);
+								}
+								printf("\n");
+							}
+							if( metaByte == 0x2F )
+							{
+								trackDone = true;
+								if( debug )
+								{
+									printf("			track Done!" );
+								}
+							}
+						}
+						else if( typeByte == 0xF0 || typeByte == 0xF7 )
+						{
+							newEvent.command = typeByte;
+
+							unsigned char lengthByte = 0;
+							fread( &lengthByte, 1, 1, file );
+							if( debug )
+							{
+								printf("			lengthByte: %hhx \n", lengthByte );
+							}
+
+							newEvent.data.reserve( lengthByte );
+							for( int i = 0; i < lengthByte; i++ )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( debug )
+							{
+								printf("				");
+								for( int i = 0; i < lengthByte; i++ )
+								{
+									printf("%02hhx ", newEvent.data[i]);
+								}
+								printf("\n");
+							}
+						}
+						else
+						{
+							//regular byte
+							newEvent.command = typeByte & 0xF0;
+							newEvent.channel = typeByte & 0x0F;
+							if( debug )
+							{
+								printf( "		regular command: %hhx channel: %hhi\n", newEvent.command, newEvent.channel );
+							}
+							if( newEvent.command == 0x80 || newEvent.command == 0x90 || newEvent.command == 0xA0 || newEvent.command == 0xB0 || newEvent.command == 0xE0 )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( newEvent.command == 0xC0 || newEvent.command == 0xD0 )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( debug )
+							{
+								printf("				");
+								for( int i = 0; i < newEvent.data.size(); i++ )
+								{
+									printf("%02hhx ", newEvent.data[i]);
+								}
+								printf("\n");
+							}
+						}
+						newTrack.events.push_back( newEvent );
+					}
+					else
+					{
+						newEvent.command = newTrack.events.back().command;
+						if( debug )
+						{
+							printf( "		running command: %hhx channel: %hhi\n", newEvent.command, newEvent.channel );
+						}
+						if( newEvent.command == 0x80 || newEvent.command == 0x90 || newEvent.command == 0xA0 || newEvent.command == 0xB0 || newEvent.command == 0xE0 )
+						{
+							char dataByte = 0;
+							newEvent.data.push_back( typeByte );
+							fread( &dataByte, 1, 1, file );
+							newEvent.data.push_back( dataByte );
+						}
+						if( newEvent.command == 0xC0 || newEvent.command == 0xD0 )
+						{
+							newEvent.data.push_back( typeByte );
+						}
+						if( debug )
+						{
+							printf("				");
+							for( int i = 0; i < newEvent.data.size(); i++ )
+							{
+								printf("%02hhx ", newEvent.data[i]);
+							}
+							printf("\n");
+						}
+		
+						newTrack.events.push_back( newEvent );
+					}
+					if( debug && trackNum >= 14 )
+					{
+						getch();
+					}
+
+				}
+				song->tracks.push_back( newTrack );
+			}
+
+		}
+		else
+		{
+			printf( "couldnt find signature" );
+			return NULL;
+		}
+
+		return song;
+	}
+
+	return NULL;
+};
