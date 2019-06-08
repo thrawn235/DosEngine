@@ -751,6 +751,8 @@ protected:
 	bool usedChannels[9];
 	int  channelMap[256];
 
+	bool numKeys[10] = {0,0,0,0,0,0,0,0,0,0};
+
 	Vector2D 		windowPos;
 
 	Animation 		blueBallAnim;

@@ -2479,7 +2479,7 @@ void ShipWrek::DrawWindow()
 			}
 			if( connectedPlayer -> GetShipBattery() )
 			{
-				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 449, 16 );	//jouystick
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+20, 100 ), ASSET_K1_TILES, 449, 16 );	//jouystick
 			}
 			else
 			{
@@ -2487,7 +2487,7 @@ void ShipWrek::DrawWindow()
 			}
 			if( false )
 			{
-				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 450, 16 );	//jouystick
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+40, 100 ), ASSET_K1_TILES, 450, 16 );	//jouystick
 			}
 			else
 			{
@@ -2495,7 +2495,7 @@ void ShipWrek::DrawWindow()
 			}
 			if( false )
 			{
-				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+0, 100 ), ASSET_K1_TILES, 451, 16 );	//jouystick
+				engine->graphics->DrawSprite( engine->graphics->GetCamPos() + Vector2D(100+60, 100 ), ASSET_K1_TILES, 451, 16 );	//jouystick
 			}
 			else
 			{
@@ -3277,40 +3277,75 @@ void SynthStation::Update()
 		engine->sound->SetLevel( channel, 1, modulatorLevel );
 		engine->sound->SetSoundCharacteristic( channel, 1, modulatorAmplitudeMod, modulatorVibrato, modulatorHold, modulatorHarmonics);
 	}
-	if( !keyDown && engine->input->KeyDown( KEY_1 ) && windowVisible && !keyDown )
+	if(  engine->input->KeyDown( KEY_1 ) && windowVisible && numKeys[1] == false )
 	{
-		keyDown = true;
-		engine->sound->PlayNote( channel, 293, octave ); //c#
+		numKeys[1] = true;
+		engine->sound->NoteOn( channel, 1 + octave * 12, 40 ); //c#
 	}
-	if( !keyDown && engine->input->KeyDown( KEY_2 ) && windowVisible && !keyDown )
+	if( !engine->input->KeyDown( KEY_1 ) && numKeys[1] == true )
 	{
-		keyDown = true;
-		engine->sound->PlayNote( channel, 329, octave ); //c#
+		numKeys[1] = false;
+		engine->sound->NoteOff( channel, 1 + octave * 12 ); //c#
 	}
-	if( !keyDown && engine->input->KeyDown( KEY_3 ) && windowVisible && !keyDown )
+	if( engine->input->KeyDown( KEY_2 ) && windowVisible && numKeys[2] == false )
 	{
-		keyDown = true;
-		engine->sound->PlayNote( channel, 349, octave ); //c#
+		numKeys[2] = true;
+		engine->sound->NoteOn( channel, 2 + octave * 12, 40 ); //c#
 	}
-	if( !keyDown && engine->input->KeyDown( KEY_4 ) && windowVisible && !keyDown )
+	if( !engine->input->KeyDown( KEY_2 ) && numKeys[2] == true )
 	{
-		keyDown = true;
-		engine->sound->PlayNote( channel, 392, octave ); //c#
+		numKeys[2] = false;
+		engine->sound->NoteOff( channel, 2 + octave * 12 ); //c#
 	}
-	if( !keyDown && engine->input->KeyDown( KEY_5 ) && windowVisible && !keyDown )
+	if( engine->input->KeyDown( KEY_3 ) && windowVisible && numKeys[3] == false )
 	{
-		keyDown = true;
-		engine->sound->PlayNote( channel, 440, octave ); //c#
+		numKeys[3] = true;
+		engine->sound->NoteOn( channel, 3 + octave * 12, 40 ); //c#
 	}
-	if( !keyDown && engine->input->KeyDown( KEY_6 ) && windowVisible && !keyDown )
+	if( !engine->input->KeyDown( KEY_3 ) && numKeys[3] == true )
 	{
-		keyDown = true;
-		engine->sound->PlayNote( channel, 493, octave ); //c#
+		numKeys[3] = false;
+		engine->sound->NoteOff( channel, 3 + octave * 12 ); //c#
 	}
-	if( !keyDown && engine->input->KeyDown( KEY_7 ) && windowVisible && !keyDown )
+	if( engine->input->KeyDown( KEY_4 ) && windowVisible && numKeys[4] == false )
 	{
-		keyDown = true;
-		engine->sound->PlayNote( channel, 523, octave ); //c#
+		numKeys[4] = true;
+		engine->sound->NoteOn( channel, 4 + octave * 12, 40 ); //c#
+	}
+	if( !engine->input->KeyDown( KEY_4 ) && numKeys[4] == true )
+	{
+		numKeys[4] = false;
+		engine->sound->NoteOff( channel, 4 + octave * 12 ); //c#
+	}
+	if( engine->input->KeyDown( KEY_5 ) && windowVisible && numKeys[5] == false )
+	{
+		numKeys[5] = true;
+		engine->sound->NoteOn( channel, 5 + octave * 12, 40 ); //c#
+	}
+	if( !engine->input->KeyDown( KEY_5 ) && numKeys[5] == true )
+	{
+		numKeys[5] = false;
+		engine->sound->NoteOff( channel, 5 + octave * 12 ); //c#
+	}
+	if( engine->input->KeyDown( KEY_6 ) && windowVisible && numKeys[6] == false )
+	{
+		numKeys[6] = true;
+		engine->sound->NoteOn( channel, 6 + octave * 12, 40 ); //c#
+	}
+	if( !engine->input->KeyDown( KEY_6 ) && numKeys[6] == true )
+	{
+		numKeys[6] = false;
+		engine->sound->NoteOff( channel, 6 + octave * 12 ); //c#
+	}
+	if( engine->input->KeyDown( KEY_7 ) && windowVisible && numKeys[7] == false )
+	{
+		numKeys[7] = true;
+		engine->sound->NoteOn( channel, 7 + octave * 12, 40 ); //c#
+	}
+	if( !engine->input->KeyDown( KEY_7 ) && numKeys[7] == true )
+	{
+		numKeys[7] = false;
+		engine->sound->NoteOff( channel, 7 + octave * 12 ); //c#
 	}
 }
 void SynthStation::Draw()
