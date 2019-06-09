@@ -99,7 +99,6 @@ struct MIDISong
 	int 				ID;
 	MIDIHeader 			header;
 	vector<MIDITrack> 	tracks;
-	int 				currentTrack = 0;
 };
 
 

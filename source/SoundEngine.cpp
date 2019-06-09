@@ -26,6 +26,12 @@ int noteLength = 1;
 int notePos = 0;
 int BPM = 160;
 int timerInterruptFrequency = 0;
+
+int trackOffsets[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int trackTimes[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int globalNumTracks = 16;
+MIDISong* globalCurrentSong = NULL;
+
 SoundEngine* soundP;
 //=========================================================================
 
@@ -71,6 +77,30 @@ void SoundInterruptRoutine()
 			}
 		}*/
 
+		for( int i = 0; i < globalNumTracks; i++ )
+		{
+			if( globalCurrentSong->tracks[i].events.size() > trackOffsets[i] )
+			{
+				if( globalCurrentSong->tracks[i].events[trackOffsets[i]].deltaTime < trackTimes[i] )
+				{
+					//globalCurrentSong->tracks[i].events[trackOffsets[i]]
+					if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x90 )
+					{
+						//note on
+						soundP->NoteOn( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0], globalCurrentSong->tracks[i].events[trackOffsets[i]].data[1] );
+					}
+					if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x80 )
+					{
+						//note off
+						soundP->NoteOff( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0] );
+					}
+					trackOffsets[i]++;
+					trackTimes[i] = 0;
+				}
+				trackTimes[i] = trackTimes[i] + 2;
+			}
+		}
+
 		//MIDIEvent* event = soundP->GetNextMIDIEvent();
 		/*if( event != NULL )
 		{
@@ -106,7 +136,6 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	stream = noise;
 	time = newTime;
 	timerInterruptFrequency = time->GetInterruptFrequency();
-	InstallSoundInterrupt();
 	//SoundOff();
 
 	ResetSoundBlaster();
@@ -121,23 +150,40 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	outportb( OPL3DataPort, 0 );
 
 
-	SoundBlasterInstrument inst = CreateNewInstrument( "test", 0,0, 0,0, 0x55, 0x66, 0x44, 0x55, 0,0 ,0);
+	SoundBlasterInstrument inst = CreateNewInstrument( "test", 0,0, 0,0, 0x00, 0x00, 0x00, 0x00, 0,0 ,0);
 	//SaveInstrumentToFile(&inst, "testinst.sbi");
 
 	currentSong = LoadMIDIFile( "./audio/music/equinoxe.mid" );
+	globalCurrentSong = currentSong;
+	globalNumTracks = 2;
 
-	SoundBlasterInstrument newInst = LoadInstrumentFromFile( "./audio/inst/ALIEN.sbi" );
+	SoundBlasterInstrument newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
 	AddInstrument(&newInst);
-	newInst = LoadInstrumentFromFile( "./audio/inst/BAGPIPE1.sbi" );
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
 	AddInstrument(&newInst);
-	newInst = LoadInstrumentFromFile( "./audio/inst/BASS1.sbi" );
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
 	AddInstrument(&newInst);
-	newInst = LoadInstrumentFromFile( "./audio/inst/BELLS.sbi" );
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
 	AddInstrument(&newInst);
-	newInst = LoadInstrumentFromFile( "./audio/inst/TROMB2.sbi" );
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
 	AddInstrument(&newInst);
-	newInst = LoadInstrumentFromFile( "./audio/inst/PIANO.sbi" );
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
 	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/FLUTE2.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/MOON.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/STRINGS1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument(&newInst);
+
 
 	InstallSoundInterrupt();
 }
@@ -489,7 +535,7 @@ void SoundEngine::SoundOff()
 }
 MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 {
-	bool debug = false;
+	bool debug = true;
 
 	MIDISong* song = NULL;
 
@@ -730,7 +776,7 @@ MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 		
 						newTrack.events.push_back( newEvent );
 					}
-					if( debug && trackNum >= 14 )
+					if( debug )
 					{
 						getch();
 					}
@@ -780,7 +826,7 @@ SoundBlasterInstrument* SoundEngine::GetActiveInstrument( int channel )
 }
 MIDIEvent* SoundEngine::GetNextMIDIEvent()
 {
-	MIDIEvent* out = NULL;
+	/*MIDIEvent* out = NULL;
 
 	int currentTrack = currentSong->currentTrack;
 	if(currentTrack >= currentSong->tracks.size() )
@@ -806,9 +852,9 @@ MIDIEvent* SoundEngine::GetNextMIDIEvent()
 
 	
 
-	currentSong->currentTrack++;
+	currentSong->currentTrack++;*/
 
-	return out;
+	return NULL;
 }
 
 
