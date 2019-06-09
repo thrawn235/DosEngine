@@ -52,8 +52,8 @@ struct SoundBlasterInstrument
 	unsigned char 	carrierSoundCharacteristic;
 	unsigned char 	modulatorScalingLevel;
 	unsigned char 	carrierScalingLevel;
-	unsigned char 	modulatorAttackDelay;
-	unsigned char 	carrierAttackDelay;
+	unsigned char 	modulatorAttackDecay;
+	unsigned char 	carrierAttackDecay;
 	unsigned char 	modulatorSustainRelease;
 	unsigned char 	carrierSustainRelease;
 	unsigned char 	modulatorWaveSelect;
@@ -139,51 +139,65 @@ protected:
 	vector<MIDISong*> 				songs;
 
 public:
-							SoundEngine 			( TimeEngine* newTime );
-							~SoundEngine 			();
+							SoundEngine 					( TimeEngine* newTime );
+							~SoundEngine 					();
 
-	void 					InstallSoundInterrupt 	();
-	void 					RestoreSoundInterrupt 	();
+	void 					InstallSoundInterrupt 			();
+	void 					RestoreSoundInterrupt 			();
 
-	void 					PlayNote 				( int channel, unsigned char note );
-	//void 					NoteOff 				( int channel );
-	void 					SetLevel 				( int channel, bool op, unsigned char newLevel );
-	void 					SetADSREnvelope 		( int channel, bool op, char attack, char decay, char sustain, char release );
-	void 					SetSoundCharacteristic 	( int channel, bool op, bool amplitudeModulation, bool vibrato, bool sustain, char harmonics );
-	void 					ResetSoundBlaster		();
+	void 					PlayNote 						( int channel, unsigned char note );
+	//void 					NoteOff 						( int channel );
+	void 					SetLevel 						( int channel, bool op, unsigned char newLevel );
+	void 					SetADSREnvelope 				( int channel, bool op, char attack, char decay, char sustain, char release );
+	void 					SetSoundCharacteristic 			( int channel, bool op, bool amplitudeModulation, bool vibrato, bool sustain, char harmonics );
 	
-	void 					ApplyInstrument 		(SoundBlasterInstrument* in, char channel );
-	SoundBlasterInstrument 	CreateNewInstrument 	(const char* name);
-	SoundBlasterInstrument 	CreateNewInstrument 	(const 	char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
-															char modulatorScalingLevel, char carrierScalingLevel,
-															char modulatorAttackDelay, char carrierAttackDelay,
-															char modulatorSustainRelease, char carrierSustainRelease,
-															char modulatorWaveSelect, char carrierWaveSelect,
-															char feedback);
-	void 					SaveInstrumentToFile 	( SoundBlasterInstrument* in, const char* filePath );
-	SoundBlasterInstrument 	LoadInstrumentFromFile 	( const char* filePath );
+	SoundBlasterInstrument 	SetInstrumentLevel 				( SoundBlasterInstrument in, bool op, unsigned char newScalingLevel, unsigned char newLevel );
+	SoundBlasterInstrument 	SetInstruemtADSREnvelope 		( SoundBlasterInstrument in, bool op, unsigned char attack, unsigned char decay, unsigned char sustain, unsigned char release );
+	SoundBlasterInstrument 	SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, bool amplitudeModulation, bool vibrato, bool rythm, bool bassDrum, bool snareDrum, bool tomTom, bool cymbal, bool hiHat );
+	SoundBlasterInstrument 	SetInstrumentWaveForm			( SoundBlasterInstrument in, bool op, char newWaveForm );
+	SoundBlasterInstrument 	SetInstrumentFeedBack			( SoundBlasterInstrument in, unsigned char newFeedback, bool newAlgorithm );
 
-	void 					AddInstrument 			( SoundBlasterInstrument* in );
-	SoundBlasterInstrument* GetInstrument 			( int index );
-	void 					DeleteInstrument 		( int index );
-	void 					ReplaceInstrument 		( SoundBlasterInstrument* in, int index );
+	SoundBlasterInstrument 	SetInstrumentLevel 				( SoundBlasterInstrument in, bool op, unsigned char newLevelByte );
+	SoundBlasterInstrument 	SetInstruemtADSREnvelope 		( SoundBlasterInstrument in, bool op, unsigned char newAttackByte, unsigned char newSustainByte );
+	SoundBlasterInstrument 	SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, unsigned char newCharacteristicByte );
+	SoundBlasterInstrument 	SetInstrumentWaveForm			( SoundBlasterInstrument in, bool op, unsigned char newWaveFormByte );
+	SoundBlasterInstrument 	SetInstrumentFeedBack			( SoundBlasterInstrument in, unsigned char newFeedbackByte );
 
-	MIDISong* 				LoadMIDIFile 			( const char* filePath );
-	void 					AddSong 				( MIDISong* in, int newSongID );
-	MIDISong*				GetSong 				( int songID );
 
-	void 					PlaySound 				( bool newRepeat );
+	void 					ResetSoundBlaster				();
+	
+	void 					ApplyInstrument 				(SoundBlasterInstrument* in, char channel );
+	SoundBlasterInstrument 	CreateNewInstrument 			(const char* name);
+	SoundBlasterInstrument 	CreateNewInstrument 			(const 	char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
+																	char modulatorScalingLevel, char carrierScalingLevel,
+																	char modulatorAttackDecay, char carrierAttackDecay,
+																	char modulatorSustainRelease, char carrierSustainRelease,
+																	char modulatorWaveSelect, char carrierWaveSelect,
+																	char feedback);
+	void 					SaveInstrumentToFile 			( SoundBlasterInstrument* in, const char* filePath );
+	SoundBlasterInstrument 	LoadInstrumentFromFile 			( const char* filePath );
 
-	void 					SoundOn 				();
-	void 					SoundOff 				();
+	void 					AddInstrument 					( SoundBlasterInstrument* in );
+	SoundBlasterInstrument* GetInstrument 					( int index );
+	void 					DeleteInstrument 				( int index );
+	void 					ReplaceInstrument 				( SoundBlasterInstrument* in, int index );
 
-	void					SetActiveInstrument 	( SoundBlasterInstrument* in, int channel );
-	SoundBlasterInstrument* GetActiveInstrument 	( int channel );
+	MIDISong* 				LoadMIDIFile 					( const char* filePath );
+	void 					AddSong 						( MIDISong* in, int newSongID );
+	MIDISong*				GetSong 						( int songID );
 
-	void 					NoteOn 					( int MIDIChannel, unsigned char note, unsigned char velocity );
-	void 					NoteOff 				( int MIDIChannel, unsigned char note );
+	void 					PlaySound 						( bool newRepeat );
 
-	MIDIEvent* 				GetNextMIDIEvent 		(); 
+	void 					SoundOn 						();
+	void 					SoundOff 						();
+
+	void					SetActiveInstrument 			( SoundBlasterInstrument* in, int channel );
+	SoundBlasterInstrument* GetActiveInstrument 			( int channel );
+
+	void 					NoteOn 							( int MIDIChannel, unsigned char note, unsigned char velocity );
+	void 					NoteOff 						( int MIDIChannel, unsigned char note );
+
+	MIDIEvent* 				GetNextMIDIEvent 				(); 
 };
 
 

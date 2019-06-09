@@ -39,6 +39,7 @@
 #include "InputEngine.h"
 #include "GameEngine.h"
 #include "HelperFunctions.h"	//has to be last!
+#include "SoundEngine.h"
 //=======================================================
 
 
@@ -727,31 +728,14 @@ protected:
 	bool 			windowVisible;
 	bool 			keyDown;
 
-	unsigned char 	carrierAttack;
-	unsigned char 	carrierDecay;
-	unsigned char 	carrierSustain;
-	unsigned char 	carrierRelease;
-	unsigned char 	carrierLevel;
-	unsigned char 	modulatorAttack;
-	unsigned char 	modulatorDecay;
-	unsigned char 	modulatorSustain;
-	unsigned char 	modulatorRelease;
-	unsigned char 	modulatorLevel;
-	unsigned char 	octave;
-	unsigned char 	channel;
-	bool 		  	carrierAmplitudeMod;
-	bool 			carrierHold;
-	bool 			carrierVibrato;
-	unsigned char	carrierHarmonics;
-	bool 		  	modulatorAmplitudeMod;
-	bool 			modulatorHold;
-	bool 			modulatorVibrato;
-	unsigned char	modulatorHarmonics;
+	SoundBlasterInstrument 	instrument;
 
-	bool usedChannels[9];
-	int  channelMap[256];
+	char octave;
+	int channel;
 
-	bool numKeys[10] = {0,0,0,0,0,0,0,0,0,0};
+	bool instrumentChanged;
+
+	bool activeKeys[10] = {0,0,0,0,0,0,0,0,0,0};
 
 	Vector2D 		windowPos;
 
@@ -767,6 +751,9 @@ public:
 	virtual void Update 			();
 	virtual void Draw 				();
 	virtual void Activate			( Player* in );
+	virtual void SelectInstrument 	( int index );
+	virtual void WriteBackInstrument( unsigned char index );
+	virtual void HandleKeys 		();
 };
 
 #endif

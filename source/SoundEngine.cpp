@@ -126,11 +126,18 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 
 	currentSong = LoadMIDIFile( "./audio/music/equinoxe.mid" );
 
-	SoundBlasterInstrument newInst = LoadInstrumentFromFile( "./audio/inst/TROMB2.sbi" );
-	ApplyInstrument( &newInst, 1 );
-	//NoteOn( 1, 60 );
-	//NoteOn( 1, 80 );
-	//NoteOn( 1, 100 );
+	SoundBlasterInstrument newInst = LoadInstrumentFromFile( "./audio/inst/ALIEN.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/BAGPIPE1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/BASS1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/BELLS.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/TROMB2.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/PIANO.sbi" );
+	AddInstrument(&newInst);
 
 	InstallSoundInterrupt();
 }
@@ -243,7 +250,7 @@ void SoundEngine::NoteOn( int MIDIChannel, unsigned char note, unsigned char vel
 		}
 	}
 
-	if( freeVoice == 9999 )
+	if( freeVoice == 999 )
 	{
 		return;
 	}
@@ -284,8 +291,12 @@ void SoundEngine::NoteOff( int MIDIChannel, unsigned char note )
 	inUseMIDIChannel[voiceInQuestion] = 0;
 	inUseNote[voiceInQuestion] = 0;
 
+	outportb( OPL3AddressPort, 0xA0 + voiceInQuestion );
+	outportb( OPL3DataPort, FNr[note] & 0xFF );
+
+	unsigned char Block = note >> 4;
 	outportb( OPL3AddressPort, 0xB0 + voiceInQuestion );
-	outportb( OPL3DataPort, 0 );
+	outportb( OPL3DataPort, (FNr[note] >> 8) + (Block << 2) );
 }
 
 void SoundEngine::SetSoundCharacteristic( int channel, bool op, bool amplitudeModulation, bool vibrato, bool sustain, char harmonics )
@@ -314,40 +325,40 @@ void SoundEngine::ApplyInstrument(SoundBlasterInstrument* in, char channel )
 {
 	activeInstruments[channel] = *in;
 
-	outportb( OPL3AddressPort, 0x20 + channelMap[channel] );
+	outportb( OPL3AddressPort, 0x20 + channelMap[channel] + 3 );
 	outportb( OPL3DataPort, in->carrierSoundCharacteristic );
 
-	outportb( OPL3AddressPort, 0x20 + channelMap[channel] + 3);
+	outportb( OPL3AddressPort, 0x20 + channelMap[channel] );
 	outportb( OPL3DataPort, in->modulatorSoundCharacteristic );
 
-	outportb( OPL3AddressPort, 0x40 + channelMap[channel] );
+	outportb( OPL3AddressPort, 0x40 + channelMap[channel] + 3 );
 	outportb( OPL3DataPort, in->carrierScalingLevel );
 
-	outportb( OPL3AddressPort, 0x40 + channelMap[channel] + 3 );
+	outportb( OPL3AddressPort, 0x40 + channelMap[channel]  );
 	outportb( OPL3DataPort, in->modulatorScalingLevel );
 
-	outportb( OPL3AddressPort, 0x60 + channelMap[channel] );
-	outportb( OPL3DataPort, in->carrierAttackDelay );
-
 	outportb( OPL3AddressPort, 0x60 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->modulatorAttackDelay );
+	outportb( OPL3DataPort, in->carrierAttackDecay );
 
-	outportb( OPL3AddressPort, 0x80 + channelMap[channel] );
-	outportb( OPL3DataPort, in->carrierSustainRelease );
-
-	outportb( OPL3AddressPort, 0x80 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->modulatorSustainRelease );
-
-	outportb( OPL3AddressPort, 0x80 + channelMap[channel] );
-	outportb( OPL3DataPort, in->carrierSustainRelease );
+	outportb( OPL3AddressPort, 0x60 + channelMap[channel]  );
+	outportb( OPL3DataPort, in->modulatorAttackDecay );
 
 	outportb( OPL3AddressPort, 0x80 + channelMap[channel] + 3 );
+	outportb( OPL3DataPort, in->carrierSustainRelease );
+
+	outportb( OPL3AddressPort, 0x80 + channelMap[channel]  );
 	outportb( OPL3DataPort, in->modulatorSustainRelease );
 
-	outportb( OPL3AddressPort, 0xE0 + channelMap[channel] );
-	outportb( OPL3DataPort, in->modulatorWaveSelect );
+	outportb( OPL3AddressPort, 0x80 + channelMap[channel] + 3 );
+	outportb( OPL3DataPort, in->carrierSustainRelease );
+
+	outportb( OPL3AddressPort, 0x80 + channelMap[channel]  );
+	outportb( OPL3DataPort, in->modulatorSustainRelease );
 
 	outportb( OPL3AddressPort, 0xE0 + channelMap[channel] + 3 );
+	outportb( OPL3DataPort, in->modulatorWaveSelect );
+
+	outportb( OPL3AddressPort, 0xE0 + channelMap[channel]  );
 	outportb( OPL3DataPort, in->carrierWaveSelect );
 
 	outportb( OPL3AddressPort, 0xC0 + channel );
@@ -365,7 +376,7 @@ SoundBlasterInstrument SoundEngine::CreateNewInstrument( const char* name )
 
 SoundBlasterInstrument SoundEngine::CreateNewInstrument( const char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
 														char modulatorScalingLevel, char carrierScalingLevel,
-														char modulatorAttackDelay, char carrierAttackDelay,
+														char modulatorAttackDecay, char carrierAttackDecay,
 														char modulatorSustainRelease, char carrierSustainRelease,
 														char modulatorWaveSelect, char carrierWaveSelect,
 														char feedback )
@@ -378,8 +389,8 @@ SoundBlasterInstrument SoundEngine::CreateNewInstrument( const char* name, char 
 	out.carrierSoundCharacteristic = carrierSoundCharacteristic;
 	out.modulatorScalingLevel = modulatorScalingLevel;
 	out.carrierScalingLevel = carrierScalingLevel;
-	out.modulatorAttackDelay = modulatorAttackDelay;
-	out.carrierAttackDelay = carrierAttackDelay;
+	out.modulatorAttackDecay = modulatorAttackDecay;
+	out.carrierAttackDecay = carrierAttackDecay;
 	out.modulatorSustainRelease = modulatorSustainRelease;
 	out.carrierSustainRelease = carrierSustainRelease;
 	out.modulatorWaveSelect = modulatorWaveSelect;
@@ -420,8 +431,8 @@ SoundBlasterInstrument SoundEngine::LoadInstrumentFromFile( const char* filePath
 				printf( "carrierSoundCharacteristic   = %02hhx\n", in.carrierSoundCharacteristic );
 				printf( "modulatorScalingLevel 	      = %02hhx\n", in.modulatorScalingLevel );
 				printf( "carrierScalingLevel          = %02hhx\n", in.carrierScalingLevel );
-				printf( "modulatorAttackDelay         = %02hhx\n", in.modulatorAttackDelay );
-				printf( "carrierAttackDelay           = %02hhx\n", in.carrierAttackDelay );
+				printf( "modulatorAttackDecay         = %02hhx\n", in.modulatorAttackDecay );
+				printf( "carrierAttackDecay           = %02hhx\n", in.carrierAttackDecay );
 				printf( "modulatorSustainRelease      = %02hhx\n", in.modulatorSustainRelease );
 				printf( "carrierSustainRelease        = %02hhx\n", in.carrierSustainRelease );
 				printf( "modulatorWaveSelect          = %02hhx\n", in.modulatorWaveSelect );
@@ -444,30 +455,28 @@ SoundBlasterInstrument SoundEngine::LoadInstrumentFromFile( const char* filePath
 void SoundEngine::AddInstrument( SoundBlasterInstrument* in )
 {
 	instruments.push_back(*in);
+	//
 }
 SoundBlasterInstrument* SoundEngine::GetInstrument( int index )
 {
 	return &instruments[index];
+	//
 }
 void SoundEngine::DeleteInstrument( int index )
 {
 	instruments.erase(instruments.begin() + index );
+	//
 }
 void SoundEngine::ReplaceInstrument( SoundBlasterInstrument* in, int index )
 {
 	instruments[index] = *in;
+	//
 }
-
-
-
-
 void SoundEngine::PlaySound( bool newRepeat )
 {
 	streamPos = 0;
 	repeat = newRepeat;
 }
-
-
 void SoundEngine::SoundOn()
 {
 	soundOn = true;
@@ -478,7 +487,6 @@ void SoundEngine::SoundOff()
 	soundOn = false;
 	outportb( 0x61, 0); //turn speaker off
 }
-
 MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 {
 	bool debug = false;
@@ -763,10 +771,12 @@ MIDISong* SoundEngine::GetSong( int songID )
 void SoundEngine::SetActiveInstrument( SoundBlasterInstrument* in, int channel )
 {
 	activeInstruments[channel] = *in;
+	//
 }
 SoundBlasterInstrument* SoundEngine::GetActiveInstrument( int channel )
 {
 	return &activeInstruments[channel];
+	//
 }
 MIDIEvent* SoundEngine::GetNextMIDIEvent()
 {
@@ -800,3 +810,181 @@ MIDIEvent* SoundEngine::GetNextMIDIEvent()
 
 	return out;
 }
+
+
+SoundBlasterInstrument 	SoundEngine::SetInstrumentLevel( SoundBlasterInstrument in, bool op, unsigned char newScalingLevel, unsigned char newLevel )
+{
+	char newLevelByte = 0;
+	newLevelByte = newScalingLevel << 6;
+	newLevelByte = newLevelByte & 0b11000000;
+	newLevelByte = newLevelByte & ( newLevel & 0b00111111 );
+
+	if( op )
+	{
+		//modulator
+		in.modulatorScalingLevel = newLevelByte;
+	}
+	else
+	{
+		//carrier
+		in.carrierScalingLevel = newLevelByte;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstruemtADSREnvelope( SoundBlasterInstrument in, bool op, unsigned char attack, unsigned char decay, unsigned char sustain, unsigned char release )
+{
+	char newAttackDecayByte = attack << 4;
+	newAttackDecayByte = newAttackDecayByte & 0xF0;
+	newAttackDecayByte = newAttackDecayByte & ( decay & 0x0F );
+	char newSustainReleaseByte = sustain << 4;
+	newSustainReleaseByte = newSustainReleaseByte & 0xF0;
+	newSustainReleaseByte = newSustainReleaseByte & ( release & 0x0F );
+	if( op )
+	{
+		//modulator
+		in.modulatorAttackDecay = newAttackDecayByte;
+		in.modulatorSustainRelease = newSustainReleaseByte;
+	}
+	else
+	{
+		//carrier
+		in.carrierAttackDecay = newAttackDecayByte;
+		in.carrierSustainRelease = newSustainReleaseByte;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, bool amplitudeModulation, bool vibrato, bool rythm, bool bassDrum, bool snareDrum, bool tomTom, bool cymbal, bool hiHat )
+{
+	char newCharacteristicByte = 0;
+	if( amplitudeModulation )
+		newCharacteristicByte = newCharacteristicByte | 0b10000000;
+	if( vibrato )
+		newCharacteristicByte = newCharacteristicByte | 0b01000000;
+	if( rythm )
+		newCharacteristicByte = newCharacteristicByte | 0b00100000;
+	if( bassDrum )
+		newCharacteristicByte = newCharacteristicByte | 0b00010000;
+	if( snareDrum )
+		newCharacteristicByte = newCharacteristicByte | 0b00001000;
+	if( tomTom )
+		newCharacteristicByte = newCharacteristicByte | 0b00000100;
+	if( cymbal )
+		newCharacteristicByte = newCharacteristicByte | 0b00000010;
+	if( hiHat )
+		newCharacteristicByte = newCharacteristicByte | 0b00000001;
+
+
+
+	if( op )
+	{
+		//modulator
+		in.modulatorSoundCharacteristic = newCharacteristicByte;
+	}
+	else
+	{
+		//carrier
+		in.carrierSoundCharacteristic = newCharacteristicByte;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstrumentWaveForm( SoundBlasterInstrument in, bool op, char newWaveForm )
+{
+	newWaveForm = newWaveForm & 0b00000011;
+
+	if( op )
+	{
+		//modulator
+		in.modulatorWaveSelect = newWaveForm;
+	}
+	else
+	{
+		//carrier
+		in.carrierWaveSelect = newWaveForm;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstrumentFeedBack( SoundBlasterInstrument in, unsigned char newFeedback, bool newAlgorithm )
+{
+	char newFeedbackByte = newFeedback << 1;
+	newFeedbackByte = newFeedbackByte & 0b00001110;
+	newFeedbackByte = newFeedbackByte & ( newAlgorithm & 0x01 );
+
+	in.feedback = newFeedbackByte;
+
+	return in;
+}
+
+
+SoundBlasterInstrument 	SoundEngine::SetInstrumentLevel( SoundBlasterInstrument in, bool op, unsigned char newLevelByte )
+{
+	if( op )
+	{
+		//modulator
+		in.modulatorScalingLevel = newLevelByte;
+	}
+	else
+	{
+		//carrier
+		in.carrierScalingLevel = newLevelByte;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstruemtADSREnvelope( SoundBlasterInstrument in, bool op, unsigned char newAttackByte, unsigned char newSustainByte )
+{
+	if( op )
+	{
+		//modulator
+		in.modulatorAttackDecay = newAttackByte;
+		in.modulatorSustainRelease = newSustainByte;
+	}
+	else
+	{
+		//carrier
+		in.carrierAttackDecay = newAttackByte;
+		in.carrierSustainRelease = newSustainByte;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, unsigned char newCharacteristicByte )
+{
+	if( op )
+	{
+		//modulator
+		in.modulatorSoundCharacteristic = newCharacteristicByte;
+	}
+	else
+	{
+		//carrier
+		in.carrierSoundCharacteristic = newCharacteristicByte;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstrumentWaveForm( SoundBlasterInstrument in, bool op, unsigned char newWaveFormByte )
+{
+	if( op )
+	{
+		//modulator
+		in.modulatorWaveSelect = newWaveFormByte;
+	}
+	else
+	{
+		//carrier
+		in.carrierWaveSelect = newWaveFormByte;
+	}
+
+	return in;
+}
+SoundBlasterInstrument 	SoundEngine::SetInstrumentFeedBack( SoundBlasterInstrument in, unsigned char newFeedbackByte )
+{
+	in.feedback = newFeedbackByte;
+
+	return in;
+}
+

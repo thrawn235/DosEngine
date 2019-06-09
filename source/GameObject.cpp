@@ -2898,37 +2898,16 @@ SynthStation::SynthStation( GameEngine* newEngine ) : Activatable( newEngine )
 	windowVisible		= false;
 	keyDown 			= true;
 
-	carrierAttack 		= 5;
-	carrierDecay 		= 5;
-	carrierSustain 		= 5;
-	carrierRelease 		= 5;
-	carrierLevel 		= 0;
-	modulatorAttack 	= 5;
-	modulatorDecay 		= 5;
-	modulatorSustain 	= 5;
-	modulatorRelease	= 5;
-	modulatorLevel 		= 0;
-	channel 			= 0;
-	octave 				= 4;
-
-	carrierAmplitudeMod = 0;
-	carrierHold 		= 0;
-	carrierVibrato 		= 0;
-	carrierHarmonics 	= 0;
-	modulatorAmplitudeMod = 0;
-	modulatorHold 		= 0;
-	modulatorVibrato 	= 0;
-	modulatorHarmonics 	= 0;
+	instrumentChanged 	= false;
 
 	selector 			= 0;
+
+	octave 				= 5;
+	channel 			= 0;
 
 	windowPos.x 		= 20;
 	windowPos.y 		= 10;
 
-	for( int i = 0; i < 9; i++ )
-	{
-		usedChannels[i] = false;
-	}
 
 	blueBallAnim.id = 0;
 	blueBallAnim.tileSetID = ASSET_8_PIXEL_BORDER_TILES;
@@ -2973,7 +2952,7 @@ void SynthStation::Update()
 	if( selector == 0 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
 	{
 		keyDown = true;
-		if( channel < 17 )
+		if( channel < 32 )
 		{
 			channel++;
 		}
@@ -2986,367 +2965,33 @@ void SynthStation::Update()
 			channel--;
 		}
 	}
-	if( selector == 1 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierAttack < 16 )
-		{
-			carrierAttack++;
-		}
-	}
-	if( selector == 1 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierAttack > 0 )
-		{
-			carrierAttack--;
-		}
-	}
-	if( selector == 2 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierDecay < 16 )
-		{
-			carrierDecay++;
-		}
-	}
-	if( selector == 2 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierDecay > 0 )
-		{
-			carrierDecay--;
-		}
-	}
-	if( selector == 3 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierSustain < 16 )
-		{
-			carrierSustain++;
-		}
-	}
-	if( selector == 3 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierSustain > 0 )
-		{
-			carrierSustain--;
-		}
-	}
-	if( selector == 4 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierRelease < 16 )
-		{
-			carrierRelease++;
-		}
-	}
-	if( selector == 4 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierRelease > 0 )
-		{
-			carrierRelease--;
-		}
-	}
 	
-	if( selector == 5 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		carrierAmplitudeMod = !carrierAmplitudeMod;
-	}
-	if( selector == 5 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		carrierAmplitudeMod = !carrierAmplitudeMod;
-	}
-	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		carrierVibrato = ! carrierVibrato;
-	}
-	if( selector == 6 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		carrierVibrato = ! carrierVibrato;
-	}
-	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		carrierHold = !carrierHold;
-	}
-	if( selector == 7 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		carrierHold = !carrierHold;
-	}
-	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierHarmonics < 16 )
-		{
-			carrierHarmonics++;
-		}
-	}
-	if( selector == 8 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierHarmonics > 0 )
-		{
-			carrierHarmonics--;
-		}
-	}
-
-	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierLevel < 16 )
-		{
-			carrierLevel++;
-		}
-	}
-	if( selector == 9 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( carrierLevel > 0 )
-		{
-			carrierLevel--;
-		}
-	}
-
-
-	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorAttack < 16 )
-		{
-			modulatorAttack++;
-		}
-	}
-	if( selector == 10 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorAttack > 0 )
-		{
-			modulatorAttack--;
-		}
-	}
-	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorDecay < 16 )
-		{
-			modulatorDecay++;
-		}
-	}
-	if( selector == 11 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorDecay > 0 )
-		{
-			modulatorDecay--;
-		}
-	}
-	if( selector == 12 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorSustain < 16 )
-		{
-			modulatorSustain++;
-		}
-	}
-	if( selector == 12 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorSustain > 0 )
-		{
-			modulatorSustain--;
-		}
-	}
-	if( selector == 13 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorRelease < 16 )
-		{
-			modulatorRelease++;
-		}
-	}
-	if( selector == 13 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorRelease > 0 )
-		{
-			modulatorRelease--;
-		}
-	}
-	
-	if( selector == 14 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		modulatorAmplitudeMod = !modulatorAmplitudeMod;
-	}
-	if( selector == 14 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		modulatorAmplitudeMod = !modulatorAmplitudeMod;
-	}
-	if( selector == 15 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		modulatorVibrato = ! modulatorVibrato;
-	}
-	if( selector == 15 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		modulatorVibrato = ! modulatorVibrato;
-	}
-	if( selector == 16 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		modulatorHold = !modulatorHold;
-	}
-	if( selector == 16 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		modulatorHold = !modulatorHold;
-	}
-	if( selector == 17 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorHarmonics < 16 )
-		{
-			modulatorHarmonics++;
-		}
-	}
-	if( selector == 17 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorHarmonics > 0 )
-		{
-			modulatorHarmonics--;
-		}
-	}
-
-	if( selector == 18 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorLevel < 16 )
-		{
-			modulatorLevel++;
-		}
-	}
-	if( selector == 18 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( modulatorLevel > 0 )
-		{
-			modulatorLevel--;
-		}
-	}
-
-
-	
-
-
-
-	if( selector == 19 && !keyDown && engine->input->KeyDown( KEY_RIGHT ) && windowVisible )
-	{
-		keyDown = true;
-		if( octave < 12 )
-		{
-			octave++;
-		}
-	}
-	if( selector == 19 && !keyDown && engine->input->KeyDown( KEY_LEFT ) && windowVisible )
-	{
-		keyDown = true;
-		if( octave > 0 )
-		{
-			octave--;
-		}
-	}
 	if( !engine->input->AnyKeyDown() )
 	{
 		keyDown = false;
 	}
-	if( !engine->input->AnyKeyDown() && !keyDown && windowVisible )
+
+
+	if( instrumentChanged )
 	{
-		engine->sound->SetADSREnvelope( channel, 0, carrierAttack, carrierDecay, carrierSustain, carrierRelease );
-		engine->sound->SetLevel( channel, 0, carrierLevel );
-		engine->sound->SetSoundCharacteristic( channel, 0, carrierAmplitudeMod, carrierVibrato, carrierHold, carrierHarmonics);
-		engine->sound->SetADSREnvelope( channel, 1, modulatorAttack, modulatorDecay, modulatorSustain, modulatorRelease );
-		engine->sound->SetLevel( channel, 1, modulatorLevel );
-		engine->sound->SetSoundCharacteristic( channel, 1, modulatorAmplitudeMod, modulatorVibrato, modulatorHold, modulatorHarmonics);
+		instrument = engine->sound->SetInstrumentLevel 				( instrument, 0, instrument.modulatorScalingLevel );
+		instrument = engine->sound->SetInstruemtADSREnvelope 		( instrument, 0, instrument.modulatorAttackDecay, instrument.modulatorSustainRelease );
+		instrument = engine->sound->SetInstrumentSoundCharacteristic( instrument, 0, instrument.modulatorSoundCharacteristic );
+		instrument = engine->sound->SetInstrumentWaveForm			( instrument, 0, instrument.modulatorWaveSelect );
+
+		instrument = engine->sound->SetInstrumentLevel 				( instrument, 1, instrument.carrierScalingLevel );
+		instrument = engine->sound->SetInstruemtADSREnvelope 		( instrument, 1, instrument.carrierAttackDecay, instrument.carrierSustainRelease );
+		instrument = engine->sound->SetInstrumentSoundCharacteristic( instrument, 1, instrument.carrierSoundCharacteristic );
+		instrument = engine->sound->SetInstrumentWaveForm			( instrument, 1, instrument.carrierWaveSelect );
+
+		instrument = engine->sound->SetInstrumentFeedBack			( instrument, instrument.feedback );
+
+		WriteBackInstrument( 0 );
 	}
-	if(  engine->input->KeyDown( KEY_1 ) && windowVisible && numKeys[1] == false )
-	{
-		numKeys[1] = true;
-		engine->sound->NoteOn( channel, 1 + octave * 12, 40 ); //c#
-	}
-	if( !engine->input->KeyDown( KEY_1 ) && numKeys[1] == true )
-	{
-		numKeys[1] = false;
-		engine->sound->NoteOff( channel, 1 + octave * 12 ); //c#
-	}
-	if( engine->input->KeyDown( KEY_2 ) && windowVisible && numKeys[2] == false )
-	{
-		numKeys[2] = true;
-		engine->sound->NoteOn( channel, 2 + octave * 12, 40 ); //c#
-	}
-	if( !engine->input->KeyDown( KEY_2 ) && numKeys[2] == true )
-	{
-		numKeys[2] = false;
-		engine->sound->NoteOff( channel, 2 + octave * 12 ); //c#
-	}
-	if( engine->input->KeyDown( KEY_3 ) && windowVisible && numKeys[3] == false )
-	{
-		numKeys[3] = true;
-		engine->sound->NoteOn( channel, 3 + octave * 12, 40 ); //c#
-	}
-	if( !engine->input->KeyDown( KEY_3 ) && numKeys[3] == true )
-	{
-		numKeys[3] = false;
-		engine->sound->NoteOff( channel, 3 + octave * 12 ); //c#
-	}
-	if( engine->input->KeyDown( KEY_4 ) && windowVisible && numKeys[4] == false )
-	{
-		numKeys[4] = true;
-		engine->sound->NoteOn( channel, 4 + octave * 12, 40 ); //c#
-	}
-	if( !engine->input->KeyDown( KEY_4 ) && numKeys[4] == true )
-	{
-		numKeys[4] = false;
-		engine->sound->NoteOff( channel, 4 + octave * 12 ); //c#
-	}
-	if( engine->input->KeyDown( KEY_5 ) && windowVisible && numKeys[5] == false )
-	{
-		numKeys[5] = true;
-		engine->sound->NoteOn( channel, 5 + octave * 12, 40 ); //c#
-	}
-	if( !engine->input->KeyDown( KEY_5 ) && numKeys[5] == true )
-	{
-		numKeys[5] = false;
-		engine->sound->NoteOff( channel, 5 + octave * 12 ); //c#
-	}
-	if( engine->input->KeyDown( KEY_6 ) && windowVisible && numKeys[6] == false )
-	{
-		numKeys[6] = true;
-		engine->sound->NoteOn( channel, 6 + octave * 12, 40 ); //c#
-	}
-	if( !engine->input->KeyDown( KEY_6 ) && numKeys[6] == true )
-	{
-		numKeys[6] = false;
-		engine->sound->NoteOff( channel, 6 + octave * 12 ); //c#
-	}
-	if( engine->input->KeyDown( KEY_7 ) && windowVisible && numKeys[7] == false )
-	{
-		numKeys[7] = true;
-		engine->sound->NoteOn( channel, 7 + octave * 12, 40 ); //c#
-	}
-	if( !engine->input->KeyDown( KEY_7 ) && numKeys[7] == true )
-	{
-		numKeys[7] = false;
-		engine->sound->NoteOff( channel, 7 + octave * 12 ); //c#
-	}
+	
+
+	HandleKeys();
+	
 }
 void SynthStation::Draw()
 {
@@ -3440,7 +3085,7 @@ void SynthStation::Draw()
 		char str[10];
 		sprintf(str, "%i", channel );
 		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*10, 8*1 ), ASSET_TXT_WHITE, 0, str );
-		sprintf(str, "%i", carrierAttack );
+		/*sprintf(str, "%i", carrierAttack );
 		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*4 ), ASSET_TXT_WHITE, 0, str );
 		sprintf(str, "%i", carrierDecay );
 		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*13, 8*5 ), ASSET_TXT_WHITE, 0, str );
@@ -3485,6 +3130,33 @@ void SynthStation::Draw()
 
 
 		sprintf(str, "%i", octave );
-		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*10, 8*16 ), ASSET_TXT_WHITE, 0, str );
+		engine->graphics->DrawText( engine->graphics->GetCamPos() + windowPos + Vector2D( 8*10, 8*16 ), ASSET_TXT_WHITE, 0, str );*/
+	}
+}
+void SynthStation::SelectInstrument( int index )
+{
+	SoundBlasterInstrument* instp = engine->sound->GetInstrument( index );
+	instrument = *instp;
+	//
+}
+void SynthStation::WriteBackInstrument( unsigned char index )
+{
+	engine->sound->ReplaceInstrument( &instrument, index );
+	//
+}
+void SynthStation::HandleKeys()
+{
+	for( int i = 0; i < 10; i++ )
+	{
+		if(  engine->input->KeyDown( i+2 ) && windowVisible && activeKeys[i] == false )
+		{
+			activeKeys[i] = true;
+			engine->sound->NoteOn( channel, i + octave * 12, 40 ); //c#
+		}
+		if( !engine->input->KeyDown( i+2 ) && activeKeys[i] == true )
+		{
+			activeKeys[i] = false;
+			engine->sound->NoteOff( channel, i + octave * 12 ); //c#
+		}
 	}
 }
