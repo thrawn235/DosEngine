@@ -26,6 +26,7 @@ int noteLength = 1;
 int notePos = 0;
 int BPM = 160;
 int timerInterruptFrequency = 0;
+int globalSubTimer = 0;
 
 int trackOffsets[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 int trackTimes[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -77,29 +78,51 @@ void SoundInterruptRoutine()
 			}
 		}*/
 
-		for( int i = 0; i < globalNumTracks; i++ )
+		if( globalSubTimer >= (timerInterruptFrequency / globalCurrentSong->header.ticksPerQuarterNote) )
 		{
-			if( globalCurrentSong->tracks[i].events.size() > trackOffsets[i] )
+			globalSubTimer = 0;
+
+			for( int i = 0; i < globalNumTracks; i++ )
 			{
-				if( globalCurrentSong->tracks[i].events[trackOffsets[i]].deltaTime < trackTimes[i] )
+				if( globalCurrentSong->tracks[i].events.size() > trackOffsets[i] )
 				{
-					//globalCurrentSong->tracks[i].events[trackOffsets[i]]
-					if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x90 )
+					if( globalCurrentSong->tracks[i].events[trackOffsets[i]].deltaTime < trackTimes[i] )
 					{
-						//note on
-						soundP->NoteOn( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0], globalCurrentSong->tracks[i].events[trackOffsets[i]].data[1] );
+						//globalCurrentSong->tracks[i].events[trackOffsets[i]]
+						if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x90 )
+						{
+							//note on
+							soundP->NoteOn( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0], globalCurrentSong->tracks[i].events[trackOffsets[i]].data[1] );
+						}
+						if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x80 )
+						{
+							//note off
+							soundP->NoteOff( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0] );
+						}
+						if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0xFF )
+						{
+							//special command
+							if( globalCurrentSong->tracks[i].events[trackOffsets[i]].metaCommand == 0x51 )
+							{
+								int speedByte = 0;
+								speedByte = globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0];
+								speedByte = speedByte << 8;
+								speedByte = speedByte + globalCurrentSong->tracks[i].events[trackOffsets[i]].data[1];
+								speedByte = speedByte << 8;
+								speedByte = speedByte + globalCurrentSong->tracks[i].events[trackOffsets[i]].data[2];
+								soundP->ChangeTicksPerQNote( speedByte / 3000 );
+							}
+							
+						}
+						trackOffsets[i]++;
+						trackTimes[i] = 0;
 					}
-					if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x80 )
-					{
-						//note off
-						soundP->NoteOff( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0] );
-					}
-					trackOffsets[i]++;
-					trackTimes[i] = 0;
+					trackTimes[i] = trackTimes[i] + 14;
 				}
-				trackTimes[i] = trackTimes[i] + 2;
 			}
 		}
+
+		globalSubTimer++;
 
 		//MIDIEvent* event = soundP->GetNextMIDIEvent();
 		/*if( event != NULL )
@@ -140,14 +163,22 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 
 	ResetSoundBlaster();
 
-	outportb( OPL3AddressPort + 1, 4 );
-	outportb( OPL3DataPort, 0 );
+	//outportb( OPL3AddressPort + 1, 4 );
+	//outportb( OPL3DataPort, 0 );
 
-	outportb( OPL3AddressPort + 3, 4 );
-	outportb( OPL3DataPort, 0 );
+	/*outportb( OPL3AddressPort + 2, 5 );
+	outportb( OPL3DataPort + 2 , 1 );
 
-	outportb( OPL3AddressPort + 3, 5 );
-	outportb( OPL3DataPort, 0 );
+	outportb( OPL3AddressPort + 2, 4 );
+	outportb( OPL3DataPort + 2, 0 );
+
+	outportb( OPL3AddressPort + 2, 0xBD );
+	outportb( OPL3DataPort + 2, 0 );
+
+	outportb( OPL3AddressPort, 0xBD );
+	outportb( OPL3DataPort, 0 );*/
+
+	
 
 
 	SoundBlasterInstrument inst = CreateNewInstrument( "test", 0,0, 0,0, 0x00, 0x00, 0x00, 0x00, 0,0 ,0);
@@ -155,7 +186,7 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 
 	currentSong = LoadMIDIFile( "./audio/music/equinoxe.mid" );
 	globalCurrentSong = currentSong;
-	globalNumTracks = 2;
+	globalNumTracks = currentSong->tracks.size();
 
 	SoundBlasterInstrument newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
 	AddInstrument(&newInst);
@@ -169,13 +200,23 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	AddInstrument(&newInst);
 	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
 	AddInstrument(&newInst);
-	newInst = LoadInstrumentFromFile( "./audio/inst/SYNBASS1.sbi" );
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
 	AddInstrument(&newInst);
 	newInst = LoadInstrumentFromFile( "./audio/inst/FLUTE2.sbi" );
 	AddInstrument(&newInst);
 	newInst = LoadInstrumentFromFile( "./audio/inst/MOON.sbi" );
 	AddInstrument(&newInst);
 	newInst = LoadInstrumentFromFile( "./audio/inst/STRINGS1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument(&newInst);
+	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
 	AddInstrument(&newInst);
 	newInst = LoadInstrumentFromFile( "./audio/inst/SYN1.sbi" );
 	AddInstrument(&newInst);
@@ -254,6 +295,9 @@ void SoundEngine::ResetSoundBlaster()
 	{
 		outportb( OPL3AddressPort, i );
 		outportb( OPL3DataPort, 0 );
+
+		outportb( OPL3AddressPort +2, i );
+		outportb( OPL3DataPort+2, 0 );
 	}
 }
 
@@ -267,20 +311,26 @@ void SoundEngine::PlayNote( int channel, unsigned char note )
 {
 	//NoteOff( channel );
 
-	outportb( OPL3AddressPort, 0xA0 + channel );
-	outportb( OPL3DataPort, FNr[note] & 0xFF );
+	if( channel <= 8 )
+	{
+		outportb( OPL3AddressPort, 0xA0 + channel );
+		outportb( OPL3DataPort, FNr[note] & 0xFF );
 
-	outportb( OPL3AddressPort, 0xB0 + channel );
+		outportb( OPL3AddressPort, 0xB0 + channel );
 
-	/*char out = 0;
-	out = ( newFrequency >> 8 ) & 0b00000011;
-	octave = octave << 2;
-	octave = octave & 0b00011100;
-	out = out | 0b00100000;
-	out = out | octave;*/
+		unsigned char Block = note >> 4;
+		outportb( OPL3DataPort, (FNr[note] >> 8) + (Block << 2) + 32 );
+	}
+	else
+	{
+		outportb( OPL3AddressPort+2, 0xA0 + channel -9 );
+		outportb( OPL3DataPort+2, FNr[note] & 0xFF );
 
-	unsigned char Block = note >> 4;
-	outportb( OPL3DataPort, (FNr[note] >> 8) + (Block << 2) + 32 );
+		outportb( OPL3AddressPort+2, 0xB0 + channel-9 );
+
+		unsigned char Block = note >> 4;
+		outportb( OPL3DataPort+2, (FNr[note] >> 8) + (Block << 2) + 32 );
+	}
 }
 
 void SoundEngine::NoteOn( int MIDIChannel, unsigned char note, unsigned char velocity )
@@ -298,7 +348,20 @@ void SoundEngine::NoteOn( int MIDIChannel, unsigned char note, unsigned char vel
 
 	if( freeVoice == 999 )
 	{
-		return;
+		int oldestTime = 0;
+		int oldestIndex = 0;
+		for( int i = 0; i < NUM_VOICES; i++ )
+		{
+			if( inUseTimeStamps[i] > oldestTime )
+			{
+				oldestTime = inUseTimeStamps[i];
+				oldestIndex = i;
+			}
+		}
+
+		CutNote( oldestIndex, inUseNote[oldestIndex] );
+		freeVoice = oldestIndex;
+		//return;
 	}
 
 	if( velocity == 0 )
@@ -310,10 +373,11 @@ void SoundEngine::NoteOn( int MIDIChannel, unsigned char note, unsigned char vel
 	inUseVoices[freeVoice] = true;
 	inUseMIDIChannel[freeVoice] = MIDIChannel;
 	inUseNote[freeVoice] = note;
+	inUseTimeStamps[freeVoice] = time->GetCurrentTimeInMS();
 
 	if( MIDIChannel < instruments.size() )
 	{
-		ApplyInstrument( &instruments[MIDIChannel], freeVoice );
+		ApplyInstrument( &instruments[MIDIChannel], freeVoice, true, true, velocity );
 		//velocity
 	}
 
@@ -337,12 +401,67 @@ void SoundEngine::NoteOff( int MIDIChannel, unsigned char note )
 	inUseMIDIChannel[voiceInQuestion] = 0;
 	inUseNote[voiceInQuestion] = 0;
 
-	outportb( OPL3AddressPort, 0xA0 + voiceInQuestion );
-	outportb( OPL3DataPort, FNr[note] & 0xFF );
+	if( voiceInQuestion <= 8 )
+	{
+		outportb( OPL3AddressPort, 0xA0 + voiceInQuestion );
+		outportb( OPL3DataPort, FNr[note] & 0xFF );
 
-	unsigned char Block = note >> 4;
-	outportb( OPL3AddressPort, 0xB0 + voiceInQuestion );
-	outportb( OPL3DataPort, (FNr[note] >> 8) + (Block << 2) );
+		unsigned char Block = note >> 4;
+		outportb( OPL3AddressPort, 0xB0 + voiceInQuestion );
+		outportb( OPL3DataPort, (FNr[note] >> 8) + (Block << 2) );
+	}
+	else
+	{
+		outportb( OPL3AddressPort+2, 0xA0 + voiceInQuestion-9 );
+		outportb( OPL3DataPort+2, FNr[note] & 0xFF );
+
+		unsigned char Block = note >> 4;
+		outportb( OPL3AddressPort+2, 0xB0 + voiceInQuestion-9 );
+		outportb( OPL3DataPort+2, (FNr[note] >> 8) + (Block << 2) );
+
+	}
+}
+void SoundEngine::CutNote( int MIDIChannel, unsigned char note )
+{
+	//find note in question:
+	int voiceInQuestion = 999;
+	for( int i = 0; i < NUM_VOICES; i++ )
+	{
+		if( inUseMIDIChannel[i] == MIDIChannel && inUseNote[i] == note )
+		{
+			voiceInQuestion = i;
+			break;
+		}
+	}
+
+	inUseVoices[voiceInQuestion] = false;
+	inUseMIDIChannel[voiceInQuestion] = 0;
+	inUseNote[voiceInQuestion] = 0;
+
+	if( voiceInQuestion <= 8 )
+	{
+  		outportb( OPL3AddressPort, 0x80 + voiceInQuestion );
+		outportb( OPL3DataPort, FNr[note] & 0xF );
+
+		outportb( OPL3AddressPort, 0xA0 + voiceInQuestion );
+		outportb( OPL3DataPort, FNr[note] & 0xFF );
+
+		unsigned char Block = note >> 4;
+		outportb( OPL3AddressPort, 0xB0 + voiceInQuestion );
+		outportb( OPL3DataPort, (FNr[note] >> 8) + (Block << 2) );
+	}
+	else
+	{
+  		outportb( OPL3AddressPort +2 , 0x80 + voiceInQuestion -9 );
+		outportb( OPL3DataPort +2, FNr[note] & 0xF );
+
+		outportb( OPL3AddressPort+2, 0xA0 + voiceInQuestion - 9 );
+		outportb( OPL3DataPort+2, FNr[note] & 0xFF );
+
+		unsigned char Block = note >> 4;
+		outportb( OPL3AddressPort+2, 0xB0 + voiceInQuestion - 9 );
+		outportb( OPL3DataPort+2, (FNr[note] >> 8) + (Block << 2) );
+	}
 }
 
 void SoundEngine::SetSoundCharacteristic( int channel, bool op, bool amplitudeModulation, bool vibrato, bool sustain, char harmonics )
@@ -367,48 +486,67 @@ void SoundEngine::SetSoundCharacteristic( int channel, bool op, bool amplitudeMo
 }
 
 
-void SoundEngine::ApplyInstrument(SoundBlasterInstrument* in, char channel )
+void SoundEngine::ApplyInstrument(SoundBlasterInstrument* in, int channel, bool left, bool right, unsigned char velocity )
 {
 	activeInstruments[channel] = *in;
 
-	outportb( OPL3AddressPort, 0x20 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->carrierSoundCharacteristic );
+	int tempAddressPort = OPL3AddressPort;
+	int tempDataPort = OPL3DataPort;
 
-	outportb( OPL3AddressPort, 0x20 + channelMap[channel] );
-	outportb( OPL3DataPort, in->modulatorSoundCharacteristic );
+	if( channel > 8 )
+	{
+		channel = channel - 9;
+		tempAddressPort = tempAddressPort+ + 2;
+		tempDataPort = tempDataPort + 2;
+	}
 
-	outportb( OPL3AddressPort, 0x40 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->carrierScalingLevel );
+	outportb( tempAddressPort, 0x20 + channelMap[channel] + 3 );
+	outportb( tempDataPort, in->carrierSoundCharacteristic );
 
-	outportb( OPL3AddressPort, 0x40 + channelMap[channel]  );
-	outportb( OPL3DataPort, in->modulatorScalingLevel );
+	outportb( tempAddressPort, 0x20 + channelMap[channel] );
+	outportb( tempDataPort, in->modulatorSoundCharacteristic );
 
-	outportb( OPL3AddressPort, 0x60 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->carrierAttackDecay );
+	outportb( tempAddressPort, 0x40 + channelMap[channel] + 3 );
+	outportb( tempDataPort, in->carrierScalingLevel );
 
-	outportb( OPL3AddressPort, 0x60 + channelMap[channel]  );
-	outportb( OPL3DataPort, in->modulatorAttackDecay );
+	outportb( tempAddressPort, 0x40 + channelMap[channel]  );
+	outportb( tempDataPort, in->modulatorScalingLevel );
 
-	outportb( OPL3AddressPort, 0x80 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->carrierSustainRelease );
+	outportb( tempAddressPort, 0x60 + channelMap[channel] + 3 );
+	outportb( tempDataPort, in->carrierAttackDecay );
 
-	outportb( OPL3AddressPort, 0x80 + channelMap[channel]  );
-	outportb( OPL3DataPort, in->modulatorSustainRelease );
+	outportb( tempAddressPort, 0x60 + channelMap[channel]  );
+	outportb( tempDataPort, in->modulatorAttackDecay );
 
-	outportb( OPL3AddressPort, 0x80 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->carrierSustainRelease );
+	outportb( tempAddressPort, 0x80 + channelMap[channel] + 3 );
+	outportb( tempDataPort, in->carrierSustainRelease );
 
-	outportb( OPL3AddressPort, 0x80 + channelMap[channel]  );
-	outportb( OPL3DataPort, in->modulatorSustainRelease );
+	outportb( tempAddressPort, 0x80 + channelMap[channel]  );
+	outportb( tempDataPort, in->modulatorSustainRelease );
 
-	outportb( OPL3AddressPort, 0xE0 + channelMap[channel] + 3 );
-	outportb( OPL3DataPort, in->modulatorWaveSelect );
+	outportb( tempAddressPort, 0x80 + channelMap[channel] + 3 );
+	outportb( tempDataPort, in->carrierSustainRelease );
 
-	outportb( OPL3AddressPort, 0xE0 + channelMap[channel]  );
-	outportb( OPL3DataPort, in->carrierWaveSelect );
+	outportb( tempAddressPort, 0x80 + channelMap[channel]  );
+	outportb( tempDataPort, in->modulatorSustainRelease );
 
-	outportb( OPL3AddressPort, 0xC0 + channel );
-	outportb( OPL3DataPort, in->feedback );
+	outportb( tempAddressPort, 0xE0 + channelMap[channel] + 3 );
+	outportb( tempDataPort, in->modulatorWaveSelect );
+
+	outportb( tempAddressPort, 0xE0 + channelMap[channel]  );
+	outportb( tempDataPort, in->carrierWaveSelect );
+
+	outportb( tempAddressPort, 0xC0 + channel );
+	char feedBackByte = in->feedback;
+	if( right )
+	{
+		feedBackByte = feedBackByte | 0b00100000;
+	}
+	if( left )
+	{
+		feedBackByte = feedBackByte | 0b00010000;
+	}
+	outportb( tempDataPort, feedBackByte );
 }
 
 SoundBlasterInstrument SoundEngine::CreateNewInstrument( const char* name )
@@ -535,7 +673,7 @@ void SoundEngine::SoundOff()
 }
 MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 {
-	bool debug = true;
+	bool debug = false;
 
 	MIDISong* song = NULL;
 
@@ -562,16 +700,16 @@ MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 			song->header.headerSize = __builtin_bswap32( song->header.headerSize );
 			song->header.fileFormat = __builtin_bswap16( song->header.fileFormat );
 			song->header.numberOfTracks = __builtin_bswap16( song->header.numberOfTracks );
-			song->header.ticksPerQuerterNote = __builtin_bswap16( song->header.ticksPerQuerterNote );
+			song->header.ticksPerQuarterNote = __builtin_bswap16( song->header.ticksPerQuarterNote );
 
 			if( debug )
 			{
 				printf("%c%c%c%c\n", song->header.signature[0], song->header.signature[1], song->header.signature[2], song->header.signature[3]);
 				printf("MIDI Header signatur correct \n");
 				printf("header size = %li \n", song->header.headerSize );
-				printf("file format = %hi \n", song->header.fileFormat );
-				printf("found %hi tracks\n", song->header.numberOfTracks );
-				printf("ticks per QNote = %hi \n", song->header.ticksPerQuerterNote );				
+				printf("file format = %hu \n", song->header.fileFormat );
+				printf("found %hu tracks\n", song->header.numberOfTracks );
+				printf("ticks per QNote = %hu \n", song->header.ticksPerQuarterNote );				
 				getch();
 			}
 
@@ -602,25 +740,23 @@ MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 
 					//read delta time:
 					unsigned char timeByte = 0;
-					fread( &timeByte, 1, 1, file );
-					if( debug )
-					{
-						printf("		timeByte: %hhx \n", timeByte );
-					}
-					while( timeByte & 0b10000000 )
+
+					newEvent.deltaTime = 0;
+
+
+
+					do
 					{
 						fread( &timeByte, 1, 1, file );
-						timeByte = timeByte | 0b01111111;
-						newEvent.deltaTime << 7;
-						newEvent.deltaTime = newEvent.deltaTime & 0b1000000;
-						newEvent.deltaTime = newEvent.deltaTime + timeByte;
+
+						newEvent.deltaTime = newEvent.deltaTime << 7;
+						newEvent.deltaTime = newEvent.deltaTime + ( timeByte & 0b01111111 ); 
 						if( debug )
 						{
-							printf("			timeByte: %hhx \n", timeByte );
+							printf("		timeByte: %hhx \n", timeByte );
 						}
-					}
-					newEvent.deltaTime = newEvent.deltaTime & 0b1000000;
-					newEvent.deltaTime = newEvent.deltaTime + timeByte; 
+					} while( timeByte & 0b10000000 );
+ 
 
 					if( debug )
 					{
@@ -638,7 +774,7 @@ MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 						//getch();
 					}
 					
-					if( typeByte & 0b1000000 != 0 )
+					if( typeByte > 128 )
 					{
 						if( typeByte == 0xFF )
 						{
@@ -775,6 +911,10 @@ MIDISong* SoundEngine::LoadMIDIFile( const char* filePath )
 						}
 		
 						newTrack.events.push_back( newEvent );
+						if( debug )
+						{
+							getch();
+						}
 					}
 					if( debug )
 					{
@@ -1033,4 +1173,7 @@ SoundBlasterInstrument 	SoundEngine::SetInstrumentFeedBack( SoundBlasterInstrume
 
 	return in;
 }
-
+void SoundEngine::ChangeTicksPerQNote( int newSpeed )
+{
+	globalCurrentSong->header.ticksPerQuarterNote = newSpeed;
+}
