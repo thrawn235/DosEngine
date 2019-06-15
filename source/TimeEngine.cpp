@@ -17,14 +17,12 @@
 
 //============= global Variables for the Interrupt Service Routine ========
 unsigned long long timeCount = 0;
-int globalTicksPerSecond = 0;
-int globalInterruptFrequency = 0;
 //=========================================================================
 
 //============ global Function that is to be installed as ISR =============
 void TimerInterruptRoutine()
 {
-	timeCount = timeCount + globalTicksPerSecond / globalInterruptFrequency;
+	timeCount = timeCount + 1;
 }
 //unused dummy functions. meant to calculate the size of TimerInterruptRoutine()
 void TimerInterruptRoutineEnd() {} 
@@ -38,21 +36,13 @@ TimeEngine::TimeEngine()
 	frameStart 	= 0;
 	frameEnd  	= 0;
 	frameTime 	= 0;
-
-	interruptFrequency = 700;
-	globalInterruptFrequency = interruptFrequency;
-	ticksPerSecond = interruptFrequency;
-	globalTicksPerSecond = ticksPerSecond;
-
+	
 
 	//start timer:
-	//set programmable interrupt timer to specific frequency
-	int freq = 1193182 / interruptFrequency;
-	outportb( 0x43, 0x34 );
-	outportb( 0x40, freq & 0xFF );
-	outportb( 0x40, ( freq >> 8 ) & 0xFF );
-	InstallTimerInterrupt();
+	SetInterruptFrequency( 700 );
 	//uclock();
+
+	InstallTimerInterrupt();
 
 	highestTimeStampID = 0;
 }
@@ -66,8 +56,6 @@ TimeEngine::~TimeEngine()
 void TimeEngine::InstallTimerInterrupt()
 {
 	_go32_dpmi_lock_data( ( void* )timeCount, ( long )sizeof( timeCount ) );
-	_go32_dpmi_lock_data( ( void* )globalTicksPerSecond, ( long )sizeof( globalTicksPerSecond ) );
-	_go32_dpmi_lock_code( ( void* )TimerInterruptRoutine, 100 );
  	_go32_dpmi_get_protected_mode_interrupt_vector( 0x08, &OldISR );
 	
 	NewISR.pm_offset = ( int )TimerInterruptRoutine;
@@ -82,6 +70,18 @@ void TimeEngine::RestoreTimerInterrupt()
 }
 
 //Set/Get
+void TimeEngine::SetInterruptFrequency( int newInterruptFrequency )
+{
+	interruptFrequency  = newInterruptFrequency;
+
+	ticksPerSecond 		= interruptFrequency;
+
+	//set programmable interrupt timer to specific frequency
+	int freq = 1193182 / interruptFrequency;
+	outportb( 0x43, 0x34 );
+	outportb( 0x40, freq & 0xFF );
+	outportb( 0x40, ( freq >> 8 ) & 0xFF );
+}
 int TimeEngine::GetInterruptFrequency()
 {
 	return interruptFrequency;
@@ -127,7 +127,8 @@ int TimeEngine::GetCurrentTimeInMS()
 {
 	//
 	//return uclock() / ( UCLOCKS_PER_SEC / 1000 );
-	return timeCount / ( ticksPerSecond / 1000 );
+	float temp = ( (float)ticksPerSecond / 1000 );
+	return timeCount / temp;
 }
 
 //Conversion
@@ -135,7 +136,8 @@ int TimeEngine::TicksToMilliSeconds( unsigned long long ticksIn )
 {
 	//
 	//return ticksIn / ( UCLOCKS_PER_SEC / 1000 );
-	return ticksIn / ( ticksPerSecond / 1000 );
+	float temp = ( (float)ticksPerSecond / 1000 );
+	return ticksIn / temp ;
 }
 int TimeEngine::TicksToSeconds( unsigned long long ticksIn )
 {

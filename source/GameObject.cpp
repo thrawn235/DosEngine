@@ -2933,7 +2933,7 @@ void SynthStation::Activate( Player* in )
 }
 void SynthStation::Update()
 {
-	if( !keyDown && engine->input->KeyDown( KEY_F3 ) && windowVisible )
+	/*if( !keyDown && engine->input->KeyDown( KEY_F3 ) && windowVisible )
 	{
 		keyDown = true;
 		drawOrder = 1;
@@ -2969,12 +2969,12 @@ void SynthStation::Update()
 	if( !engine->input->AnyKeyDown() )
 	{
 		keyDown = false;
-	}
+	}*/
 
 
 	if( instrumentChanged )
 	{
-		instrument = engine->sound->SetInstrumentLevel 				( instrument, 0, instrument.modulatorScalingLevel );
+		/*instrument = engine->sound->SetInstrumentLevel 				( instrument, 0, instrument.modulatorScalingLevel );
 		instrument = engine->sound->SetInstruemtADSREnvelope 		( instrument, 0, instrument.modulatorAttackDecay, instrument.modulatorSustainRelease );
 		instrument = engine->sound->SetInstrumentSoundCharacteristic( instrument, 0, instrument.modulatorSoundCharacteristic );
 		instrument = engine->sound->SetInstrumentWaveForm			( instrument, 0, instrument.modulatorWaveSelect );
@@ -2986,7 +2986,7 @@ void SynthStation::Update()
 
 		instrument = engine->sound->SetInstrumentFeedBack			( instrument, instrument.feedback );
 
-		WriteBackInstrument( 0 );
+		WriteBackInstrument( 0 );*/
 	}
 	
 
@@ -3135,18 +3135,18 @@ void SynthStation::Draw()
 }
 void SynthStation::SelectInstrument( int index )
 {
-	SoundBlasterInstrument* instp = engine->sound->GetInstrument( index );
-	instrument = *instp;
+	//SoundBlasterInstrument* instp = engine->sound->GetInstrument( index );
+	//instrument = *instp;
 	//
 }
 void SynthStation::WriteBackInstrument( unsigned char index )
 {
-	engine->sound->ReplaceInstrument( &instrument, index );
+	//engine->sound->ReplaceInstrument( &instrument, index );
 	//
 }
 void SynthStation::HandleKeys()
 {
-	for( int i = 0; i < 10; i++ )
+	/*for( int i = 0; i < 10; i++ )
 	{
 		if(  engine->input->KeyDown( i+2 ) && windowVisible && activeKeys[i] == false )
 		{
@@ -3158,5 +3158,5 @@ void SynthStation::HandleKeys()
 			activeKeys[i] = false;
 			engine->sound->NoteOff( channel, i + octave * 12 ); //c#
 		}
-	}
+	}*/
 }

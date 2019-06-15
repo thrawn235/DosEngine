@@ -38,9 +38,22 @@
 
 //=======================================================
 
-#define OPL3AddressPort 	0x220
-#define OPL3DataPort 		0x221
-#define NUM_VOICES			9
+//==================== defines ==========================
+#define OPL3_ADDRESS_PORT			0x220
+#define OPL3_DATA_PORT 				0x221
+#define GENERAL_MIDI_BASE_PORT 		0x300 //or 0x330
+#define PC_TIMER_PORT 				0x42
+#define PC_SPEAKER_PORT 			0x61
+
+#define DEVICE_NONE					0
+#define DEVICE_PC_SPEAKER			1
+#define DEVICE_ADLIB 				2
+#define DEVICE_SOUND_BLASTER 		3
+#define DEVICE_SOUND_BLASTER_PRO 	4
+#define DEVICE_MT32 				5
+#define DEVICE_GENERAL_MIDI 		6
+#define DEVICE_GUS 			 		7
+//=======================================================
 
 using namespace std;
 
@@ -69,6 +82,7 @@ struct MIDIEvent
 	unsigned char 	metaCommand;
 	unsigned char 	channel;
 	vector<char> 	data;
+	long 			linearTime = 0;
 };
 
 struct MIDITrackHeader
@@ -82,7 +96,7 @@ struct MIDITrack
 	MIDITrackHeader 	trackHeader;
 	vector<MIDIEvent> 	events;
 	int 				currentEvent = 0;
-	int 				currentDeltaTime = 0;
+	long 				length = 0;
 };
 
 struct MIDIHeader
@@ -99,6 +113,21 @@ struct MIDISong
 	int 				ID;
 	MIDIHeader 			header;
 	vector<MIDITrack> 	tracks;
+	long 				length = 0;
+};
+
+struct PlayList
+{
+	int 				ID;
+	vector<MIDISong*> 	songs;
+};
+
+
+struct Note
+{
+	int note;
+	long timeStamp;
+	char MidiChannel;
 };
 
 
@@ -108,51 +137,214 @@ protected:
 	TimeEngine* time;
 	_go32_dpmi_seginfo 				OldISR, NewISR;
 
-	int 							noise[256] = {4650, 4202, 8996, 4700, 2479, 8703, 10794, 14977, 3091, 3671, 10937, 263, 7399, 1373, 12195, 12689, 12679, 11059, 13154, 1141, 13988, 1636, 9353, 265, 9581, 3023, 11906, 14738, 3656, 9023, 13409, 7518, 2062, 14048, 5803, 11876, 14868, 7458, 3687, 4906, 8083, 7547, 9989, 14650, 11862, 6140, 9803, 6982, 13474, 383, 294, 4056, 13734, 2929, 12273, 12019, 10286, 4060, 8532, 6862, 11328, 532, 9995, 10975, 1419, 5143, 9378, 856, 7993, 259, 1621, 14447, 4197, 4070, 8635, 8238, 7923, 2424, 2245, 5755, 5033, 4839, 8155, 14407, 9762, 10976, 14612, 9677, 371, 12627, 12547, 2120, 3564, 7000, 11818, 7437, 14081, 12365, 907, 9039, 10922, 4558, 7059, 8364, 6550, 3875, 7838, 13243, 10598, 13678, 899, 1510, 4153, 14812, 4727, 12507, 7931, 2185, 10572, 3980, 8933, 5263, 7652, 11242, 13408, 12097, 4281, 9858, 4093, 3546, 7721, 5471, 14084, 11710, 9198, 1506, 5768, 13981, 1553, 11209, 9952, 5787, 13012, 10635, 136, 5786, 11005, 4715, 4269, 12215, 7484, 2455, 2916, 12908, 7093, 5625, 6843, 1765, 3630, 11564, 14671, 10952, 10447, 13378, 14881, 7361, 11738, 8482, 2605, 1428, 4310, 3956, 2825, 7324, 2628, 5604, 2157, 14337, 7488, 5070, 14826, 2050, 9967, 2207, 6901, 10163, 4424, 12770, 3996, 14240, 5078, 7146, 3638, 11322, 8923, 7851, 6797, 14630, 8269, 9903, 6125, 641, 9382, 9689, 13956, 14158, 12383, 10655, 3794, 5183, 12026, 3815, 13841, 3174, 1642, 7315, 12907, 11384, 4933, 2148, 13260, 12265, 14517, 1296, 5709, 1651, 12569, 7824, 10289, 9331, 6435, 4949, 4518, 1385, 6475, 13030, 4205, 3079, 14085, 12307, 9138, 10619, 11731, 8116, 9978, 13258, 5392, 4317, 14495, 14787, 13261, 3003, 9115, 8221, 11590, 6227};
-	char 							channelMap[NUM_VOICES] = {0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
-	//char 							channelMap[18] = {0,  1,  2,   6,  7,  8,  12, 13, 14, 18, 19, 20,  24, 25, 26,  30, 31, 32};
-	//char 							channelMap[NUM_VOICES] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17};
+	int 							timeTicksDivisor;
 
-	const unsigned short int 		FNr [128] = {86,91,96,102,108,114,121,128,136,144,
-		                                       153,162,172,182,192,204,108,114,121,
-		                                       128,136,144,153,162,172,182,192,204,
-		                                       216,229,242,257,136,144,153,162,172,
-		                                       182,192,204,216,229,242,257,272,288,
-		                                       306,324,172,182,192,204,216,229,242,
-		                                       257,272,288,306,324,343,363,385,408,
-		                                       216,229,242,257,272,288,306,324,343,
-		                                       363,385,408,432,458,485,514,272,288,
-		                                       306,324,343,363,385,408,432,458,485,
-		                                       514,544,577,611,647,343,363,385,408,
-		                                       432,458,485,514,544,577,611,647,686,
-		                                       726,770,816,432,458,485,514,544,577,
-		                                       611,647,686,726,770,816,864,916,970,1023};
+	char 							channelMapOPL2[9] = {0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
+	char 							channelMapOPL3[18] = {0x00, 0x01, 0x02, 0x06, 0x07, 0x08, 0x0C,  0x0D,  0x0E, 0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
 
-	bool inUseVoices[NUM_VOICES];
-	int inUseMIDIChannel[NUM_VOICES];
-	unsigned char inUseNote[NUM_VOICES];
-	long inUseTimeStamps[NUM_VOICES];
+	const unsigned short int 		FNr [128] = {	86,91,96,102,108,114,121,128,136,144,
+		                                 			153,162,172,182,192,204,108,114,121,
+		                                       		128,136,144,153,162,172,182,192,204,
+		                                       		216,229,242,257,136,144,153,162,172,
+		                                       		182,192,204,216,229,242,257,272,288,
+		                                       		306,324,172,182,192,204,216,229,242,
+		                                       		257,272,288,306,324,343,363,385,408,
+		                                       		216,229,242,257,272,288,306,324,343,
+		                                       		363,385,408,432,458,485,514,272,288,
+		                                       		306,324,343,363,385,408,432,458,485,
+		                                       		514,544,577,611,647,343,363,385,408,
+		                                       		432,458,485,514,544,577,611,647,686,
+		                                       		726,770,816,432,458,485,514,544,577,
+		                                       		611,647,686,726,770,816,864,916,970,1023 };
+
+	//PCSpeaker specific Attributes=================================================================================================
+	const float MidiFrequencies[128] = { 	8.18, 8.66, 9.18, 9.72, 10.30, 10.91, 11.56, 12.25, 12.98,
+											13.75, 14.57, 15.43, 16.35, 17.32, 18.35, 19.45, 20.60,
+											21.83, 23.12, 24.50, 25.96, 27.50, 29.14, 30.87, 32.70, 
+											34.65, 36.71, 38.89, 41.20, 43.65, 46.25, 49.00, 51.91, 55.00, 
+											58.27, 61.74, 65.41, 69.30, 73.42, 77.78, 82.41, 87.31, 92.50,
+											98.00, 103.83, 110.00, 116.54, 123.47, 130.81, 138.59, 146.83, 155.56, 
+											164.81, 174.61, 185.00, 196.00, 207.65, 220.00, 233.08, 246.94, 261.63,
+											277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 
+											466.16, 493.88, 523.25, 554.37, 587.33, 622.25, 659.26, 698.46, 739.99, 
+											783.99, 830.61, 880.00, 932.33, 987.77, 1046.50, 1108.73, 1174.66, 1244.51, 
+											1396.91, 1479.98, 1567.98, 1661.22, 1760.00, 1864.66, 1975.53, 2093.00, 2217.46, 
+											2349.32, 2489.02, 2637.02, 2793.83, 2959.96, 3135.96, 3322.44, 3520.00, 3729.31, 
+											3951.07, 4186.01, 4434.92, 4698.64, 4978.03, 5274.04, 5587.65, 5919.91, 6271.93, 
+											6644.88, 7040.00, 7458.62, 7902.13, 8372.02, 8869.84, 9397.27, 9956.06, 10548.08, 
+											11175.30, 11839.82, 12543.85, 13289.75 };
+	int 								currentTicksToLinger;
+	int 								currentActiveNote;
+	int 								maxVoices;
+	//===============================================================================================================================
+
+	vector<Note> 						activeNotes;
+
+	//Midi Playback specific=========================================================================================================
+	long headPosition;
+	//===============================================================================================================================
 
 	MIDISong* 							currentSong;
 
-	SoundBlasterInstrument 			activeInstruments[NUM_VOICES];
+	vector<SoundBlasterInstrument*> 	instruments;
+	vector<PlayList*> 					playLists;
 
-	vector<SoundBlasterInstrument> 	instruments;
-	vector<MIDISong*> 				songs;
+	bool 								loop;
+	bool 								mute;
+
+	
+
+	int 								currentSoundDevice;
+
+	int 								ticksPerQNote;
 
 public:
+	//Connstructor / Destructor ===================================================================================================
 							SoundEngine 					( TimeEngine* newTime );
 							~SoundEngine 					();
+	//=============================================================================================================================
 
+	//interrupt====================================================================================================================
 	void 					InstallSoundInterrupt 			();
 	void 					RestoreSoundInterrupt 			();
+	//=============================================================================================================================
 
-	void 					PlayNote 						( int channel, unsigned char note );
-	//void 					NoteOff 						( int channel );
-	void 					SetLevel 						( int channel, bool op, unsigned char newLevel );
-	void 					SetADSREnvelope 				( int channel, bool op, char attack, char decay, char sustain, char release );
-	void 					SetSoundCharacteristic 			( int channel, bool op, bool amplitudeModulation, bool vibrato, bool sustain, char harmonics );
-	
+	//General =====================================================================================================================
+	void 					SoundOn 						();
+	void 					SoundOff 						();
+
+	bool 					GetMute 						();
+	bool 					GetLoop 						();
+
+	void 					SetSoundDevice 					( int newCurrentSoundDevice );
+
+	void 					SetTickRate 					( int newTickRate );
+	void 					SetTicksPerQNote 				( int newSpeed );
+	int 					GetTicksPerQNote 				();
+
+	void 					SetMaxVoices 					( int newVoices );
+	int 					GetMaxVoices					();
+
+	MIDISong* 				GetCurrentSong 					();
+	long 					GetHeadPosition 				();
+	void 					SetHeadPosition 				( long newHeadPosition );
+	//=============================================================================================================================
+
+	//Init Device =================================================================================================================
+	void 					InitSoundBlaster 				( bool isOPL3 );
+	void 					ResetSoundBlaster 				();
+
+	void 					InitPCSpeaker 					();
+	void 					ResetPCSpeaker 					();
+
+	void 					InitGeneralMidiDevice 			();
+	void 					ResetGeneralMidiDevice 			();
+
+	void 					InitGUS 			 			();
+	void 					ResetGUS 			 			();
+	//=============================================================================================================================
+
+	//Midi Commands ===============================================================================================================
+	void 					PCSpeakerNoteOff 				( int note );
+	void 					PCSpeakerNoteOn 				( int note, unsigned char MidiChannel );
+	void 					PCSpeakerSetTempo 				( int newTempo );
+	void 					PCSpeakerCutNote 				( int note );
+	void 					PCSpeakerPlayActiveNotes 		( int arpeggioRate );
+
+	void 					OPLNoteOff 						();
+	void					OPLNoteOn 						();
+	void 					OPLControllerEvent 				();
+	void 					OPLProgramChange 				();
+	void 					OPLSetTempo 					();
+	void 					OPLCutNote 						();
+
+	void 					GeneralMidiNoteOff 				();
+	void 					GeneralMidiNoteOn 				();
+	void 					GeneralMidiNoteAfterTouch 		();
+	void 					GeneralMidiControllerEvent 		();
+	void 					GeneralMidiProgramChange 		();
+	void 					GeneralMidiChannelAfterTouch 	();
+	void 					GeneralMidiPitchBend 			();
+	void 					GeneralMidiSetTempo 			();
+	void 					GeneralMidiCutNote 				();
+
+	void 					GUSNoteOff 						();
+	void 					GUSNoteOn 						();
+	void 					GUSNoteAfterTouch 				();
+	void 					GUSControllerEvent 				();
+	void 					GUSProgramChange 				();
+	void 					GUSChannelAfterTouch 			();
+	void 					GUSPitchBend 					();
+	void 					GUSSetTempo 					();
+	void 					GUSCutNote 						();
+	//=============================================================================================================================
+
+	//Transport Controls ==========================================================================================================
+	void 					Play 							();
+	void 					Pause 							();
+	void 					JumpToStart 					();
+	void 					JumpToTimeCode 					();
+	void 					JumpRelative 					();
+	void 					Loop 							( bool newLoop );
+	void 					SetSpeed 						();
+	void 					ChangeSpeed 					();
+	long 					GetCurrentTimeStamp 			();
+	void 					SkipToSong 						( int newSong );
+	void 					SkipToSong 						( int newPlayList, int newSong );
+	void 					SkipToPlayList 					( int newPlayList );
+	//=============================================================================================================================
+
+	//File Management =============================================================================================================
+	MIDISong* LoadMidiFromFile( const char* filePath );
+	void SaveMidiToFile();
+	void LoadCMFFromFile();
+	void SaveCMFToFile();
+	void LoadIFFFromFile();
+	void SaveIFFToFile();
+	void LoadRIFFFromFile();
+	void SaveRIFFToFile();
+
+	SoundBlasterInstrument 	LoadSBIFromFile();
+	void 					SaveSBIToFile();
+
+	SoundBlasterInstrument 	LoadIBKFromFile();
+	void 					SaveIBKToFile();
+
+	void LoadPlayListFromFile();
+	void SavePlayListToFile();
+	//=============================================================================================================================
+
+	//Song Controls ===============================================================================================================
+	void CreateSong();
+	void DestroySong();
+	//=============================================================================================================================
+
+	//PlayList ====================================================================================================================
+	void CreatePlayList();
+	void AddPlayList();
+	void GetPlayList();
+	void RemovePlayList();
+	void AddToPlayList();
+	void RemoveFromPlayList();
+	void GetSongFromPlayList( int index );
+	void GetSongFromPlayListByID( int ID );
+	//=============================================================================================================================
+
+	//Instrument Controls =========================================================================================================
+	//Drums ?
+	SoundBlasterInstrument 	CreateNewInstrument 			(const char* name);
+	SoundBlasterInstrument 	CreateNewInstrument 			(const 	char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
+																	char modulatorScalingLevel, char carrierScalingLevel,
+																	char modulatorAttackDecay, char carrierAttackDecay,
+																	char modulatorSustainRelease, char carrierSustainRelease,
+																	char modulatorWaveSelect, char carrierWaveSelect,
+																	char feedback);
+	void 					AddInstrument();
+	SoundBlasterInstrument 	GetInstrument();
+	void 					RemoveInstrument();
+	void 					ReplaceInstrument();
+	void 					ApplyInstrument();
+
 	SoundBlasterInstrument 	SetInstrumentLevel 				( SoundBlasterInstrument in, bool op, unsigned char newScalingLevel, unsigned char newLevel );
 	SoundBlasterInstrument 	SetInstruemtADSREnvelope 		( SoundBlasterInstrument in, bool op, unsigned char attack, unsigned char decay, unsigned char sustain, unsigned char release );
 	SoundBlasterInstrument 	SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, bool amplitudeModulation, bool vibrato, bool rythm, bool bassDrum, bool snareDrum, bool tomTom, bool cymbal, bool hiHat );
@@ -164,46 +356,9 @@ public:
 	SoundBlasterInstrument 	SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, unsigned char newCharacteristicByte );
 	SoundBlasterInstrument 	SetInstrumentWaveForm			( SoundBlasterInstrument in, bool op, unsigned char newWaveFormByte );
 	SoundBlasterInstrument 	SetInstrumentFeedBack			( SoundBlasterInstrument in, unsigned char newFeedbackByte );
+	//=============================================================================================================================
 
-
-	void 					ResetSoundBlaster				();
 	
-	void 					ApplyInstrument 				(SoundBlasterInstrument* in, int channel, bool left, bool right, unsigned char velocity );
-	SoundBlasterInstrument 	CreateNewInstrument 			(const char* name);
-	SoundBlasterInstrument 	CreateNewInstrument 			(const 	char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
-																	char modulatorScalingLevel, char carrierScalingLevel,
-																	char modulatorAttackDecay, char carrierAttackDecay,
-																	char modulatorSustainRelease, char carrierSustainRelease,
-																	char modulatorWaveSelect, char carrierWaveSelect,
-																	char feedback);
-	void 					SaveInstrumentToFile 			( SoundBlasterInstrument* in, const char* filePath );
-	SoundBlasterInstrument 	LoadInstrumentFromFile 			( const char* filePath );
-
-	void 					AddInstrument 					( SoundBlasterInstrument* in );
-	SoundBlasterInstrument* GetInstrument 					( int index );
-	void 					DeleteInstrument 				( int index );
-	void 					ReplaceInstrument 				( SoundBlasterInstrument* in, int index );
-
-	MIDISong* 				LoadMIDIFile 					( const char* filePath );
-	void 					AddSong 						( MIDISong* in, int newSongID );
-	MIDISong*				GetSong 						( int songID );
-
-	void 					PlaySound 						( bool newRepeat );
-
-	void 					SoundOn 						();
-	void 					SoundOff 						();
-
-
-	void					SetActiveInstrument 			( SoundBlasterInstrument* in, int channel );
-	SoundBlasterInstrument* GetActiveInstrument 			( int channel );
-
-	void 					NoteOn 							( int MIDIChannel, unsigned char note, unsigned char velocity );
-	void 					NoteOff 						( int MIDIChannel, unsigned char note );
-	void 					CutNote 						( int MIDIChannel, unsigned char note );
-
-	MIDIEvent* 				GetNextMIDIEvent 				(); 
-
-	void 					ChangeTicksPerQNote 			( int newSpeed );
 };
 
 

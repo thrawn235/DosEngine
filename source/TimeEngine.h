@@ -65,6 +65,9 @@ public:
 	void InstallTimerInterrupt 	();
 	void RestoreTimerInterrupt 	();
 
+	//Set
+	void SetInterruptFrequency	( int newInterruptFrequency );
+
 	//Get
 	int GetInterruptFrequency 	();
 	int GetTicksPerSecond 		();

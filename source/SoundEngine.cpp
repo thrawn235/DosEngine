@@ -17,29 +17,15 @@
 
 
 //============= global Variables for the Interrupt Service Routine ========
-int* stream;
-int streamLength = 255;
-int streamPos = 0;
-bool soundOn = true;
-bool repeat = false;
-int noteLength = 1;
-int notePos = 0;
-int BPM = 160;
-int timerInterruptFrequency = 0;
-int globalSubTimer = 0;
-
-int trackOffsets[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-int trackTimes[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-int globalNumTracks = 16;
-MIDISong* globalCurrentSong = NULL;
-
-SoundEngine* soundP;
+SoundEngine* globalPSound;
 //=========================================================================
 
 //============ global Function that is to be installed as ISR =============
 void SoundInterruptRoutine()
 {
-	if( soundOn )
+	MIDISong* song = globalPSound->GetCurrentSong();
+
+	if( !globalPSound->GetMute() && song != NULL )
 	{
 		/*if( streamPos < streamLength )
 		{
@@ -78,7 +64,7 @@ void SoundInterruptRoutine()
 			}
 		}*/
 
-		if( globalSubTimer >= (timerInterruptFrequency / globalCurrentSong->header.ticksPerQuarterNote) )
+		/*if( globalSubTimer >= (timerInterruptFrequency / globalCurrentSong->header.ticksPerQuarterNote) )
 		{
 			globalSubTimer = 0;
 
@@ -120,9 +106,9 @@ void SoundInterruptRoutine()
 					trackTimes[i] = trackTimes[i] + 14;
 				}
 			}
-		}
+		}*/
 
-		globalSubTimer++;
+		//globalSubTimer++;
 
 		//MIDIEvent* event = soundP->GetNextMIDIEvent();
 		/*if( event != NULL )
@@ -138,7 +124,53 @@ void SoundInterruptRoutine()
 				soundP->NoteOff( event->channel, event->data[0] );
 			}
 		}*/
+		long currentTime = globalPSound->GetHeadPosition();
+
+		currentTime++;
+
+		globalPSound->SetHeadPosition( currentTime );
+
 		
+
+		for( int i = 0; i < song->tracks.size(); i++ )
+		{
+			if( song->tracks[i].currentEvent < song->tracks[i].events.size() )
+			{
+				if( currentTime >= song->tracks[i].events[song->tracks[i].currentEvent].linearTime )
+				{
+					//handle event
+					MIDIEvent* currentEvent = &song->tracks[i].events[song->tracks[i].currentEvent];
+					if( currentEvent->command == 0x90 )
+					{
+						//note on
+						globalPSound->PCSpeakerNoteOn( currentEvent->data[0], currentEvent->channel );
+					}
+					if( currentEvent->command == 0x80 )
+					{
+						//note off
+						globalPSound->PCSpeakerNoteOff( currentEvent->data[0] );
+					}
+					if( currentEvent->command == 0xFF )
+					{
+						//special command
+						/*if( currentEvent->metaCommand == 0x51 )
+						{
+							int speedByte = 0;
+							speedByte = currentEvent->data[0];
+							speedByte = speedByte << 8;
+							speedByte = speedByte + currentEvent->data[1];
+							speedByte = speedByte << 8;
+							speedByte = speedByte + currentEvent->data[2];
+							globalPSound->PCSpeakerSetTempo( speedByte );
+						}*/
+					}
+
+					song->tracks[i].currentEvent++;
+				}
+			}
+		}
+		
+		globalPSound->PCSpeakerPlayActiveNotes( 40 );
 	}
 }
 //unused dummy functions. meant to calculate the size of TimerInterruptRoutine()
@@ -147,7 +179,946 @@ void SoundInterruptRoutineEnd() {}
 
 
 
+
+
+
+
+//Connstructor / Destructor ===================================================================================================
 SoundEngine::SoundEngine( TimeEngine* newTime )
+{
+	globalPSound = this;
+
+	time = newTime;
+
+	currentSong = NULL;
+
+	loop = false;
+	mute = false;
+
+	maxVoices = 9; //just an inial guess
+
+	currentSoundDevice = DEVICE_NONE;
+
+	currentTicksToLinger = 0;
+	currentActiveNote = 0;
+	headPosition = 0;
+
+	InstallSoundInterrupt();
+
+	//debug-------------------------
+	SetSoundDevice( DEVICE_PC_SPEAKER );
+	currentSong = LoadMidiFromFile( "./audio/music/equinoxe.mid" );
+	//SetTickRate( currentSong->header.ticksPerQuarterNote * 2 );
+	SetTickRate( 700 );
+	maxVoices = 3;
+	//PCSpeakerNoteOn( 50 );
+	/*PCSpeakerNoteOn( 70 );
+	PCSpeakerNoteOn( 100 );
+	PCSpeakerNoteOn( 120 );
+	PCSpeakerNoteOn( 80 );
+	PCSpeakerNoteOn( 60 );*/
+	//------------------------------
+}
+SoundEngine::~SoundEngine()
+{
+	RestoreSoundInterrupt();
+
+	if( currentSoundDevice == DEVICE_ADLIB || currentSoundDevice == DEVICE_SOUND_BLASTER || currentSoundDevice == DEVICE_SOUND_BLASTER_PRO )
+	{
+		ResetSoundBlaster();
+	}
+	if( currentSoundDevice == DEVICE_PC_SPEAKER )
+	{
+		ResetPCSpeaker();
+	}
+	if( currentSoundDevice == DEVICE_GENERAL_MIDI )
+	{
+		ResetGeneralMidiDevice();
+	}
+	if( currentSoundDevice == DEVICE_GUS || currentSoundDevice == DEVICE_MT32 )
+	{
+		ResetGUS();
+	}
+}
+//=============================================================================================================================
+
+//interrupt====================================================================================================================
+void SoundEngine::InstallSoundInterrupt()
+{
+	//_go32_dpmi_lock_data( ( void* )stream, ( long )sizeof( stream ) );
+	_go32_dpmi_lock_data( ( void* )globalPSound, ( long )sizeof( SoundEngine ) );
+
+	_go32_dpmi_lock_code( ( void* )SoundInterruptRoutine, 1000 );
+
+ 	_go32_dpmi_get_protected_mode_interrupt_vector( 0x08, &OldISR );
+	
+	NewISR.pm_offset = ( int )SoundInterruptRoutine;
+	NewISR.pm_selector = _go32_my_cs();
+
+	_go32_dpmi_chain_protected_mode_interrupt_vector( 0x08, &NewISR );
+}
+void SoundEngine::RestoreSoundInterrupt()
+{
+	_go32_dpmi_set_protected_mode_interrupt_vector( 0x08, &OldISR );
+	//
+}
+//=============================================================================================================================
+
+//General =====================================================================================================================
+void SoundEngine::SoundOn()
+{
+	mute = false;
+	//
+}
+void SoundEngine::SoundOff()
+{
+	mute = true;
+	//
+}
+bool SoundEngine::GetMute()
+{
+	return mute;
+	//
+}
+bool SoundEngine::GetLoop()
+{
+	return loop;
+}
+
+void SoundEngine::SetSoundDevice( int newCurrentSoundDevice )
+{
+	//the other devices need to be safely stopped
+
+	currentSoundDevice = newCurrentSoundDevice;
+	//
+}
+
+void SoundEngine::SetTickRate( int newTickRate )
+{
+	time->SetInterruptFrequency	( newTickRate );
+	//
+}
+void SoundEngine::SetTicksPerQNote( int newSpeed )
+{
+	ticksPerQNote = newSpeed;
+	//
+}
+int SoundEngine::GetTicksPerQNote()
+{
+	return ticksPerQNote;
+	//
+}
+
+void SoundEngine::SetMaxVoices( int newVoices )
+{
+	maxVoices = newVoices;
+	//
+}
+int SoundEngine::GetMaxVoices()
+{
+	return maxVoices;
+	//
+}
+MIDISong* SoundEngine::GetCurrentSong()
+{
+	return currentSong;
+	//
+}
+long SoundEngine::GetHeadPosition()
+{
+	return headPosition;
+	//
+}
+void SoundEngine::SetHeadPosition( long newHeadPosition )
+{
+	headPosition = newHeadPosition;
+	//
+}
+//=============================================================================================================================
+
+//Init Device =================================================================================================================
+void SoundEngine::InitSoundBlaster( bool isOPL3 )
+{
+	ResetSoundBlaster();
+
+	if( isOPL3 )
+	{
+		outportb( OPL3_ADDRESS_PORT + 2, 5 );
+		outportb( OPL3_DATA_PORT + 2 , 1 );
+
+		outportb( OPL3_ADDRESS_PORT + 2, 4 );
+		outportb( OPL3_DATA_PORT + 2, 0 );
+
+		outportb( OPL3_ADDRESS_PORT + 2, 0xBD );
+		outportb( OPL3_DATA_PORT + 2, 0 );
+
+		outportb( OPL3_ADDRESS_PORT, 0xBD );
+		outportb( OPL3_DATA_PORT, 0 );
+
+		SetMaxVoices( 18 );
+	}
+	else
+	{
+		SetMaxVoices( 9 );
+	}
+}
+void SoundEngine::ResetSoundBlaster()
+{
+	for( int i = 0; i < 0xF5; i++ )
+	{
+		outportb( OPL3_ADDRESS_PORT, i );
+		outportb( OPL3_DATA_PORT, 0 );
+
+		outportb( OPL3_ADDRESS_PORT +2, i );
+		outportb( OPL3_DATA_PORT+2, 0 );
+	}
+}
+
+void SoundEngine::InitPCSpeaker()
+{
+	outportb( 0x43, 182 );
+	//
+}
+void SoundEngine::ResetPCSpeaker()
+{
+	outportb( PC_SPEAKER_PORT, 0); //turn speaker off
+	//
+}
+
+void SoundEngine::InitGeneralMidiDevice()
+{
+	//nothing to do 
+	//
+}
+void SoundEngine::ResetGeneralMidiDevice()
+{
+	// nothing to do
+	//
+}
+
+void SoundEngine::InitGUS()
+{
+	
+}
+void SoundEngine::ResetGUS()
+{
+	
+}
+//=============================================================================================================================
+
+//Midi Commands ===============================================================================================================
+void SoundEngine::PCSpeakerNoteOff( int note )
+{
+
+	if( note <= 36 )
+	{
+		note = note + 24;
+	}
+
+	//check wheter note is already in list
+	for( int i = 0; i < activeNotes.size(); i++ )
+	{
+		if( note == activeNotes[i].note )
+		{
+			activeNotes.erase( activeNotes.begin() + i );
+		}
+	}
+
+	if( activeNotes.size() <= 0)
+	{
+		outportb( PC_SPEAKER_PORT, 0); //turn speaker off
+	}
+}
+void SoundEngine::PCSpeakerNoteOn( int note, unsigned char MidiChannel )
+{
+	//already at max Voices?
+	if( activeNotes.size() >= maxVoices )
+	{
+		return;
+	}
+
+	//check wheter note is already in list
+	for( int i = 0; i < activeNotes.size(); i++ )
+	{
+		if( note == activeNotes[i].note )
+		{
+			//nothing more to do
+			return;
+		}
+	}
+
+	//if not put it in List
+	if( note <= 36 )
+	{
+		note = note + 24;
+	}
+
+	Note newNote;
+	newNote.note = note;
+	newNote.timeStamp = time->GetCurrentTimeInMS();
+	newNote.MidiChannel = MidiChannel;
+	activeNotes.push_back( newNote );
+
+	if( activeNotes.size() == 1 )
+	{
+		outportb( PC_SPEAKER_PORT, 3); //turn speaker on
+	}	
+}
+void SoundEngine::PCSpeakerSetTempo( int newTempo )
+{
+	SetTickRate( newTempo );
+	//
+}
+void SoundEngine::PCSpeakerCutNote( int note )
+{
+	PCSpeakerNoteOff( note );
+	//
+}
+void SoundEngine::PCSpeakerPlayActiveNotes( int arpeggioRate )
+{
+	//lets assume arpeggio rate 5
+	int ticksToLinger = time->GetInterruptFrequency() / ( arpeggioRate * ( activeNotes.size() + 1 ) );
+
+
+	if(currentTicksToLinger >= ticksToLinger )
+	{
+		currentTicksToLinger = 0;
+
+		if( currentActiveNote < activeNotes.size() )
+		{
+			int frequency = 1193181 / MidiFrequencies[activeNotes[currentActiveNote].note];
+
+			outportb( PC_TIMER_PORT, frequency & 0xFF );
+			outportb( PC_TIMER_PORT, ( frequency >> 8 ) & 0xFF );
+
+			currentActiveNote++;
+		}
+		else
+		{
+			currentActiveNote = 0;
+		}
+	}
+	currentTicksToLinger++;
+}
+
+void SoundEngine::OPLNoteOff()
+{
+	
+}
+void SoundEngine::OPLNoteOn()
+{
+	
+}
+void SoundEngine::OPLControllerEvent()
+{
+	
+}
+void SoundEngine::OPLProgramChange()
+{
+	
+}
+void SoundEngine::OPLSetTempo()
+{
+	
+}
+void SoundEngine::OPLCutNote()
+{
+	
+}
+
+void SoundEngine::GeneralMidiNoteOff()
+{
+	
+}
+void SoundEngine::GeneralMidiNoteOn()
+{
+	
+}
+void SoundEngine::GeneralMidiNoteAfterTouch()
+{
+	
+}
+void SoundEngine::GeneralMidiControllerEvent()
+{
+	
+}
+void SoundEngine::GeneralMidiProgramChange()
+{
+	
+}
+void SoundEngine::GeneralMidiChannelAfterTouch()
+{
+	
+}
+void SoundEngine::GeneralMidiPitchBend()
+{
+	
+}
+void SoundEngine::GeneralMidiSetTempo()
+{
+	
+}
+void SoundEngine::GeneralMidiCutNote()
+{
+	
+}
+
+void SoundEngine::GUSNoteOff()
+{
+	
+}
+void SoundEngine::GUSNoteOn()
+{
+	
+}
+void SoundEngine::GUSNoteAfterTouch()
+{
+	
+}
+void SoundEngine::GUSControllerEvent()
+{
+	
+}
+void SoundEngine::GUSProgramChange()
+{
+	
+}
+void SoundEngine::GUSChannelAfterTouch()
+{
+	
+}
+void SoundEngine::GUSPitchBend()
+{
+	
+}
+void SoundEngine::GUSSetTempo()
+{
+	
+}
+void SoundEngine::GUSCutNote()
+{
+	
+}
+//=============================================================================================================================
+
+//Transport Controls ==========================================================================================================
+void SoundEngine::Play()
+{
+	
+}
+void SoundEngine::Pause()
+{
+	
+}
+void SoundEngine::JumpToStart()
+{
+	
+}
+void SoundEngine::JumpToTimeCode()
+{
+	
+}
+void SoundEngine::JumpRelative()
+{
+	
+}
+void SoundEngine::Loop( bool newLoop )
+{
+	
+}
+void SoundEngine::SetSpeed()
+{
+	
+}
+void SoundEngine::ChangeSpeed()
+{
+	
+}
+long SoundEngine::GetCurrentTimeStamp()
+{
+	
+}
+void SoundEngine::SkipToSong( int newSong )
+{
+
+}
+void SoundEngine::SkipToSong( int newPlayList, int newSong )
+{
+
+}
+void SoundEngine::SkipToPlayList( int newPlayList )
+{
+	
+}
+//=============================================================================================================================
+
+//File Management =============================================================================================================
+MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
+{
+	bool debug = false;
+
+	MIDISong* song = NULL;
+
+	FILE *file = fopen( filePath, "rb" );
+	if( file == NULL )
+	{
+		printf( "Error Loading File!\n"  );
+		return NULL;
+	}
+	else
+	{
+		if( debug )
+		{
+			printf("file opened...\n");
+			getch();
+		}
+		song = new MIDISong;
+
+		//read MIDI Header:
+		fread(&song->header, 14, 1, file );
+		if( song->header.signature[0] == 'M' && song->header.signature[1] == 'T' &&  song->header.signature[2] == 'h' &&  song->header.signature[3] == 'd')
+		{
+			//swap endians...
+			song->header.headerSize = __builtin_bswap32( song->header.headerSize );
+			song->header.fileFormat = __builtin_bswap16( song->header.fileFormat );
+			song->header.numberOfTracks = __builtin_bswap16( song->header.numberOfTracks );
+			song->header.ticksPerQuarterNote = __builtin_bswap16( song->header.ticksPerQuarterNote );
+
+			if( debug )
+			{
+				printf("%c%c%c%c\n", song->header.signature[0], song->header.signature[1], song->header.signature[2], song->header.signature[3]);
+				printf("MIDI Header signatur correct \n");
+				printf("header size = %li \n", song->header.headerSize );
+				printf("file format = %hu \n", song->header.fileFormat );
+				printf("found %hu tracks\n", song->header.numberOfTracks );
+				printf("ticks per QNote = %hu \n", song->header.ticksPerQuarterNote );				
+				getch();
+			}
+
+
+			for( int trackNum = 1; trackNum < song->header.numberOfTracks; trackNum++ )
+			{
+				MIDITrack newTrack;
+				//read track header:
+				fread(&newTrack.trackHeader, 8, 1, file );
+
+				
+				//swap endianess...
+				newTrack.trackHeader.lengthOfTrack = __builtin_bswap32( newTrack.trackHeader.lengthOfTrack );
+
+				if( debug )
+				{
+					printf("	%c%c%c%c\n", newTrack.trackHeader.signature[0], newTrack.trackHeader.signature[1], newTrack.trackHeader.signature[2], newTrack.trackHeader.signature[3]);
+					printf("	Track: %i \n", trackNum );
+					printf("	lengthOfTrack = %li \n", newTrack.trackHeader.lengthOfTrack );			
+					getch();
+				}
+
+				bool trackDone = false;
+				while( !trackDone )
+				{
+					//read events:
+					MIDIEvent newEvent;
+
+					//read delta time:
+					unsigned char timeByte = 0;
+
+					newEvent.deltaTime = 0;
+
+
+
+					do
+					{
+						fread( &timeByte, 1, 1, file );
+
+						newEvent.deltaTime = newEvent.deltaTime << 7;
+						newEvent.deltaTime = newEvent.deltaTime + ( timeByte & 0b01111111 );
+						if( newTrack.events.size() != 0 )
+						{
+							newEvent.linearTime = newTrack.events.back().linearTime + newEvent.deltaTime;
+						}
+						else
+						{
+							newEvent.linearTime = 0;
+						}
+						if( debug )
+						{
+							printf("		timeByte: %hhx \n", timeByte );
+						}
+					} while( timeByte & 0b10000000 );
+ 
+
+					if( debug )
+					{
+						printf("		newEvent.deltaTime: %i \n", newEvent.deltaTime );
+						//getch();
+					}
+
+					//read Type of Event:
+					unsigned char typeByte = 0;
+					fread( &typeByte, 1, 1, file );
+
+					if( debug )
+					{
+						printf("		typeByte: %hhx \n", typeByte );
+						//getch();
+					}
+					
+					if( typeByte > 128 )
+					{
+						if( typeByte == 0xFF )
+						{
+							newEvent.command = typeByte;
+
+							unsigned char metaByte = 0;
+							fread( &metaByte, 1, 1, file );
+							newEvent.metaCommand = metaByte;
+							if( debug )
+							{
+								printf("			metaByte: %hhx \n", metaByte );
+							}
+							unsigned char lengthByte = 0;
+							fread( &lengthByte, 1, 1, file );
+							if( debug )
+							{
+								printf("			lengthByte: %hhx \n", lengthByte );
+							}
+
+							newEvent.data.reserve( lengthByte );
+							for( int i = 0; i < lengthByte; i++ )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( debug )
+							{
+								printf("				");
+								for( int i = 0; i < lengthByte; i++ )
+								{
+									printf("%02hhx ", newEvent.data[i]);
+								}
+								printf("\n");
+							}
+							if( metaByte == 0x2F )
+							{
+								trackDone = true;
+								if( debug )
+								{
+									printf("			track Done!" );
+								}
+							}
+						}
+						else if( typeByte == 0xF0 || typeByte == 0xF7 )
+						{
+							newEvent.command = typeByte;
+
+							unsigned char lengthByte = 0;
+							fread( &lengthByte, 1, 1, file );
+							if( debug )
+							{
+								printf("			lengthByte: %hhx \n", lengthByte );
+							}
+
+							newEvent.data.reserve( lengthByte );
+							for( int i = 0; i < lengthByte; i++ )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( debug )
+							{
+								printf("				");
+								for( int i = 0; i < lengthByte; i++ )
+								{
+									printf("%02hhx ", newEvent.data[i]);
+								}
+								printf("\n");
+							}
+						}
+						else
+						{
+							//regular byte
+							newEvent.command = typeByte & 0xF0;
+							newEvent.channel = typeByte & 0x0F;
+							if( debug )
+							{
+								printf( "		regular command: %hhx channel: %hhi\n", newEvent.command, newEvent.channel );
+							}
+							if( newEvent.command == 0x80 || newEvent.command == 0x90 || newEvent.command == 0xA0 || newEvent.command == 0xB0 || newEvent.command == 0xE0 )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( newEvent.command == 0xC0 || newEvent.command == 0xD0 )
+							{
+								char dataByte = 0;
+								fread( &dataByte, 1, 1, file );
+								newEvent.data.push_back( dataByte );
+							}
+							if( debug )
+							{
+								printf("				");
+								for( int i = 0; i < newEvent.data.size(); i++ )
+								{
+									printf("%02hhx ", newEvent.data[i]);
+								}
+								printf("\n");
+							}
+						}
+						newTrack.events.push_back( newEvent );
+					}
+					else
+					{
+						newEvent.command = newTrack.events.back().command;
+						if( debug )
+						{
+							printf( "		running command: %hhx channel: %hhi\n", newEvent.command, newEvent.channel );
+						}
+						if( newEvent.command == 0x80 || newEvent.command == 0x90 || newEvent.command == 0xA0 || newEvent.command == 0xB0 || newEvent.command == 0xE0 )
+						{
+							char dataByte = 0;
+							newEvent.data.push_back( typeByte );
+							fread( &dataByte, 1, 1, file );
+							newEvent.data.push_back( dataByte );
+						}
+						if( newEvent.command == 0xC0 || newEvent.command == 0xD0 )
+						{
+							newEvent.data.push_back( typeByte );
+						}
+						if( debug )
+						{
+							printf("				");
+							for( int i = 0; i < newEvent.data.size(); i++ )
+							{
+								printf("%02hhx ", newEvent.data[i]);
+							}
+							printf("\n");
+						}
+		
+						newTrack.events.push_back( newEvent );
+						if( debug )
+						{
+							getch();
+						}
+					}
+					if( debug )
+					{
+						getch();
+					}
+
+				}
+				song->tracks.push_back( newTrack );
+			}
+
+		}
+		else
+		{
+			printf( "couldnt find signature" );
+			return NULL;
+		}
+
+		return song;
+	}
+
+	return NULL;
+}
+void SoundEngine::SaveMidiToFile()
+{
+	
+}
+void SoundEngine::LoadCMFFromFile()
+{
+	
+}
+void SaveCMFToFile()
+{
+	
+}
+void SoundEngine::LoadIFFFromFile()
+{
+	
+}
+void SoundEngine::SaveIFFToFile()
+{
+	
+}
+void SoundEngine::LoadRIFFFromFile()
+{
+	
+}
+void SoundEngine::SaveRIFFToFile()
+{
+	
+}
+
+SoundBlasterInstrument SoundEngine::LoadSBIFromFile()
+{
+	
+}
+void SoundEngine::SaveSBIToFile()
+{
+	
+}
+
+SoundBlasterInstrument SoundEngine::LoadIBKFromFile()
+{
+	
+}
+void SoundEngine::SaveIBKToFile()
+{
+	
+}
+
+void SoundEngine::LoadPlayListFromFile()
+{
+	
+}
+void SoundEngine::SavePlayListToFile()
+{
+	
+}
+//=============================================================================================================================
+
+//Song Controls ===============================================================================================================
+void SoundEngine::CreateSong()
+{
+	
+}
+void SoundEngine::DestroySong()
+{
+	
+}
+//=============================================================================================================================
+
+//PlayList ====================================================================================================================
+void SoundEngine::CreatePlayList()
+{
+	
+}
+void SoundEngine::AddPlayList()
+{
+	
+}
+void SoundEngine::GetPlayList()
+{
+	
+}
+void SoundEngine::RemovePlayList()
+{
+	
+}
+void SoundEngine::AddToPlayList()
+{
+	
+}
+void SoundEngine::RemoveFromPlayList()
+{
+	
+}
+void SoundEngine::GetSongFromPlayList( int index )
+{
+	
+}
+void SoundEngine::GetSongFromPlayListByID( int ID )
+{
+	
+}
+//=============================================================================================================================
+
+//Instrument Controls =========================================================================================================
+SoundBlasterInstrument SoundEngine::CreateNewInstrument(const char* name)
+{
+	
+}
+SoundBlasterInstrument SoundEngine::CreateNewInstrument(const 	char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
+																char modulatorScalingLevel, char carrierScalingLevel,
+																char modulatorAttackDecay, char carrierAttackDecay,
+																char modulatorSustainRelease, char carrierSustainRelease,
+																char modulatorWaveSelect, char carrierWaveSelect,
+																char feedback )
+{
+	
+}
+
+void SoundEngine::AddInstrument()
+{
+	
+}
+SoundBlasterInstrument SoundEngine::GetInstrument()
+{
+	
+}
+void SoundEngine::RemoveInstrument()
+{
+	
+}
+void SoundEngine::ReplaceInstrument()
+{
+	
+}
+void SoundEngine::ApplyInstrument()
+{
+	
+}
+
+SoundBlasterInstrument SoundEngine::SetInstrumentLevel( SoundBlasterInstrument in, bool op, unsigned char newScalingLevel, unsigned char newLevel )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstruemtADSREnvelope( SoundBlasterInstrument in, bool op, unsigned char attack, unsigned char decay, unsigned char sustain, unsigned char release )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, bool amplitudeModulation, bool vibrato, bool rythm, bool bassDrum, bool snareDrum, bool tomTom, bool cymbal, bool hiHat )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstrumentWaveForm( SoundBlasterInstrument in, bool op, char newWaveForm )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstrumentFeedBack( SoundBlasterInstrument in, unsigned char newFeedback, bool newAlgorithm )
+{
+	
+}
+
+SoundBlasterInstrument SoundEngine::SetInstrumentLevel( SoundBlasterInstrument in, bool op, unsigned char newLevelByte )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstruemtADSREnvelope( SoundBlasterInstrument in, bool op, unsigned char newAttackByte, unsigned char newSustainByte )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstrumentSoundCharacteristic( SoundBlasterInstrument in, bool op, unsigned char newCharacteristicByte )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstrumentWaveForm( SoundBlasterInstrument in, bool op, unsigned char newWaveFormByte )
+{
+	
+}
+SoundBlasterInstrument SoundEngine::SetInstrumentFeedBack( SoundBlasterInstrument in, unsigned char newFeedbackByte )
+{
+	
+}
+//=============================================================================================================================
+
+
+
+
+
+
+
+
+
+
+/*SoundEngine::SoundEngine( TimeEngine* newTime )
 {
 	soundP = this;
 
@@ -166,7 +1137,7 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	//outportb( OPL3AddressPort + 1, 4 );
 	//outportb( OPL3DataPort, 0 );
 
-	/*outportb( OPL3AddressPort + 2, 5 );
+	outportb( OPL3AddressPort + 2, 5 );
 	outportb( OPL3DataPort + 2 , 1 );
 
 	outportb( OPL3AddressPort + 2, 4 );
@@ -176,7 +1147,7 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	outportb( OPL3DataPort + 2, 0 );
 
 	outportb( OPL3AddressPort, 0xBD );
-	outportb( OPL3DataPort, 0 );*/
+	outportb( OPL3DataPort, 0 );
 
 	
 
@@ -301,11 +1272,11 @@ void SoundEngine::ResetSoundBlaster()
 	}
 }
 
-/*void SoundEngine::NoteOff( int channel )
+void SoundEngine::NoteOff( int channel )
 {
 	outportb( OPL3AddressPort, 0xB0 + channel );
 	outportb( OPL3DataPort, 0 );
-}*/
+}
 
 void SoundEngine::PlayNote( int channel, unsigned char note )
 {
@@ -335,6 +1306,18 @@ void SoundEngine::PlayNote( int channel, unsigned char note )
 
 void SoundEngine::NoteOn( int MIDIChannel, unsigned char note, unsigned char velocity )
 {
+	int voiceInQuestion = 999;
+	for( int i = 0; i < NUM_VOICES; i++ )
+	{
+		if( inUseMIDIChannel[i] == MIDIChannel && inUseNote[i] == note )
+		{
+			voiceInQuestion = i;
+			CutNote( voiceInQuestion, inUseNote[i] );
+			inUseVoices[voiceInQuestion] = false;
+			break;
+		}
+	}
+
 	//find free voice:
 	int freeVoice = 999;
 	for( int i = 0; i < NUM_VOICES; i++ )
@@ -348,11 +1331,11 @@ void SoundEngine::NoteOn( int MIDIChannel, unsigned char note, unsigned char vel
 
 	if( freeVoice == 999 )
 	{
-		int oldestTime = 0;
+		int oldestTime = 99999;
 		int oldestIndex = 0;
 		for( int i = 0; i < NUM_VOICES; i++ )
 		{
-			if( inUseTimeStamps[i] > oldestTime )
+			if( inUseTimeStamps[i] < oldestTime )
 			{
 				oldestTime = inUseTimeStamps[i];
 				oldestIndex = i;
@@ -964,38 +1947,6 @@ SoundBlasterInstrument* SoundEngine::GetActiveInstrument( int channel )
 	return &activeInstruments[channel];
 	//
 }
-MIDIEvent* SoundEngine::GetNextMIDIEvent()
-{
-	/*MIDIEvent* out = NULL;
-
-	int currentTrack = currentSong->currentTrack;
-	if(currentTrack >= currentSong->tracks.size() )
-	{
-		currentTrack = 0;
-	}
-
-	int currentEvent = currentSong->tracks[currentTrack].currentEvent;
-
-	if( currentEvent < currentSong->tracks[currentTrack].events.size() )
-	{
-		int currentDeltaTime = currentSong->tracks[currentTrack].currentDeltaTime;
-		if( currentDeltaTime > currentSong->tracks[currentTrack].events[currentEvent].deltaTime )
-		{
-			out = &currentSong->tracks[currentTrack].events[currentEvent];
-			currentSong->tracks[currentTrack].currentEvent++;
-		}
-
-		
-
-		currentSong->tracks[currentTrack].currentDeltaTime++;
-	}
-
-	
-
-	currentSong->currentTrack++;*/
-
-	return NULL;
-}
 
 
 SoundBlasterInstrument 	SoundEngine::SetInstrumentLevel( SoundBlasterInstrument in, bool op, unsigned char newScalingLevel, unsigned char newLevel )
@@ -1176,4 +2127,4 @@ SoundBlasterInstrument 	SoundEngine::SetInstrumentFeedBack( SoundBlasterInstrume
 void SoundEngine::ChangeTicksPerQNote( int newSpeed )
 {
 	globalCurrentSong->header.ticksPerQuarterNote = newSpeed;
-}
+}*/
