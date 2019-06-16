@@ -132,24 +132,24 @@ int TimeEngine::GetCurrentTimeInMS()
 }
 
 //Conversion
-int TimeEngine::TicksToMilliSeconds( unsigned long long ticksIn )
+float TimeEngine::TicksToMilliSeconds( unsigned long long ticksIn )
 {
 	//
 	//return ticksIn / ( UCLOCKS_PER_SEC / 1000 );
-	float temp = ( (float)ticksPerSecond / 1000 );
+	float temp = ( (float)ticksPerSecond / 1000.0 );
 	return ticksIn / temp ;
 }
-int TimeEngine::TicksToSeconds( unsigned long long ticksIn )
+float TimeEngine::TicksToSeconds( unsigned long long ticksIn )
 {
 	//
 	//return ticksIn / UCLOCKS_PER_SEC;
-	return ticksIn / ticksPerSecond;
+	return (float)ticksIn / (float)ticksPerSecond;
 }
-int TimeEngine::GetFPS()
+float TimeEngine::GetFPS()
 {
 	if( TicksToMilliSeconds( frameTime ) > 0 )
 	{
-		return 1000 / TicksToMilliSeconds( frameTime ) ;
+		return 1000.0 / TicksToMilliSeconds( frameTime ) ;
 	}
 	return 0;
 }

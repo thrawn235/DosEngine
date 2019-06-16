@@ -27,112 +27,13 @@ void SoundInterruptRoutine()
 
 	if( !globalPSound->GetMute() && song != NULL )
 	{
-		/*if( streamPos < streamLength )
-		{
-			outportb( 0x43, 182 );
-
-			int frequency = 1193181 / 100;
-
-			if( stream[streamPos] != -1 ) //keep same frequency on -1
-			{
-				outportb( 0x42, stream[streamPos] & 0xFF );
-				outportb( 0x42, ( stream[streamPos] >> 8 ) & 0xFF );
-			}
-			if( stream[streamPos] == 0 )
-			{
-				outportb( 0x61, 0); //turn speaker off
-			}
-			else
-			{
-				outportb( 0x61, 3); //turn speaker on
-			}
-
-			notePos++;
-			if( notePos >= ((noteLength * timerInterruptFrequency)*60) / BPM )
-			{
-				notePos = 0;
-				streamPos++;
-			}
-		}
-		if( streamPos >= streamLength )
-		{
-			outportb( 0x61, 0); //turn speaker off
-
-			if( repeat )
-			{
-				streamPos = 0;
-			}
-		}*/
-
-		/*if( globalSubTimer >= (timerInterruptFrequency / globalCurrentSong->header.ticksPerQuarterNote) )
-		{
-			globalSubTimer = 0;
-
-			for( int i = 0; i < globalNumTracks; i++ )
-			{
-				if( globalCurrentSong->tracks[i].events.size() > trackOffsets[i] )
-				{
-					if( globalCurrentSong->tracks[i].events[trackOffsets[i]].deltaTime < trackTimes[i] )
-					{
-						//globalCurrentSong->tracks[i].events[trackOffsets[i]]
-						if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x90 )
-						{
-							//note on
-							soundP->NoteOn( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0], globalCurrentSong->tracks[i].events[trackOffsets[i]].data[1] );
-						}
-						if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0x80 )
-						{
-							//note off
-							soundP->NoteOff( globalCurrentSong->tracks[i].events[trackOffsets[i]].channel, globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0] );
-						}
-						if( globalCurrentSong->tracks[i].events[trackOffsets[i]].command == 0xFF )
-						{
-							//special command
-							if( globalCurrentSong->tracks[i].events[trackOffsets[i]].metaCommand == 0x51 )
-							{
-								int speedByte = 0;
-								speedByte = globalCurrentSong->tracks[i].events[trackOffsets[i]].data[0];
-								speedByte = speedByte << 8;
-								speedByte = speedByte + globalCurrentSong->tracks[i].events[trackOffsets[i]].data[1];
-								speedByte = speedByte << 8;
-								speedByte = speedByte + globalCurrentSong->tracks[i].events[trackOffsets[i]].data[2];
-								soundP->ChangeTicksPerQNote( speedByte / 3000 );
-							}
-							
-						}
-						trackOffsets[i]++;
-						trackTimes[i] = 0;
-					}
-					trackTimes[i] = trackTimes[i] + 14;
-				}
-			}
-		}*/
-
-		//globalSubTimer++;
-
-		//MIDIEvent* event = soundP->GetNextMIDIEvent();
-		/*if( event != NULL )
-		{
-			if( event->command == 90 )
-			{
-				//note on
-				soundP->NoteOn( event->channel, event->data[0], event->data[1] );
-			}
-			if( event->command == 80 )
-			{
-				//note off
-				soundP->NoteOff( event->channel, event->data[0] );
-			}
-		}*/
 		long currentTime = globalPSound->GetHeadPosition();
 
 		currentTime++;
 
 		globalPSound->SetHeadPosition( currentTime );
 
-		
-
-		for( int i = 0; i < song->tracks.size(); i++ )
+		for( unsigned int i = 0; i < song->tracks.size(); i++ )
 		{
 			if( song->tracks[i].currentEvent < song->tracks[i].events.size() )
 			{
@@ -143,12 +44,26 @@ void SoundInterruptRoutine()
 					if( currentEvent->command == 0x90 )
 					{
 						//note on
-						globalPSound->PCSpeakerNoteOn( currentEvent->data[0], currentEvent->channel );
+						if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+						{
+							globalPSound->PCSpeakerNoteOn( currentEvent->data[0], currentEvent->channel );
+						}
+						if( globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER || globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER_PRO )
+						{
+							globalPSound->OPLNoteOn( currentEvent->channel, currentEvent->data[0], currentEvent->data[2] );
+						}
 					}
 					if( currentEvent->command == 0x80 )
 					{
 						//note off
-						globalPSound->PCSpeakerNoteOff( currentEvent->data[0] );
+						if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+						{
+							globalPSound->PCSpeakerNoteOff( currentEvent->data[0] );
+						}
+						if( globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER || globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER_PRO )
+						{
+							globalPSound->OPLNoteOff( currentEvent->channel, currentEvent->data[0] );
+						}
 					}
 					if( currentEvent->command == 0xFF )
 					{
@@ -170,7 +85,10 @@ void SoundInterruptRoutine()
 			}
 		}
 		
-		globalPSound->PCSpeakerPlayActiveNotes( 40 );
+		if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+		{
+			globalPSound->PCSpeakerPlayActiveNotes( 40 );
+		}
 	}
 }
 //unused dummy functions. meant to calculate the size of TimerInterruptRoutine()
@@ -205,19 +123,60 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 
 	InstallSoundInterrupt();
 
+	for( int i = 0; i < 128; i ++ )
+	{
+		activeVoices[i] = false;
+	}
+
 	//debug-------------------------
-	SetSoundDevice( DEVICE_PC_SPEAKER );
-	currentSong = LoadMidiFromFile( "./audio/music/equinoxe.mid" );
-	//SetTickRate( currentSong->header.ticksPerQuarterNote * 2 );
-	SetTickRate( 700 );
-	maxVoices = 3;
+	SetSoundDevice( DEVICE_SOUND_BLASTER_PRO );
+	InitSoundBlaster( true );
+	currentSong = LoadMidiFromFile( "./audio/music/beeth.mid" );
+	SetTickRate( currentSong->header.ticksPerQuarterNote * 2 );
+	//SetTickRate( 700 );
+	maxVoices = 18;
 	//PCSpeakerNoteOn( 50 );
 	/*PCSpeakerNoteOn( 70 );
 	PCSpeakerNoteOn( 100 );
 	PCSpeakerNoteOn( 120 );
 	PCSpeakerNoteOn( 80 );
 	PCSpeakerNoteOn( 60 );*/
+
+	#define INSTRUMENT_SYNBASS1	1
+	#define INSTRUMENT_SYN1 	2
+	#define INSTRUMENT_FLUTE2 	3
+	#define INSTRUMENT_MOON 	4
+	#define INSTRUMENT_STRINGS1	5 
+
+	SoundBlasterInstrument newInst = LoadSBIFromFile( "./audio/inst/SYN1.sbi" );
+	AddInstrument( &newInst, INSTRUMENT_SYN1 );
+	newInst = LoadSBIFromFile( "./audio/inst/SYNBASS1.sbi" );
+	AddInstrument( &newInst, INSTRUMENT_SYNBASS1 );
+	newInst = LoadSBIFromFile( "./audio/inst/FLUTE2.sbi" );
+	AddInstrument( &newInst, INSTRUMENT_FLUTE2 );
+	newInst = LoadSBIFromFile( "./audio/inst/MOON.sbi" );
+	AddInstrument( &newInst, INSTRUMENT_MOON );
+	newInst = LoadSBIFromFile( "./audio/inst/STRINGS1.sbi" );
+	AddInstrument( &newInst, INSTRUMENT_STRINGS1 );
+
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYNBASS1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYNBASS1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYNBASS1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYNBASS1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYNBASS1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_FLUTE2 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_MOON ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_STRINGS1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
+	AddActiveInstrument( GetInstrument( INSTRUMENT_SYN1 ) );
 	//------------------------------
+
 }
 SoundEngine::~SoundEngine()
 {
@@ -283,6 +242,7 @@ bool SoundEngine::GetMute()
 bool SoundEngine::GetLoop()
 {
 	return loop;
+	//
 }
 
 void SoundEngine::SetSoundDevice( int newCurrentSoundDevice )
@@ -290,6 +250,11 @@ void SoundEngine::SetSoundDevice( int newCurrentSoundDevice )
 	//the other devices need to be safely stopped
 
 	currentSoundDevice = newCurrentSoundDevice;
+	//
+}
+int SoundEngine::GetSoundDevice()
+{
+	return currentSoundDevice;
 	//
 }
 
@@ -416,7 +381,7 @@ void SoundEngine::PCSpeakerNoteOff( int note )
 	}
 
 	//check wheter note is already in list
-	for( int i = 0; i < activeNotes.size(); i++ )
+	for( unsigned int i = 0; i < activeNotes.size(); i++ )
 	{
 		if( note == activeNotes[i].note )
 		{
@@ -429,7 +394,7 @@ void SoundEngine::PCSpeakerNoteOff( int note )
 		outportb( PC_SPEAKER_PORT, 0); //turn speaker off
 	}
 }
-void SoundEngine::PCSpeakerNoteOn( int note, unsigned char MidiChannel )
+void SoundEngine::PCSpeakerNoteOn( int note, unsigned char midiChannel )
 {
 	//already at max Voices?
 	if( activeNotes.size() >= maxVoices )
@@ -438,7 +403,7 @@ void SoundEngine::PCSpeakerNoteOn( int note, unsigned char MidiChannel )
 	}
 
 	//check wheter note is already in list
-	for( int i = 0; i < activeNotes.size(); i++ )
+	for( unsigned int i = 0; i < activeNotes.size(); i++ )
 	{
 		if( note == activeNotes[i].note )
 		{
@@ -456,7 +421,7 @@ void SoundEngine::PCSpeakerNoteOn( int note, unsigned char MidiChannel )
 	Note newNote;
 	newNote.note = note;
 	newNote.timeStamp = time->GetCurrentTimeInMS();
-	newNote.MidiChannel = MidiChannel;
+	newNote.midiChannel = midiChannel;
 	activeNotes.push_back( newNote );
 
 	if( activeNotes.size() == 1 )
@@ -501,13 +466,124 @@ void SoundEngine::PCSpeakerPlayActiveNotes( int arpeggioRate )
 	currentTicksToLinger++;
 }
 
-void SoundEngine::OPLNoteOff()
+void SoundEngine::OPLNoteOff( int midiChannel, unsigned char note )
 {
-	
+	//find note in question
+	Note noteInQuestion;
+	for( unsigned int i = 0; i < activeNotes.size(); i++ )
+	{
+		//if yes cut the note
+		if( activeNotes[i].note == note && activeNotes[i].midiChannel == midiChannel )
+		{
+			noteInQuestion = activeNotes[i];
+			
+			//remove note from active notes
+			activeNotes.erase( activeNotes.begin() + i );
+			break;
+		}
+	}
+
+	//update activeVoices list:
+	activeVoices[noteInQuestion.playingAtVoice] = false;
+
+	//turn off note
+	int tempVoice = noteInQuestion.playingAtVoice;
+	int tempAddressPort = OPL3_ADDRESS_PORT;
+	int tempDataPort = OPL3_DATA_PORT;
+	if( tempVoice > 8 )
+	{
+		tempVoice = tempVoice - 9;
+		tempAddressPort = tempAddressPort+ + 2;
+		tempDataPort = tempDataPort + 2;
+	}
+
+	outportb( tempAddressPort, 0xA0 + tempVoice );
+	outportb( tempDataPort, FNr[note] & 0xFF );
+
+	unsigned char Block = note >> 4;
+	outportb( tempAddressPort, 0xB0 + tempVoice );
+	outportb( tempDataPort, (FNr[note] >> 8) + (Block << 2) );
 }
-void SoundEngine::OPLNoteOn()
+void SoundEngine::OPLNoteOn( int midiChannel, unsigned char note, unsigned char velocity )
 {
-	
+	//if velocity is 0, its the same as note off command
+	if( velocity == 0 )
+	{
+		OPLNoteOff( midiChannel, note );
+		return;
+	}
+
+	//find out wether note+channel is already on
+	for( unsigned int i = 0; i < activeNotes.size(); i++ )
+	{
+		//if yes cut the note
+		if( activeNotes[i].note == note && activeNotes[i].midiChannel == midiChannel )
+		{
+			OPLCutNote( midiChannel, note );
+			break;
+		}
+	}
+
+	//are there free voices
+	if( activeNotes.size() >= maxVoices )
+	{
+		//if not cut oldest note
+		int oldestTime = 99999;
+		int oldestIndex = 0;
+		for( unsigned int i = 0; i < activeNotes.size(); i++ )
+		{
+			if( activeNotes[i].timeStamp < oldestTime )
+			{
+				oldestTime = activeNotes[i].timeStamp;
+				oldestIndex = i;
+			}
+		}
+		OPLCutNote( activeNotes[oldestIndex].midiChannel, activeNotes[oldestIndex].note );
+	}
+
+	//find free voice
+	int freeVoice = 0;
+	for( unsigned int i = 0; i < maxVoices; i++ )
+	{
+		if( activeVoices[i] == false )
+		{
+			freeVoice = i;
+			break;
+		}
+	}
+	activeVoices[freeVoice] = true;
+
+	//update active notes table
+	Note newNote;
+	newNote.note = note;
+	newNote.midiChannel = midiChannel;
+	newNote.timeStamp = time->GetCurrentTimeInMS();
+	newNote.playingAtVoice = freeVoice;
+	activeNotes.push_back( newNote );
+
+	//set instrument
+	if( midiChannel < (int)activeInstruments.size() )
+	{
+		ApplyInstrument( activeInstruments[midiChannel], freeVoice, true, true, velocity );
+	}
+
+	//actually play the note
+	int tempAddressPort = OPL3_ADDRESS_PORT;
+	int tempDataPort = OPL3_DATA_PORT;
+	if( freeVoice > 8 )
+	{
+		freeVoice = freeVoice - 9;
+		tempAddressPort = tempAddressPort+ + 2;
+		tempDataPort = tempDataPort + 2;
+	}
+
+	outportb( tempAddressPort, 0xA0 + freeVoice );
+	outportb( tempDataPort, FNr[note] & 0xFF );
+
+	outportb( tempAddressPort, 0xB0 + freeVoice );
+
+	unsigned char Block = note >> 4;
+	outportb( tempDataPort, (FNr[note] >> 8) + (Block << 2) + 32 );
 }
 void SoundEngine::OPLControllerEvent()
 {
@@ -521,9 +597,46 @@ void SoundEngine::OPLSetTempo()
 {
 	
 }
-void SoundEngine::OPLCutNote()
+void SoundEngine::OPLCutNote( int midiChannel, unsigned char note )
 {
-	
+	//find note in question
+	Note noteInQuestion;
+	for( unsigned int i = 0; i < activeNotes.size(); i++ )
+	{
+		//if yes cut the note
+		if( activeNotes[i].note == note && activeNotes[i].midiChannel == midiChannel )
+		{
+			noteInQuestion = activeNotes[i];
+			
+			//remove note from active notes
+			activeNotes.erase( activeNotes.begin() + i );
+			break;
+		}
+	}
+
+	//update activeVoices list:
+	activeVoices[noteInQuestion.playingAtVoice] = false;
+
+	//actually turn off note
+	int tempVoice = noteInQuestion.playingAtVoice;
+	int tempAddressPort = OPL3_ADDRESS_PORT;
+	int tempDataPort = OPL3_DATA_PORT;
+	if( tempVoice > 8 )
+	{
+		tempVoice = tempVoice - 9;
+		tempAddressPort = tempAddressPort+ + 2;
+		tempDataPort = tempDataPort + 2;
+	}
+
+	outportb( tempAddressPort, 0x80 + tempVoice );
+	outportb( tempDataPort, FNr[note] & 0xF );
+
+	outportb( tempAddressPort, 0xA0 + tempVoice );
+	outportb( tempDataPort, FNr[note] & 0xFF );
+
+	unsigned char Block = note >> 4;
+	outportb( tempAddressPort, 0xB0 + tempVoice );
+	outportb( tempDataPort, (FNr[note] >> 8) + (Block << 2) );
 }
 
 void SoundEngine::GeneralMidiNoteOff()
@@ -696,7 +809,7 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 			}
 
 
-			for( int trackNum = 1; trackNum < song->header.numberOfTracks; trackNum++ )
+			for( int trackNum = 0; trackNum < song->header.numberOfTracks; trackNum++ )
 			{
 				MIDITrack newTrack;
 				//read track header:
@@ -764,7 +877,7 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 						//getch();
 					}
 					
-					if( typeByte > 128 )
+					if( typeByte >= 128 )
 					{
 						if( typeByte == 0xFF )
 						{
@@ -863,7 +976,7 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 							if( debug )
 							{
 								printf("				");
-								for( int i = 0; i < newEvent.data.size(); i++ )
+								for( unsigned int i = 0; i < newEvent.data.size(); i++ )
 								{
 									printf("%02hhx ", newEvent.data[i]);
 								}
@@ -893,7 +1006,7 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 						if( debug )
 						{
 							printf("				");
-							for( int i = 0; i < newEvent.data.size(); i++ )
+							for( unsigned int i = 0; i < newEvent.data.size(); i++ )
 							{
 								printf("%02hhx ", newEvent.data[i]);
 							}
@@ -956,13 +1069,56 @@ void SoundEngine::SaveRIFFToFile()
 	
 }
 
-SoundBlasterInstrument SoundEngine::LoadSBIFromFile()
+SoundBlasterInstrument SoundEngine::LoadSBIFromFile( const char* filePath )
 {
-	
+	bool debug = false;
+
+	FILE *file = fopen( filePath, "rb" );
+	if( file == NULL )
+	{
+		printf( "Error Loading File!\n"  );
+		getch();
+	}
+	else
+	{
+		SoundBlasterInstrument in;
+		fread(&in.data, sizeof(SoundBlasterInstrumentData), 1, file );
+		if( in.data.signature[0] == 'S' && in.data.signature[1] == 'B' &&  in.data.signature[2] == 'I' )
+		{
+			if( debug )
+			{
+				printf( "signature: %c%c%c\n", in.data.signature[0], in.data.signature[1], in.data.signature[2] );
+				printf( "name: %s\n", in.data.name );
+				printf( "modulatorSoundCharacteristic = %02hhx\n", in.data.modulatorSoundCharacteristic );
+				printf( "carrierSoundCharacteristic   = %02hhx\n", in.data.carrierSoundCharacteristic );
+				printf( "modulatorScalingLevel 	      = %02hhx\n", in.data.modulatorScalingLevel );
+				printf( "carrierScalingLevel          = %02hhx\n", in.data.carrierScalingLevel );
+				printf( "modulatorAttackDecay         = %02hhx\n", in.data.modulatorAttackDecay );
+				printf( "carrierAttackDecay           = %02hhx\n", in.data.carrierAttackDecay );
+				printf( "modulatorSustainRelease      = %02hhx\n", in.data.modulatorSustainRelease );
+				printf( "carrierSustainRelease        = %02hhx\n", in.data.carrierSustainRelease );
+				printf( "modulatorWaveSelect          = %02hhx\n", in.data.modulatorWaveSelect );
+				printf( "carrierWaveSelect            = %02hhx\n", in.data.carrierWaveSelect );
+				printf( "feedback                     = %02hhx\n", in.data.feedback );
+				getch();
+			}
+
+			return in;
+		}
+		else
+		{
+			printf( "couldnt find signature" );
+			getch();
+		}
+	}
+	fclose (file);
 }
-void SoundEngine::SaveSBIToFile()
+void SoundEngine::SaveSBIToFile( SoundBlasterInstrument* in, const char* filePath )
 {
+	FILE *file = fopen( filePath, "wb" );
 	
+	fwrite (&in->data , sizeof(SoundBlasterInstrumentData), 1, file);
+  	fclose (file);
 }
 
 SoundBlasterInstrument SoundEngine::LoadIBKFromFile()
@@ -1033,7 +1189,11 @@ void SoundEngine::GetSongFromPlayListByID( int ID )
 //Instrument Controls =========================================================================================================
 SoundBlasterInstrument SoundEngine::CreateNewInstrument(const char* name)
 {
-	
+	SoundBlasterInstrument out;
+	strcpy( out.data.signature, "SBI " );
+	out.data.signature[3] = 0x1A;
+	strcpy( out.data.name, name );
+	return out;
 }
 SoundBlasterInstrument SoundEngine::CreateNewInstrument(const 	char* name, char modulatorSoundCharacteristic, char carrierSoundCharacteristic,
 																char modulatorScalingLevel, char carrierScalingLevel,
@@ -1042,28 +1202,132 @@ SoundBlasterInstrument SoundEngine::CreateNewInstrument(const 	char* name, char 
 																char modulatorWaveSelect, char carrierWaveSelect,
 																char feedback )
 {
+	SoundBlasterInstrument out;
+	strcpy( out.data.signature, "SBI " );
+	out.data.signature[3] = 0x1A;
+	strcpy( out.data.name, name );
+	out.data.modulatorSoundCharacteristic = modulatorSoundCharacteristic;
+	out.data.carrierSoundCharacteristic = carrierSoundCharacteristic;
+	out.data.modulatorScalingLevel = modulatorScalingLevel;
+	out.data.carrierScalingLevel = carrierScalingLevel;
+	out.data.modulatorAttackDecay = modulatorAttackDecay;
+	out.data.carrierAttackDecay = carrierAttackDecay;
+	out.data.modulatorSustainRelease = modulatorSustainRelease;
+	out.data.carrierSustainRelease = carrierSustainRelease;
+	out.data.modulatorWaveSelect = modulatorWaveSelect;
+	out.data.carrierWaveSelect = carrierWaveSelect;
+	out.data.feedback = feedback;
+	return out;
+}
+
+void SoundEngine::AddInstrument( SoundBlasterInstrument* in , int ID )
+{
+	in->ID = ID;
+	instruments.push_back(*in);
+	//
+}
+SoundBlasterInstrument* SoundEngine::GetInstrument( int ID )
+{
+	for( unsigned int i = 0; i < instruments.size(); i++ )
+	{
+		if( instruments[i].ID == ID )
+		{
+			return &instruments[i];
+		}
+	}
+	return NULL;
+}
+void SoundEngine::RemoveInstrument( int ID )
+{
+	
+}
+void SoundEngine::AddActiveInstrument( SoundBlasterInstrument* in )
+{
+	activeInstruments.push_back(in);
+	//
+}
+SoundBlasterInstrument* SoundEngine::GetActiveInstrument( unsigned int index )
+{
+	if( index < activeInstruments.size() );
+	{
+		return activeInstruments[index];
+	}
+	return NULL;
+}
+void SoundEngine::RemoveActiveInstrument( int index )
+{
+	
+}
+void SoundEngine::ReplaceActiveInstrument( SoundBlasterInstrument* in, int index )
+{
 	
 }
 
-void SoundEngine::AddInstrument()
+void SoundEngine::ApplyInstrument( SoundBlasterInstrument* in, int voice, bool left, bool right, unsigned char velocity )
 {
-	
-}
-SoundBlasterInstrument SoundEngine::GetInstrument()
-{
-	
-}
-void SoundEngine::RemoveInstrument()
-{
-	
-}
-void SoundEngine::ReplaceInstrument()
-{
-	
-}
-void SoundEngine::ApplyInstrument()
-{
-	
+	int tempAddressPort = OPL3_ADDRESS_PORT;
+	int tempDataPort = OPL3_DATA_PORT;
+
+	if( voice > 8 )
+	{
+		voice = voice - 9;
+		tempAddressPort = tempAddressPort+ + 2;
+		tempDataPort = tempDataPort + 2;
+	}
+
+	char* channelMap = channelMapOPL;
+	/*if( currentSoundDevice == DEVICE_SOUND_BLASTER_PRO )
+	{
+		channelMap = channelMapOPL3;
+	}*/
+
+	outportb( tempAddressPort, 0x20 + channelMap[voice] + 3 );
+	outportb( tempDataPort, in->data.carrierSoundCharacteristic );
+
+	outportb( tempAddressPort, 0x20 + channelMap[voice] );
+	outportb( tempDataPort, in->data.modulatorSoundCharacteristic );
+
+	outportb( tempAddressPort, 0x40 + channelMap[voice] + 3 );
+	outportb( tempDataPort, in->data.carrierScalingLevel );
+
+	outportb( tempAddressPort, 0x40 + channelMap[voice]  );
+	outportb( tempDataPort, in->data.modulatorScalingLevel );
+
+	outportb( tempAddressPort, 0x60 + channelMap[voice] + 3 );
+	outportb( tempDataPort, in->data.carrierAttackDecay );
+
+	outportb( tempAddressPort, 0x60 + channelMap[voice]  );
+	outportb( tempDataPort, in->data.modulatorAttackDecay );
+
+	outportb( tempAddressPort, 0x80 + channelMap[voice] + 3 );
+	outportb( tempDataPort, in->data.carrierSustainRelease );
+
+	outportb( tempAddressPort, 0x80 + channelMap[voice]  );
+	outportb( tempDataPort, in->data.modulatorSustainRelease );
+
+	outportb( tempAddressPort, 0x80 + channelMap[voice] + 3 );
+	outportb( tempDataPort, in->data.carrierSustainRelease );
+
+	outportb( tempAddressPort, 0x80 + channelMap[voice]  );
+	outportb( tempDataPort, in->data.modulatorSustainRelease );
+
+	outportb( tempAddressPort, 0xE0 + channelMap[voice] + 3 );
+	outportb( tempDataPort, in->data.modulatorWaveSelect );
+
+	outportb( tempAddressPort, 0xE0 + channelMap[voice]  );
+	outportb( tempDataPort, in->data.carrierWaveSelect );
+
+	outportb( tempAddressPort, 0xC0 + voice );
+	char feedBackByte = in->data.feedback;
+	if( right )
+	{
+		feedBackByte = feedBackByte | 0b00100000;
+	}
+	if( left )
+	{
+		feedBackByte = feedBackByte | 0b00010000;
+	}
+	outportb( tempDataPort, feedBackByte );
 }
 
 SoundBlasterInstrument SoundEngine::SetInstrumentLevel( SoundBlasterInstrument in, bool op, unsigned char newScalingLevel, unsigned char newLevel )

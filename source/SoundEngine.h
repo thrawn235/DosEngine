@@ -57,7 +57,7 @@
 
 using namespace std;
 
-struct SoundBlasterInstrument
+struct SoundBlasterInstrumentData
 {
 	char 			signature[4];
 	char 			name[32];
@@ -73,6 +73,12 @@ struct SoundBlasterInstrument
 	unsigned char 	carrierWaveSelect;
 	unsigned char 	feedback;
 	unsigned char 	reserved[4];
+};
+
+struct SoundBlasterInstrument
+{
+	int ID;
+	SoundBlasterInstrumentData data;
 };
 
 struct MIDIEvent
@@ -95,7 +101,7 @@ struct MIDITrack
 {
 	MIDITrackHeader 	trackHeader;
 	vector<MIDIEvent> 	events;
-	int 				currentEvent = 0;
+	unsigned int		currentEvent = 0;
 	long 				length = 0;
 };
 
@@ -127,7 +133,8 @@ struct Note
 {
 	int note;
 	long timeStamp;
-	char MidiChannel;
+	char midiChannel;
+	int playingAtVoice;
 };
 
 
@@ -139,8 +146,8 @@ protected:
 
 	int 							timeTicksDivisor;
 
-	char 							channelMapOPL2[9] = {0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
-	char 							channelMapOPL3[18] = {0x00, 0x01, 0x02, 0x06, 0x07, 0x08, 0x0C,  0x0D,  0x0E, 0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
+	char 							channelMapOPL[9] = {0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
+	//char 							channelMapOPL2[18] = {0x00, 0x01, 0x02, 0x06, 0x07, 0x08, 0x0C,  0x0D,  0x0E, 0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
 
 	const unsigned short int 		FNr [128] = {	86,91,96,102,108,114,121,128,136,144,
 		                                 			153,162,172,182,192,204,108,114,121,
@@ -174,11 +181,12 @@ protected:
 											6644.88, 7040.00, 7458.62, 7902.13, 8372.02, 8869.84, 9397.27, 9956.06, 10548.08, 
 											11175.30, 11839.82, 12543.85, 13289.75 };
 	int 								currentTicksToLinger;
-	int 								currentActiveNote;
-	int 								maxVoices;
+	unsigned int 						currentActiveNote;
+	unsigned int						maxVoices;
 	//===============================================================================================================================
 
 	vector<Note> 						activeNotes;
+	bool 								activeVoices[64];
 
 	//Midi Playback specific=========================================================================================================
 	long headPosition;
@@ -186,7 +194,8 @@ protected:
 
 	MIDISong* 							currentSong;
 
-	vector<SoundBlasterInstrument*> 	instruments;
+	vector<SoundBlasterInstrument*> 	activeInstruments;
+	vector<SoundBlasterInstrument> 		instruments;
 	vector<PlayList*> 					playLists;
 
 	bool 								loop;
@@ -217,6 +226,7 @@ public:
 	bool 					GetLoop 						();
 
 	void 					SetSoundDevice 					( int newCurrentSoundDevice );
+	int 					GetSoundDevice 					();
 
 	void 					SetTickRate 					( int newTickRate );
 	void 					SetTicksPerQNote 				( int newSpeed );
@@ -246,17 +256,17 @@ public:
 
 	//Midi Commands ===============================================================================================================
 	void 					PCSpeakerNoteOff 				( int note );
-	void 					PCSpeakerNoteOn 				( int note, unsigned char MidiChannel );
+	void 					PCSpeakerNoteOn 				( int note, unsigned char midiChannel );
 	void 					PCSpeakerSetTempo 				( int newTempo );
 	void 					PCSpeakerCutNote 				( int note );
 	void 					PCSpeakerPlayActiveNotes 		( int arpeggioRate );
 
-	void 					OPLNoteOff 						();
-	void					OPLNoteOn 						();
+	void 					OPLNoteOff 						( int midiChannel, unsigned char note );
+	void					OPLNoteOn 						( int midiChannel, unsigned char note, unsigned char velocity );
 	void 					OPLControllerEvent 				();
 	void 					OPLProgramChange 				();
 	void 					OPLSetTempo 					();
-	void 					OPLCutNote 						();
+	void 					OPLCutNote 						( int midiChannel, unsigned char note );
 
 	void 					GeneralMidiNoteOff 				();
 	void 					GeneralMidiNoteOn 				();
@@ -304,8 +314,8 @@ public:
 	void LoadRIFFFromFile();
 	void SaveRIFFToFile();
 
-	SoundBlasterInstrument 	LoadSBIFromFile();
-	void 					SaveSBIToFile();
+	SoundBlasterInstrument 	LoadSBIFromFile( const char* filePath );
+	void 					SaveSBIToFile( SoundBlasterInstrument* in, const char* filePath );
 
 	SoundBlasterInstrument 	LoadIBKFromFile();
 	void 					SaveIBKToFile();
@@ -339,11 +349,16 @@ public:
 																	char modulatorSustainRelease, char carrierSustainRelease,
 																	char modulatorWaveSelect, char carrierWaveSelect,
 																	char feedback);
-	void 					AddInstrument();
-	SoundBlasterInstrument 	GetInstrument();
-	void 					RemoveInstrument();
-	void 					ReplaceInstrument();
-	void 					ApplyInstrument();
+	void 					AddInstrument 					( SoundBlasterInstrument* in, int ID );
+	SoundBlasterInstrument* GetInstrument 					( int ID );
+	void 					RemoveInstrument 				( int ID );
+
+	void 					AddActiveInstrument 			( SoundBlasterInstrument* in );
+	SoundBlasterInstrument* GetActiveInstrument 			( unsigned int index );
+	void 					RemoveActiveInstrument 			( int index );
+	void 					ReplaceActiveInstrument			( SoundBlasterInstrument* in, int index );
+
+	void 					ApplyInstrument 				( SoundBlasterInstrument* in, int voice, bool left, bool right, unsigned char velocity );
 
 	SoundBlasterInstrument 	SetInstrumentLevel 				( SoundBlasterInstrument in, bool op, unsigned char newScalingLevel, unsigned char newLevel );
 	SoundBlasterInstrument 	SetInstruemtADSREnvelope 		( SoundBlasterInstrument in, bool op, unsigned char attack, unsigned char decay, unsigned char sustain, unsigned char release );

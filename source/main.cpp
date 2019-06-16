@@ -61,8 +61,8 @@ int main()
 
 
 	//========================== Main Loop ======================================
-	int filterTimeStamp, updateTimeStamp, drawTimeStamp;
-	int filterTime, updateTime, drawTime;
+	float filterTimeStamp, updateTimeStamp, drawTimeStamp;
+	float filterTime, updateTime, drawTime;
 
 	bool running = true;
 	while(running)
@@ -94,9 +94,10 @@ int main()
 
 		//----------------- print Framerate -----------------------
 		char str[50];
-		sprintf(str, "%d(%d)%f\nfilter=%d, update=%d, draw=%d", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()), engine->time->GetDelta(), filterTime, updateTime, drawTime );
+		sprintf(str, "%.2f(%.2f)%.2f\nfilter=%.2f, update=%.2f, draw=%.2f", engine->time->GetFPS(), engine->time->TicksToMilliSeconds(engine->time->GetLastTime()), engine->time->GetDelta(), filterTime, updateTime, drawTime );
 		engine->graphics->DrawText( Vector2D( 0, 0 ) + engine->graphics->GetCamPos() , ASSET_TXT_WHITE, 0, str );
 		//--------------------------------------------------------
+
 
 		engine->graphics->Flip();	//copy Backbuffer to Screen
 

@@ -83,9 +83,9 @@ public:
 	int GetCurrentTimeInMS		();
 
 	//Conversion
-	int TicksToMilliSeconds 	( unsigned long long ticksIn );
-	int TicksToSeconds 			( unsigned long long ticksIn );
-	int GetFPS 					();
+	float TicksToMilliSeconds 	( unsigned long long ticksIn );
+	float TicksToSeconds 			( unsigned long long ticksIn );
+	float GetFPS 					();
 
 	//delta
 	float GetDelta 				();
