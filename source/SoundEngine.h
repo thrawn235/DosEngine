@@ -39,8 +39,8 @@
 //=======================================================
 
 //==================== defines ==========================
-#define OPL3_ADDRESS_PORT			0x220
-#define OPL3_DATA_PORT 				0x221
+#define OPL3_ADDRESS_PORT			0x388
+#define OPL3_DATA_PORT 				0x389
 #define GENERAL_MIDI_BASE_PORT 		0x300 //or 0x330
 #define PC_TIMER_PORT 				0x42
 #define PC_SPEAKER_PORT 			0x61
@@ -147,7 +147,7 @@ protected:
 	int 							timeTicksDivisor;
 
 	char 							channelMapOPL[9] = {0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
-	//char 							channelMapOPL2[18] = {0x00, 0x01, 0x02, 0x06, 0x07, 0x08, 0x0C,  0x0D,  0x0E, 0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
+	//char 							channelMapOPL[18] = {0x00, 0x01, 0x02, 0x06, 0x07, 0x08, 0x0C,  0x0D,  0x0E, 0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
 
 	const unsigned short int 		FNr [128] = {	86,91,96,102,108,114,121,128,136,144,
 		                                 			153,162,172,182,192,204,108,114,121,
@@ -191,6 +191,8 @@ protected:
 	//Midi Playback specific=========================================================================================================
 	long headPosition;
 	//===============================================================================================================================
+
+	float 								masterVolume;
 
 	MIDISong* 							currentSong;
 
@@ -238,6 +240,9 @@ public:
 	MIDISong* 				GetCurrentSong 					();
 	long 					GetHeadPosition 				();
 	void 					SetHeadPosition 				( long newHeadPosition );
+
+	float 					GetMasterVolume 				();
+	void 					SetMasterVolume 				( float newVolume );
 	//=============================================================================================================================
 
 	//Init Device =================================================================================================================
@@ -265,7 +270,7 @@ public:
 	void					OPLNoteOn 						( int midiChannel, unsigned char note, unsigned char velocity );
 	void 					OPLControllerEvent 				();
 	void 					OPLProgramChange 				();
-	void 					OPLSetTempo 					();
+	void 					OPLSetTempo 					( int newTempo );
 	void 					OPLCutNote 						( int midiChannel, unsigned char note );
 
 	void 					GeneralMidiNoteOff 				();
@@ -314,11 +319,11 @@ public:
 	void LoadRIFFFromFile();
 	void SaveRIFFToFile();
 
-	SoundBlasterInstrument 	LoadSBIFromFile( const char* filePath );
-	void 					SaveSBIToFile( SoundBlasterInstrument* in, const char* filePath );
+	SoundBlasterInstrument 	LoadSBIFromFile 				( const char* filePath );
+	void 					SaveSBIToFile 					( SoundBlasterInstrument* in, const char* filePath );
 
-	SoundBlasterInstrument 	LoadIBKFromFile();
-	void 					SaveIBKToFile();
+	SoundBlasterInstrument 	LoadIBKFromFile 				();
+	void 					SaveIBKToFile 					();
 
 	void LoadPlayListFromFile();
 	void SavePlayListToFile();

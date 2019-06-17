@@ -56,6 +56,8 @@ protected:
 	int 	interruptFrequency;
 	float 	ticksPerSecond;
 
+	bool 	ticked;
+
 	_go32_dpmi_seginfo OldISR, NewISR;
 
 public:
@@ -67,6 +69,7 @@ public:
 
 	//Set
 	void SetInterruptFrequency	( int newInterruptFrequency );
+	void SetTicked 				( bool newTicked );
 
 	//Get
 	int GetInterruptFrequency 	();
@@ -80,7 +83,7 @@ public:
 
 	//generalTiming
 	int GetCurrentTime 			();
-	int GetCurrentTimeInMS		();
+	float GetCurrentTimeInMS	();
 
 	//Conversion
 	float TicksToMilliSeconds 	( unsigned long long ticksIn );
@@ -96,6 +99,8 @@ public:
 	unsigned long long GetTimeStamp 		( int id );
 	unsigned long long GetTimeSinceStamp 	( int id );
 	void ClearTimeStamps 		();
+
+	void WaitForTicked 			();
 };
 
 

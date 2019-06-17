@@ -17,12 +17,14 @@
 
 //============= global Variables for the Interrupt Service Routine ========
 unsigned long long timeCount = 0;
+TimeEngine* globalPTime;
 //=========================================================================
 
 //============ global Function that is to be installed as ISR =============
 void TimerInterruptRoutine()
 {
 	timeCount = timeCount + 1;
+	globalPTime->SetTicked( true );
 }
 //unused dummy functions. meant to calculate the size of TimerInterruptRoutine()
 void TimerInterruptRoutineEnd() {} 
@@ -33,9 +35,13 @@ void TimerInterruptRoutineEnd() {}
 
 TimeEngine::TimeEngine()
 {
+	globalPTime = this;
+
 	frameStart 	= 0;
 	frameEnd  	= 0;
 	frameTime 	= 0;
+
+	ticked = false;
 	
 
 	//start timer:
@@ -82,6 +88,11 @@ void TimeEngine::SetInterruptFrequency( int newInterruptFrequency )
 	outportb( 0x40, freq & 0xFF );
 	outportb( 0x40, ( freq >> 8 ) & 0xFF );
 }
+void TimeEngine::SetTicked( bool newTicked )
+{
+	ticked = newTicked;
+	//
+}
 int TimeEngine::GetInterruptFrequency()
 {
 	return interruptFrequency;
@@ -123,12 +134,12 @@ int TimeEngine::GetCurrentTime()
 	//return uclock();
 	return timeCount;
 }
-int TimeEngine::GetCurrentTimeInMS()
+float TimeEngine::GetCurrentTimeInMS()
 {
 	//
 	//return uclock() / ( UCLOCKS_PER_SEC / 1000 );
 	float temp = ( (float)ticksPerSecond / 1000 );
-	return timeCount / temp;
+	return (float)timeCount / temp;
 }
 
 //Conversion
@@ -137,7 +148,7 @@ float TimeEngine::TicksToMilliSeconds( unsigned long long ticksIn )
 	//
 	//return ticksIn / ( UCLOCKS_PER_SEC / 1000 );
 	float temp = ( (float)ticksPerSecond / 1000.0 );
-	return ticksIn / temp ;
+	return (float)ticksIn / temp ;
 }
 float TimeEngine::TicksToSeconds( unsigned long long ticksIn )
 {
@@ -219,4 +230,14 @@ void TimeEngine::ClearTimeStamps()
 {
 	timeStamps.clear();
 	//
+}
+
+void TimeEngine::WaitForTicked()
+{
+	int i = 0;
+	while( ticked == false )
+	{
+		i++;
+	}
+	ticked = false;
 }

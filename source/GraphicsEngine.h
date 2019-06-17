@@ -89,13 +89,13 @@ struct TileSet
 
 struct Animation
 {
-	int id;
-	int tileSetID;
-	int firstTileIndex;
-	int numSprites;
-	int currentFrame;
-	int speed;
-	int currentSpeedStep;
+	int 	id;
+	int 	tileSetID;
+	int 	firstTileIndex;
+	int 	numSprites;
+	int 	currentFrame;
+	int 	speed;
+	float 	currentSpeedStep;
 };
 
 

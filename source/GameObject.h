@@ -220,7 +220,7 @@ protected:
 	bool 	yellowKey;
 	bool 	greenKey;
 	
-	int 	dyingTime;
+	float 	dyingTime;
 	
 public:
 	Player( GameEngine* newEngine );
@@ -405,7 +405,7 @@ class Banner  : public Actor
 {
 protected:
 	bool showEverything;
-	int showEverythingTimeStamp;
+	float showEverythingTimeStamp;
 	bool black;
 public:
 	Banner 						( GameEngine* newEngine );
@@ -426,7 +426,7 @@ protected:
 	Vector2D blueBallOffsetPos;
 	bool keyDown;
 	int menuPos;
-	int fadeTimeStamp;
+	float fadeTimeStamp;
 	bool showSelf;
 	bool keyDown2;
 public:
@@ -479,7 +479,7 @@ protected:
 	bool redKey;
 	bool yellowKey;
 
-	int constructorTimeStamp;
+	float constructorTimeStamp;
 
 	Player* connectedPlayer;
 
@@ -644,7 +644,7 @@ class AboutScreen : public GameObject
 protected:
 	RawTileMap*  aboutText;
 	bool keyDown;
-	int fadeTimeStamp;
+	float fadeTimeStamp;
 public:
 	AboutScreen 					( GameEngine* newEngine );
 	~AboutScreen 					();
@@ -661,7 +661,7 @@ class StoryScreen : public GameObject
 protected:
 	RawTileMap*  storyText;
 	bool keyDown;
-	int fadeTimeStamp;
+	float fadeTimeStamp;
 	int firstLine;
 public:
 	StoryScreen 					( GameEngine* newEngine );

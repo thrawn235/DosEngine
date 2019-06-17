@@ -101,6 +101,8 @@ int main()
 
 		engine->graphics->Flip();	//copy Backbuffer to Screen
 
+		engine->time->WaitForTicked();
+
 		engine->time->FrameEnd();	//get Frametime
 	}
 	//======================================================================
