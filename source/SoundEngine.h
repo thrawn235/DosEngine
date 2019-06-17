@@ -126,6 +126,7 @@ struct PlayList
 {
 	int 				ID;
 	vector<MIDISong*> 	songs;
+	int 				currentTrack = 0;
 };
 
 
@@ -195,13 +196,17 @@ protected:
 	float 								masterVolume;
 
 	MIDISong* 							currentSong;
+	PlayList* 							currentPlayList;
 
 	vector<SoundBlasterInstrument*> 	activeInstruments;
 	vector<SoundBlasterInstrument> 		instruments;
-	vector<PlayList*> 					playLists;
+	vector<MIDISong>					songs;
+	vector<PlayList> 					playLists;
 
 	bool 								loop;
 	bool 								mute;
+	bool 								songEnd;
+	bool 								playListEnd;
 
 	
 
@@ -243,6 +248,9 @@ public:
 
 	float 					GetMasterVolume 				();
 	void 					SetMasterVolume 				( float newVolume );
+
+	void 					SetSongEnd 						( bool newSongEnd );
+	void 					SetPlayListEnd 					( bool newPlayListEnd );
 	//=============================================================================================================================
 
 	//Init Device =================================================================================================================
@@ -310,14 +318,14 @@ public:
 	//=============================================================================================================================
 
 	//File Management =============================================================================================================
-	MIDISong* LoadMidiFromFile( const char* filePath );
-	void SaveMidiToFile();
-	void LoadCMFFromFile();
-	void SaveCMFToFile();
-	void LoadIFFFromFile();
-	void SaveIFFToFile();
-	void LoadRIFFFromFile();
-	void SaveRIFFToFile();
+	MIDISong 				LoadMidiFromFile( const char* filePath );
+	void 					SaveMidiToFile();
+	void 					LoadCMFFromFile();
+	void 					SaveCMFToFile();
+	void 					LoadIFFFromFile();
+	void 					SaveIFFToFile();
+	void 					LoadRIFFFromFile();
+	void 					SaveRIFFToFile();
 
 	SoundBlasterInstrument 	LoadSBIFromFile 				( const char* filePath );
 	void 					SaveSBIToFile 					( SoundBlasterInstrument* in, const char* filePath );
@@ -325,24 +333,27 @@ public:
 	SoundBlasterInstrument 	LoadIBKFromFile 				();
 	void 					SaveIBKToFile 					();
 
-	void LoadPlayListFromFile();
-	void SavePlayListToFile();
+	void 					LoadPlayListFromFile();
+	void 					SavePlayListToFile();
 	//=============================================================================================================================
 
 	//Song Controls ===============================================================================================================
-	void CreateSong();
-	void DestroySong();
+	void 					CreateSong();
+	void 					DestroySong();
+	void 					AddSong 						( MIDISong in, int newID );
+	MIDISong* 				GetSong 						( int ID );
+	void 					RemoveSong 						( int ID );
 	//=============================================================================================================================
 
 	//PlayList ====================================================================================================================
-	void CreatePlayList();
-	void AddPlayList();
-	void GetPlayList();
-	void RemovePlayList();
-	void AddToPlayList();
-	void RemoveFromPlayList();
-	void GetSongFromPlayList( int index );
-	void GetSongFromPlayListByID( int ID );
+	void 					CreatePlayList 					(int newID);
+	void 					AddPlayList 					( PlayList* newPlayList );
+	PlayList* 				GetPlayList 					( int ID );
+	void 					RemovePlayList 					( int ID );
+	void 					AddToPlayList 					( int playListID, MIDISong* in );
+	void 					RemoveFromPlayList 				( int playListID, int index );
+	MIDISong* 				GetSongFromPlayList 			( int playListID, int index );
+	MIDISong* 				GetFirstSongFromPlayListByID 	( int playListID, int ID );
 	//=============================================================================================================================
 
 	//Instrument Controls =========================================================================================================

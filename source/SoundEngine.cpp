@@ -39,6 +39,12 @@ void SoundInterruptRoutine()
 			{
 				if( currentTime >= song->tracks[i].events[song->tracks[i].currentEvent].linearTime )
 				{
+					//CHECK FOR END
+					if( currentTime > song->length )
+					{
+						globalPSound->SetSongEnd( true );
+					}
+
 					//handle event
 					MIDIEvent* currentEvent = &song->tracks[i].events[song->tracks[i].currentEvent];
 					if( currentEvent->command == 0x90 )
@@ -120,6 +126,8 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 
 	loop = false;
 	mute = false;
+	songEnd = false;
+	playListEnd = false;
 
 	maxVoices = 9; //just an initial guess
 
@@ -137,11 +145,33 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	}
 
 	//debug-------------------------
+	#define SONG_DIES_IRAE	0
+	#define SONG_EQUINOXE 	1
+	#define SONG_SCALE 		3
+	#define SONG_BACH 		4
+	#define SONG_BEETHOFEN	5
+
+	AddSong( LoadMidiFromFile( "./audio/music/irae.mid" ), SONG_DIES_IRAE );
+	AddSong( LoadMidiFromFile( "./audio/music/equinoxe.mid" ), SONG_EQUINOXE );
+	AddSong( LoadMidiFromFile( "./audio/music/scale.mid" ), SONG_SCALE );
+	AddSong( LoadMidiFromFile( "./audio/music/bach.mid" ), SONG_BACH );
+	AddSong( LoadMidiFromFile( "./audio/music/beeth.mid" ), SONG_BEETHOFEN );
+
+	#define PLAYLIST_STANDARD 	1
+
+	CreatePlayList( PLAYLIST_STANDARD );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_DIES_IRAE ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_EQUINOXE ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_DIES_IRAE ) );
+
+	currentSong = GetSongFromPlayList( PLAYLIST_STANDARD, 0 );
+	currentPlayList = GetPlayList( PLAYLIST_STANDARD );
+
 	SetSoundDevice( DEVICE_SOUND_BLASTER_PRO );
 	InitPCSpeaker();
 	//maxVoices = 3;
 	InitSoundBlaster( true );
-	currentSong = LoadMidiFromFile( "./audio/music/irae.mid" );
+	
 	SetTickRate( currentSong->header.ticksPerQuarterNote * 2 );
 	//SetTickRate( 700 );
 	//maxVoices = 18;
@@ -151,6 +181,8 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	PCSpeakerNoteOn( 120 );
 	PCSpeakerNoteOn( 80 );
 	PCSpeakerNoteOn( 60 );*/
+
+	loop = false;
 
 	masterVolume = 2;
 
@@ -329,6 +361,46 @@ void SoundEngine::SetMasterVolume( float newVolume )
 		return;
 	}
 	masterVolume = newVolume;
+}
+void SoundEngine::SetSongEnd( bool newSongEnd )
+{
+	songEnd = newSongEnd;
+	if( songEnd == true )
+	{
+		SetHeadPosition( 0 );
+		if( loop == true )
+		{
+			for( int i = 0; i < currentSong->tracks.size(); i++ )
+			{
+				currentSong->tracks[i].currentEvent = 0;
+			}
+		}
+		else
+		{
+			songEnd = false;
+			currentPlayList->currentTrack++;
+			if( currentPlayList->currentTrack < currentPlayList->songs.size() )
+			{
+				currentSong = currentPlayList->songs[currentPlayList->currentTrack];
+				for( int i = 0; i < currentSong->tracks.size(); i++ )
+				{
+					currentSong->tracks[i].currentEvent = 0;
+				}
+			}
+			else
+			{
+				SetPlayListEnd( true );
+			}
+		}
+	}
+}
+void SoundEngine::SetPlayListEnd( bool newPlayListEnd )
+{
+	playListEnd = newPlayListEnd;
+	if( playListEnd == true )
+	{
+		//loop etc ?
+	}
 }
 //=============================================================================================================================
 
@@ -809,17 +881,17 @@ void SoundEngine::SkipToPlayList( int newPlayList )
 //=============================================================================================================================
 
 //File Management =============================================================================================================
-MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
+MIDISong SoundEngine::LoadMidiFromFile( const char* filePath )
 {
 	bool debug = false;
 
-	MIDISong* song = NULL;
+	MIDISong song;
 
 	FILE *file = fopen( filePath, "rb" );
 	if( file == NULL )
 	{
 		printf( "Error Loading File!\n"  );
-		return NULL;
+		//return NULL;
 	}
 	else
 	{
@@ -828,31 +900,30 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 			printf("file opened...\n");
 			getch();
 		}
-		song = new MIDISong;
 
 		//read MIDI Header:
-		fread(&song->header, 14, 1, file );
-		if( song->header.signature[0] == 'M' && song->header.signature[1] == 'T' &&  song->header.signature[2] == 'h' &&  song->header.signature[3] == 'd')
+		fread(&song.header, 14, 1, file );
+		if( song.header.signature[0] == 'M' && song.header.signature[1] == 'T' &&  song.header.signature[2] == 'h' &&  song.header.signature[3] == 'd')
 		{
 			//swap endians...
-			song->header.headerSize = __builtin_bswap32( song->header.headerSize );
-			song->header.fileFormat = __builtin_bswap16( song->header.fileFormat );
-			song->header.numberOfTracks = __builtin_bswap16( song->header.numberOfTracks );
-			song->header.ticksPerQuarterNote = __builtin_bswap16( song->header.ticksPerQuarterNote );
+			song.header.headerSize = __builtin_bswap32( song.header.headerSize );
+			song.header.fileFormat = __builtin_bswap16( song.header.fileFormat );
+			song.header.numberOfTracks = __builtin_bswap16( song.header.numberOfTracks );
+			song.header.ticksPerQuarterNote = __builtin_bswap16( song.header.ticksPerQuarterNote );
 
 			if( debug )
 			{
-				printf("%c%c%c%c\n", song->header.signature[0], song->header.signature[1], song->header.signature[2], song->header.signature[3]);
+				printf("%c%c%c%c\n", song.header.signature[0], song.header.signature[1], song.header.signature[2], song.header.signature[3]);
 				printf("MIDI Header signatur correct \n");
-				printf("header size = %li \n", song->header.headerSize );
-				printf("file format = %hu \n", song->header.fileFormat );
-				printf("found %hu tracks\n", song->header.numberOfTracks );
-				printf("ticks per QNote = %hu \n", song->header.ticksPerQuarterNote );				
+				printf("header size = %li \n", song.header.headerSize );
+				printf("file format = %hu \n", song.header.fileFormat );
+				printf("found %hu tracks\n", song.header.numberOfTracks );
+				printf("ticks per QNote = %hu \n", song.header.ticksPerQuarterNote );				
 				getch();
 			}
 
 
-			for( int trackNum = 0; trackNum < song->header.numberOfTracks; trackNum++ )
+			for( int trackNum = 0; trackNum < song.header.numberOfTracks; trackNum++ )
 			{
 				MIDITrack newTrack;
 				//read track header:
@@ -892,6 +963,10 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 						if( newTrack.events.size() != 0 )
 						{
 							newEvent.linearTime = newTrack.events.back().linearTime + newEvent.deltaTime;
+							if( newEvent.linearTime > song.length )
+							{
+								song.length = newEvent.linearTime;
+							}
 						}
 						else
 						{
@@ -1068,14 +1143,14 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 					}
 
 				}
-				song->tracks.push_back( newTrack );
+				song.tracks.push_back( newTrack );
 			}
 
 		}
 		else
 		{
 			printf( "couldnt find signature" );
-			return NULL;
+			//return NULL;
 		}
 		if( debug )
 		{
@@ -1085,7 +1160,7 @@ MIDISong* SoundEngine::LoadMidiFromFile( const char* filePath )
 		return song;
 	}
 
-	return NULL;
+	//return NULL;
 }
 void SoundEngine::SaveMidiToFile()
 {
@@ -1196,38 +1271,100 @@ void SoundEngine::DestroySong()
 {
 	
 }
+void SoundEngine::AddSong( MIDISong in, int newID )
+{
+	in.ID = newID;
+	songs.push_back( in );
+}
+MIDISong* SoundEngine::GetSong( int ID )
+{
+	for( unsigned int i = 0; i < songs.size(); i++ )
+	{
+		if( songs[i].ID == ID )
+		{
+			return &songs[i];
+		}
+	}
+
+	return NULL;
+}
+void SoundEngine::RemoveSong( int ID )
+{
+	for( unsigned int i = 0; i < songs.size(); i++ )
+	{
+		if( songs[i].ID == ID )
+		{
+			songs.erase( songs.begin() + i );
+		}
+	}
+}
 //=============================================================================================================================
 
 //PlayList ====================================================================================================================
-void SoundEngine::CreatePlayList()
+void SoundEngine::CreatePlayList( int newID )
 {
-	
+	PlayList newPlayList;
+	newPlayList.ID = newID;
+	playLists.push_back( newPlayList );
 }
-void SoundEngine::AddPlayList()
+void SoundEngine::AddPlayList( PlayList* newPlayList )
 {
-	
+	playLists.push_back( *newPlayList );
+	//
 }
-void SoundEngine::GetPlayList()
+PlayList* SoundEngine::GetPlayList( int ID )
 {
-	
+	for( unsigned int i = 0; i < playLists.size(); i++ )
+	{
+		if( playLists[i].ID == ID )
+		{
+			return &playLists[i];
+		}
+	}
+
+	return NULL;
 }
-void SoundEngine::RemovePlayList()
+void SoundEngine::RemovePlayList( int ID )
 {
-	
+	for( unsigned int i = 0; i < playLists.size(); i++ )
+	{
+		if( playLists[i].ID == ID )
+		{
+			playLists.erase( playLists.begin() + i );
+		}
+	}
 }
-void SoundEngine::AddToPlayList()
+void SoundEngine::AddToPlayList( int playListID, MIDISong* in )
 {
-	
+	for( unsigned int i = 0; i < playLists.size(); i++ )
+	{
+		if( playLists[i].ID == playListID )
+		{
+			playLists[i].songs.push_back( in );
+		}
+	}
 }
-void SoundEngine::RemoveFromPlayList()
+void SoundEngine::RemoveFromPlayList( int playListID, int index )
 {
-	
+	for( unsigned int i = 0; i < playLists.size(); i++ )
+	{
+		if( playLists[i].ID == playListID )
+		{
+			playLists[i].songs.erase( playLists[i].songs.begin() + index );
+		}
+	}
 }
-void SoundEngine::GetSongFromPlayList( int index )
+MIDISong* SoundEngine::GetSongFromPlayList( int playListID, int index )
 {
-	
+	for( unsigned int i = 0; i < playLists.size(); i++ )
+	{
+		if( playLists[i].ID == playListID )
+		{
+			return playLists[i].songs[index];
+		}
+	}
 }
-void SoundEngine::GetSongFromPlayListByID( int ID )
+MIDISong* SoundEngine::GetFirstSongFromPlayListByID( int playListID, int ID )
 {
 	
 }
