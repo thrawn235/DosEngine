@@ -25,7 +25,7 @@ void SoundInterruptRoutine()
 {
 	MIDISong* song = globalPSound->GetCurrentSong();
 
-	if( !globalPSound->GetMute() && song != NULL )
+	if( globalPSound->GetPlaying() && song != NULL )
 	{
 		long currentTime = globalPSound->GetHeadPosition();
 
@@ -33,42 +33,50 @@ void SoundInterruptRoutine()
 
 		globalPSound->SetHeadPosition( currentTime );
 
+		//CHECK FOR END
+		if( currentTime > song->length )
+		{
+			globalPSound->SetSongEnd( true );
+		}
+
 		for( unsigned int i = 0; i < song->tracks.size(); i++ )
 		{
 			if( song->tracks[i].currentEvent < song->tracks[i].events.size() )
 			{
 				if( currentTime >= song->tracks[i].events[song->tracks[i].currentEvent].linearTime )
 				{
-					//CHECK FOR END
-					if( currentTime > song->length )
-					{
-						globalPSound->SetSongEnd( true );
-					}
+					
 
 					//handle event
 					MIDIEvent* currentEvent = &song->tracks[i].events[song->tracks[i].currentEvent];
 					if( currentEvent->command == 0x90 )
 					{
 						//note on
-						if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+						if( !globalPSound->GetMute() )
 						{
-							globalPSound->PCSpeakerNoteOn( currentEvent->data[0], currentEvent->channel );
-						}
-						if( globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER || globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER_PRO )
-						{
-							globalPSound->OPLNoteOn( currentEvent->channel, currentEvent->data[0], currentEvent->data[1] );
+							if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+							{
+								globalPSound->PCSpeakerNoteOn( currentEvent->data[0], currentEvent->channel );
+							}
+							if( globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER || globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER_PRO )
+							{
+								globalPSound->OPLNoteOn( currentEvent->channel, currentEvent->data[0], currentEvent->data[1] );
+							}
 						}
 					}
 					if( currentEvent->command == 0x80 )
 					{
 						//note off
-						if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+						if( !globalPSound->GetMute() )
 						{
-							globalPSound->PCSpeakerNoteOff( currentEvent->data[0] );
-						}
-						if( globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER || globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER_PRO )
-						{
-							globalPSound->OPLNoteOff( currentEvent->channel, currentEvent->data[0] );
+							if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+							{
+								globalPSound->PCSpeakerNoteOff( currentEvent->data[0] );
+							}
+							if( globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER || globalPSound->GetSoundDevice() == DEVICE_SOUND_BLASTER_PRO )
+							{
+								globalPSound->OPLNoteOff( currentEvent->channel, currentEvent->data[0] );
+							}
 						}
 					}
 					if( currentEvent->command == 0xFF )
@@ -99,7 +107,7 @@ void SoundInterruptRoutine()
 			}
 		}
 		
-		if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER )
+		if( globalPSound->GetSoundDevice() == DEVICE_PC_SPEAKER && !globalPSound->GetMute() )
 		{
 			globalPSound->PCSpeakerPlayActiveNotes( 40 );
 		}
@@ -128,6 +136,7 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	mute = false;
 	songEnd = false;
 	playListEnd = false;
+	playing = true;
 
 	maxVoices = 9; //just an initial guess
 
@@ -145,11 +154,12 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	}
 
 	//debug-------------------------
+
 	#define SONG_DIES_IRAE	0
 	#define SONG_EQUINOXE 	1
-	#define SONG_SCALE 		3
-	#define SONG_BACH 		4
-	#define SONG_BEETHOFEN	5
+	#define SONG_SCALE 		2
+	#define SONG_BACH 		3
+	#define SONG_BEETHOFEN	4
 
 	AddSong( LoadMidiFromFile( "./audio/music/irae.mid" ), SONG_DIES_IRAE );
 	AddSong( LoadMidiFromFile( "./audio/music/equinoxe.mid" ), SONG_EQUINOXE );
@@ -157,18 +167,23 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	AddSong( LoadMidiFromFile( "./audio/music/bach.mid" ), SONG_BACH );
 	AddSong( LoadMidiFromFile( "./audio/music/beeth.mid" ), SONG_BEETHOFEN );
 
-	#define PLAYLIST_STANDARD 	1
+	#define PLAYLIST_STANDARD 	0
 
 	CreatePlayList( PLAYLIST_STANDARD );
 	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_DIES_IRAE ) );
 	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_EQUINOXE ) );
-	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_DIES_IRAE ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_BACH ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_SCALE ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_BEETHOFEN ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_EQUINOXE ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_SCALE ) );
+	AddToPlayList( PLAYLIST_STANDARD, GetSong( SONG_BACH ) );
 
 	currentSong = GetSongFromPlayList( PLAYLIST_STANDARD, 0 );
 	currentPlayList = GetPlayList( PLAYLIST_STANDARD );
 
 	SetSoundDevice( DEVICE_SOUND_BLASTER_PRO );
-	InitPCSpeaker();
+	//InitPCSpeaker();
 	//maxVoices = 3;
 	InitSoundBlaster( true );
 	
@@ -356,18 +371,15 @@ float SoundEngine::GetMasterVolume()
 }
 void SoundEngine::SetMasterVolume( float newVolume )
 {
-	if( newVolume < 0 || newVolume > 20 );
-	{
-		return;
-	}
 	masterVolume = newVolume;
 }
 void SoundEngine::SetSongEnd( bool newSongEnd )
 {
+	Pause();
 	songEnd = newSongEnd;
-	if( songEnd == true )
+	if( newSongEnd == true )
 	{
-		SetHeadPosition( 0 );
+
 		if( loop == true )
 		{
 			for( int i = 0; i < currentSong->tracks.size(); i++ )
@@ -376,12 +388,12 @@ void SoundEngine::SetSongEnd( bool newSongEnd )
 			}
 		}
 		else
-		{
-			songEnd = false;
-			currentPlayList->currentTrack++;
+		{	
+			currentPlayList->currentTrack++;	
+			
 			if( currentPlayList->currentTrack < currentPlayList->songs.size() )
 			{
-				currentSong = currentPlayList->songs[currentPlayList->currentTrack];
+				currentSong = GetSongFromPlayList( PLAYLIST_STANDARD, currentPlayList->currentTrack );
 				for( int i = 0; i < currentSong->tracks.size(); i++ )
 				{
 					currentSong->tracks[i].currentEvent = 0;
@@ -392,7 +404,10 @@ void SoundEngine::SetSongEnd( bool newSongEnd )
 				SetPlayListEnd( true );
 			}
 		}
+		songEnd = false;
+		SetHeadPosition( 0 );
 	}
+	Play();
 }
 void SoundEngine::SetPlayListEnd( bool newPlayListEnd )
 {
@@ -401,6 +416,11 @@ void SoundEngine::SetPlayListEnd( bool newPlayListEnd )
 	{
 		//loop etc ?
 	}
+}
+bool SoundEngine::GetPlaying()
+{
+	return playing;
+	//
 }
 //=============================================================================================================================
 
@@ -832,11 +852,13 @@ void SoundEngine::GUSCutNote()
 //Transport Controls ==========================================================================================================
 void SoundEngine::Play()
 {
-	
+	playing = true;
+	//
 }
 void SoundEngine::Pause()
 {
-	
+	playing = false;
+	//
 }
 void SoundEngine::JumpToStart()
 {
@@ -852,7 +874,8 @@ void SoundEngine::JumpRelative()
 }
 void SoundEngine::Loop( bool newLoop )
 {
-	
+	loop = newLoop;
+	//
 }
 void SoundEngine::SetSpeed()
 {

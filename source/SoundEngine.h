@@ -203,6 +203,7 @@ protected:
 	vector<MIDISong>					songs;
 	vector<PlayList> 					playLists;
 
+	bool 								playing;
 	bool 								loop;
 	bool 								mute;
 	bool 								songEnd;
@@ -251,6 +252,7 @@ public:
 
 	void 					SetSongEnd 						( bool newSongEnd );
 	void 					SetPlayListEnd 					( bool newPlayListEnd );
+	bool 					GetPlaying 						();
 	//=============================================================================================================================
 
 	//Init Device =================================================================================================================

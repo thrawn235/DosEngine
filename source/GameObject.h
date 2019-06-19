@@ -194,6 +194,9 @@ class Player : public Actor
 protected:
 	Vector2D movement;
 
+	bool rememberLeftRight;
+	bool rememberUpDown;
+
 	Animation walkForward;
 	Animation walkBackward;
 	Animation deathAnimation;
@@ -207,10 +210,10 @@ protected:
 	unsigned long levelUID;
 
 
-	int  	score;
-	int 	extraLife;
-	int 	lifes;
-	int 	ammo;
+	int  			score;
+	int 			extraLife;
+	unsigned int 	lifes;
+	unsigned int 	ammo;
 
 	bool 	pogo;
 	bool 	shipBattery;
@@ -228,8 +231,8 @@ public:
 
 	virtual void 			SetScore 		( int newScore );
 	virtual void 			SetExtraLife 	( int newExtraLife );
-	virtual void 			SetLifes 		( int newLifes );
-	virtual void 			SetAmmo 		( int newAmmo );
+	virtual void 			SetLifes 		( unsigned int newLifes );
+	virtual void 			SetAmmo 		( unsigned int newAmmo );
 	virtual void 			SetPogo 		( bool newPogo );
 	virtual void 			SetShipBattery 	( bool newShipBattery );
 	virtual void 			SetBlueKey 		( bool newBlueKey );
@@ -240,8 +243,8 @@ public:
 
 	virtual int 			GetScore 		();
 	virtual int 			GetExtraLife 	();
-	virtual int 			GetLifes 		();
-	virtual int 			GetAmmo 		();
+	virtual unsigned int 	GetLifes 		();
+	virtual unsigned int 	GetAmmo 		();
 	virtual bool 			GetPogo			();
 	virtual bool 			GetShipBattery 	();
 	virtual bool 			GetBlueKey 		();

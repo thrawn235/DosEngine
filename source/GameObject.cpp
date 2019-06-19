@@ -715,6 +715,9 @@ Player::Player( GameEngine* newEngine ) : Actor( newEngine )
 
 	important 	= true;
 
+	rememberLeftRight = true;
+	rememberUpDown = true;
+
 
 	walkForward.id 					= 0;
 	walkForward.tileSetID 			= ASSET_KEEN_WALK;
@@ -798,12 +801,12 @@ void Player::SetExtraLife( int newExtraLife )
 	extraLife = newExtraLife;
 	//
 }
-void Player::SetLifes( int newLifes )
+void Player::SetLifes( unsigned int newLifes )
 {
 	lifes = newLifes;
 	//
 }
-void Player::SetAmmo( int newAmmo )
+void Player::SetAmmo( unsigned int newAmmo )
 {
 	ammo = newAmmo;
 	//
@@ -853,12 +856,12 @@ int Player::GetExtraLife()
 	return extraLife;
 	//
 }
-int Player::GetLifes()
+unsigned int Player::GetLifes()
 {
 	return lifes;
 	//
 }
-int Player::GetAmmo()
+unsigned int Player::GetAmmo()
 {
 	return ammo;
 	//
@@ -912,11 +915,13 @@ void Player::Update()
 	movement = Vector2D( 0.0f, 0.0f );
 	if( engine->input->KeyDown( KEY_LEFT ) )
 	{
-		movement = movement + Vector2D( -0.4f, 0.0f );	
+		movement = movement + Vector2D( -0.4f, 0.0f );
+		rememberLeftRight = false;	
 	}
 	if( engine->input->KeyDown( KEY_RIGHT ) )
 	{
 		movement = movement + Vector2D( 0.4f, 0.0f );
+		rememberLeftRight = true;
 	}
 	if( engine->input->KeyDown( SPACE ) && onFloor && !spacePressed)
 	{
@@ -1007,13 +1012,13 @@ void Player::Draw()
 	{
 		if( jumpCharging )
 		{
-			if( direction.x >= 0 )
+			if( direction.x > 0 || rememberLeftRight == true )
 			{
 				engine->graphics->PlayAnimationDelta( &jumpRight, pos, 16, engine->time->GetDelta() );
 				if(jumpRight.currentFrame >= 5)
 					jumpRight.currentSpeedStep = 0;
 			}
-			else if( direction.x < 0 )
+			else if( direction.x < 0 || rememberLeftRight == false )
 			{
 				engine->graphics->PlayAnimationDelta( &jumpLeft, pos, 16, engine->time->GetDelta() );
 				if(jumpLeft.currentFrame >= 5)
@@ -1045,7 +1050,15 @@ void Player::Draw()
 					walkBackward.currentFrame = 0;
 					walkBackward.currentSpeedStep = 0;
 
-					engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
+					if( direction.x > 0 || rememberLeftRight == true )
+					{
+						engine->graphics->DrawSprite( pos, tileSetID, tileIndex, 16 );
+					}
+					else if( direction.x < 0 || rememberLeftRight == false )
+					{
+						engine->graphics->DrawSprite( pos, tileSetID, 4, 16 );
+					}
+					
 				}
 			}
 			else

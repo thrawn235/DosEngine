@@ -165,7 +165,7 @@ void GameEngine::LoadObjectsFromBank()
 }
 void GameEngine::DisableAll()
 {
-	for( int i = 0; i < objects.size(); i ++ )
+	for( unsigned int i = 0; i < objects.size(); i ++ )
 	{
 		objects[i]->Disable();
 	}
@@ -182,9 +182,9 @@ void GameEngine::DisableAll( GameObject* exclude )
 }
 void GameEngine::DisableAll( vector<GameObject*> excludes)
 {
-	for( int i = 0; i < objects.size(); i ++ )
+	for( unsigned int i = 0; i < objects.size(); i ++ )
 	{
-		for( int u = 0; u < excludes.size(); i ++ )
+		for( unsigned int u = 0; u < excludes.size(); i ++ )
 		{
 			if( objects[i] != excludes[u] )
 			{
@@ -195,14 +195,14 @@ void GameEngine::DisableAll( vector<GameObject*> excludes)
 }
 void GameEngine::EnableAll()
 {
-	for( int i = 0; i < objects.size(); i ++ )
+	for( unsigned int i = 0; i < objects.size(); i ++ )
 	{
 		objects[i]->Enable();
 	}
 }
 void GameEngine::EnableAll( GameObject* exclude )
 {
-	for( int i = 0; i < objects.size(); i ++ )
+	for( unsigned int i = 0; i < objects.size(); i ++ )
 	{
 		if( objects[i] != exclude )
 		{
@@ -212,9 +212,9 @@ void GameEngine::EnableAll( GameObject* exclude )
 }
 void GameEngine::EnableAll( vector<GameObject*> excludes)
 {
-	for( int i = 0; i < objects.size(); i ++ )
+	for( unsigned int i = 0; i < objects.size(); i ++ )
 	{
-		for( int u = 0; u < excludes.size(); i ++ )
+		for( unsigned int u = 0; u < excludes.size(); i ++ )
 		{
 			if( objects[i] != excludes[u] )
 			{

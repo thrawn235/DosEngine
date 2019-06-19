@@ -1,0 +1,2 @@
+currentsong=1
+currentsong=2
