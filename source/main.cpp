@@ -69,8 +69,6 @@ int main()
 	{
 		engine->time->FrameStart();		//init Frametiming
 
-		//engine->input->CheckKeys();		//check keyboard
-
 
 		//------------------------ input -----------------------------
 		if(engine->input->KeyDown(ESC))

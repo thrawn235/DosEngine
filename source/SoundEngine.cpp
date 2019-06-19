@@ -37,6 +37,7 @@ void SoundInterruptRoutine()
 		if( currentTime > song->length )
 		{
 			globalPSound->SetSongEnd( true );
+			return;
 		}
 
 		for( unsigned int i = 0; i < song->tracks.size(); i++ )
@@ -45,8 +46,6 @@ void SoundInterruptRoutine()
 			{
 				if( currentTime >= song->tracks[i].events[song->tracks[i].currentEvent].linearTime )
 				{
-					
-
 					//handle event
 					MIDIEvent* currentEvent = &song->tracks[i].events[song->tracks[i].currentEvent];
 					if( currentEvent->command == 0x90 )
@@ -123,7 +122,7 @@ void SoundInterruptRoutineEnd() {}
 
 
 
-//Connstructor / Destructor ===================================================================================================
+//Constructor / Destructor ===================================================================================================
 SoundEngine::SoundEngine( TimeEngine* newTime )
 {
 	globalPSound = this;
@@ -187,7 +186,7 @@ SoundEngine::SoundEngine( TimeEngine* newTime )
 	//maxVoices = 3;
 	InitSoundBlaster( true );
 	
-	SetTickRate( currentSong->header.ticksPerQuarterNote * 2 );
+	//SetTickRate( currentSong->header.ticksPerQuarterNote * 2 );
 	//SetTickRate( 700 );
 	//maxVoices = 18;
 	//PCSpeakerNoteOn( 50 );
@@ -379,7 +378,6 @@ void SoundEngine::SetSongEnd( bool newSongEnd )
 	songEnd = newSongEnd;
 	if( newSongEnd == true )
 	{
-
 		if( loop == true )
 		{
 			for( int i = 0; i < currentSong->tracks.size(); i++ )
@@ -415,6 +413,7 @@ void SoundEngine::SetPlayListEnd( bool newPlayListEnd )
 	if( playListEnd == true )
 	{
 		//loop etc ?
+		currentPlayList->currentTrack = 0;
 	}
 }
 bool SoundEngine::GetPlaying()
@@ -773,6 +772,41 @@ void SoundEngine::OPLCutNote( int midiChannel, unsigned char note )
 	outportb( tempAddressPort, 0xB0 + tempVoice );
 	outportb( tempDataPort, (FNr[note] >> 8) + (Block << 2) );
 }
+void SoundEngine::OPLCutAllNotes()
+{
+	Note noteInQuestion;
+	for( unsigned int i = 0; i < activeNotes.size(); i++ )
+	{
+		noteInQuestion = activeNotes[i];
+		
+		activeVoices[noteInQuestion.playingAtVoice] = false;
+
+		//actually turn off note
+		int tempVoice = noteInQuestion.playingAtVoice;
+		int tempAddressPort = OPL3_ADDRESS_PORT;
+		int tempDataPort = OPL3_DATA_PORT;
+		if( tempVoice > 8 )
+		{
+			tempVoice = tempVoice - 9;
+			tempAddressPort = tempAddressPort+ + 2;
+			tempDataPort = tempDataPort + 2;
+		}
+
+		outportb( tempAddressPort, 0x80 + tempVoice );
+		outportb( tempDataPort, FNr[noteInQuestion.note] & 0xF );
+
+		outportb( tempAddressPort, 0xA0 + tempVoice );
+		outportb( tempDataPort, FNr[noteInQuestion.note] & 0xFF );
+
+		unsigned char Block = noteInQuestion.note >> 4;
+		outportb( tempAddressPort, 0xB0 + tempVoice );
+		outportb( tempDataPort, (FNr[noteInQuestion.note] >> 8) + (Block << 2) );
+
+		//remove note from active notes
+		activeNotes.erase( activeNotes.begin() + i );
+		i--;
+	}
+}
 
 void SoundEngine::GeneralMidiNoteOff()
 {
@@ -853,7 +887,7 @@ void SoundEngine::GUSCutNote()
 void SoundEngine::Play()
 {
 	playing = true;
-	//
+	OPLCutAllNotes();
 }
 void SoundEngine::Pause()
 {
@@ -862,7 +896,12 @@ void SoundEngine::Pause()
 }
 void SoundEngine::JumpToStart()
 {
-	
+	SetHeadPosition( 0 );
+	OPLCutAllNotes();
+	for( int i = 0; i < currentSong->tracks.size(); i++ )
+	{
+		currentSong->tracks[i].currentEvent = 0;
+	}
 }
 void SoundEngine::JumpToTimeCode()
 {
@@ -891,15 +930,56 @@ long SoundEngine::GetCurrentTimeStamp()
 }
 void SoundEngine::SkipToSong( int newSong )
 {
-
+	if( newSong < currentPlayList->songs.size() )
+	{
+		OPLCutAllNotes();
+		currentSong = currentPlayList->songs[ newSong ];
+		for( int i = 0; i < currentSong->tracks.size(); i++ )
+		{
+			currentSong->tracks[i].currentEvent = 0;
+		}
+		currentPlayList->currentTrack = newSong;
+		SetHeadPosition( 0 );
+	}
 }
 void SoundEngine::SkipToSong( int newPlayList, int newSong )
 {
-
+	for( unsigned int i = 0; i < playLists.size(); i++ )
+	{
+		if( playLists[i].ID == newPlayList )
+		{
+			if( newSong < currentPlayList->songs.size() )
+			{
+				OPLCutAllNotes();
+				currentSong = playLists[i].songs[newSong];
+				for( int i = 0; i < currentSong->tracks.size(); i++ )
+				{
+					currentSong->tracks[i].currentEvent = 0;
+				}
+				currentPlayList = &playLists[i];
+				currentPlayList->currentTrack = newSong;
+				SetHeadPosition( 0 );
+			}
+		}
+	}
 }
 void SoundEngine::SkipToPlayList( int newPlayList )
 {
-	
+	for( unsigned int i = 0; i < playLists.size(); i++ )
+	{
+		if( playLists[i].ID == newPlayList )
+		{
+			OPLCutAllNotes();
+			currentSong = playLists[i].songs[0];
+			for( int i = 0; i < currentSong->tracks.size(); i++ )
+			{
+				currentSong->tracks[i].currentEvent = 0;
+			}
+			currentPlayList = &playLists[i];
+			currentPlayList->currentTrack = 0;
+			SetHeadPosition( 0 );
+		}
+	}
 }
 //=============================================================================================================================
 

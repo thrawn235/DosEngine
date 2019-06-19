@@ -1795,6 +1795,56 @@ void MainMenu::Update()
 		invisible = false;
 		keyDown = true;
 	}
+	if( engine->input->KeyDown( KEY_1 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 0 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_2 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 1 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_3 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 2 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_4 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 3 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_5 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 4 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_6 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 5 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_7 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 6 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_8 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 7 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_9 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 8 );
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_0 ) && !keyDown )
+	{
+		engine->sound->SkipToSong( 9 );
+		keyDown = true;
+	}
 	if( showSelf )
 	{
 		if( engine->input->KeyDown( KEY_UP ) && !keyDown && menuPos > 1 )
@@ -2163,6 +2213,17 @@ HelpWindow::~HelpWindow()
 }
 void HelpWindow::Update()
 {
+	if( engine->input->KeyDown( KEY_F5 ) && !keyDown )
+	{
+		engine->sound->Pause();
+		keyDown = true;
+	}
+	if( engine->input->KeyDown( KEY_F6 ) && !keyDown )
+	{
+		engine->sound->Play();
+		keyDown = true;
+	}
+
 	if( engine->input->KeyDown( KEY_F1 ) && show == true && !keyDown )
 	{
 		show = false;

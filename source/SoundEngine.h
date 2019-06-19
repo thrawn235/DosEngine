@@ -148,7 +148,6 @@ protected:
 	int 							timeTicksDivisor;
 
 	char 							channelMapOPL[9] = {0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
-	//char 							channelMapOPL[18] = {0x00, 0x01, 0x02, 0x06, 0x07, 0x08, 0x0C,  0x0D,  0x0E, 0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10,  0x11,  0x12};
 
 	const unsigned short int 		FNr [128] = {	86,91,96,102,108,114,121,128,136,144,
 		                                 			153,162,172,182,192,204,108,114,121,
@@ -282,6 +281,7 @@ public:
 	void 					OPLProgramChange 				();
 	void 					OPLSetTempo 					( int newTempo );
 	void 					OPLCutNote 						( int midiChannel, unsigned char note );
+	void 					OPLCutAllNotes					();
 
 	void 					GeneralMidiNoteOff 				();
 	void 					GeneralMidiNoteOn 				();
